@@ -7,12 +7,13 @@ import FatalErrorPage from 'src/pages/FatalErrorPage'
 import Routes from 'src/Routes'
 
 import './index.css'
+import theme from './config/theme'
 
 const App = () => (
   <FatalErrorBoundary page={FatalErrorPage}>
     <RedwoodProvider titleTemplate="%PageTitle | %AppTitle">
       <RedwoodApolloProvider>
-        <ChakraProvider>
+        <ChakraProvider theme={theme}>
           <DAppProvider>
             <Routes />
           </DAppProvider>

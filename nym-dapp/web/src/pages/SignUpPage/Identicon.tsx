@@ -1,14 +1,8 @@
 import { useEffect, useRef } from 'react'
 import { useEthers } from '@usedapp/core'
 import Jazzicon from '@metamask/jazzicon'
-import styled from '@emotion/styled'
-
-const StyledIdenticon = styled.div`
-  height: 1rem;
-  width: 1rem;
-  border-radius: 1.125rem;
-  background-color: black;
-`
+import { css } from '@emotion/react'
+import { Box } from '@chakra-ui/react'
 
 export default function Identicon() {
   const ref = useRef<HTMLDivElement>()
@@ -21,5 +15,5 @@ export default function Identicon() {
     }
   }, [account])
 
-  return <StyledIdenticon ref={ref as any} />
+  return <Box ref={ref as any} />
 }
