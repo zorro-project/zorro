@@ -2,7 +2,7 @@ import {
   Box,
   Button,
   Stack,
-  ScaleFade,
+  SlideFade,
   ButtonGroup,
   useColorModeValue,
 } from '@chakra-ui/react'
@@ -19,11 +19,31 @@ const SignUpPage = () => {
 
   const formValid = methods.formState.isValid && account != null
 
+  const controlButtons = (
+    <ButtonGroup pt="6" alignSelf="flex-end">
+      {isReviewing ? (
+        <>
+          <Button onClick={() => setIsReviewing(false)}>Make Changes</Button>
+          <Button colorScheme="blue">Submit</Button>
+        </>
+      ) : (
+        <Button
+          colorScheme="teal"
+          // disabled={!formValid}
+          onClick={() => setIsReviewing(true)}
+        >
+          Continue
+        </Button>
+      )}
+    </ButtonGroup>
+  )
+
   return (
     <Box
       bg={useColorModeValue('gray.50', 'gray.800')}
       px={{ base: '4', md: '10' }}
       py="16"
+      minH="100vh"
     >
       <MetaTags
         title="Create Account"
@@ -31,29 +51,12 @@ const SignUpPage = () => {
       />
 
       <FormProvider {...methods}>
-        <Stack maxW="xl" mx="auto">
-          <ScaleFade key={isReviewing.toString()} in={true}>
+        <SlideFade key={isReviewing.toString()} in={true}>
+          <Stack maxW="xl" mx="auto">
             {isReviewing ? <ReviewView /> : <EditView />}
-          </ScaleFade>
-          <ButtonGroup pt="6" alignSelf="flex-end">
-            {isReviewing ? (
-              <>
-                <Button onClick={() => setIsReviewing(false)}>
-                  Make Changes
-                </Button>
-                <Button colorScheme="blue">Submit</Button>
-              </>
-            ) : (
-              <Button
-                colorScheme="blue"
-                // disabled={!formValid}
-                onClick={() => setIsReviewing(true)}
-              >
-                Continue
-              </Button>
-            )}
-          </ButtonGroup>
-        </Stack>
+            {controlButtons}
+          </Stack>
+        </SlideFade>
       </FormProvider>
     </Box>
   )
