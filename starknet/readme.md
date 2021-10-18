@@ -11,6 +11,7 @@ brew install gmp
 pip install --user poetry
 
 # Set up the virtual env and install project dependencies
+poetry self update
 poetry install
 
 # Make sure the virtual environment was correctly installed within the working directory
