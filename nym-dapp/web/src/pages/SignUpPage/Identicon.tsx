@@ -15,5 +15,5 @@ export default function Identicon() {
     }
   }, [account])
 
-  return <Box ref={ref as any} />
+  return <Box height="20px" ref={ref as any} />
 }

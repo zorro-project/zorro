@@ -1,3 +1,4 @@
 *_compiled.json
 *_abi.json
 __pycache__
+.venv/
