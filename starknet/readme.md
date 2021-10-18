@@ -1,7 +1,10 @@
 Set up project dependencies. Run the following in the current folder:
 
 ```bash
-pyenv global 3.7.11
+# Install `asdf` to manage python tool version https://asdf-vm.com/
+# Make sure you also configure your shell to use it
+brew install asdf
+
 brew install gmp
 
 # Install the `poetry` dependency manager for Python
