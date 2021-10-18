@@ -9,7 +9,6 @@ brew install gmp
 
 # Install the `poetry` dependency manager for Python
 pip install --user poetry
-poetry config virtualenvs.in-project true
 
 # Set up the virtual env and install project dependencies
 poetry install
