@@ -1,3 +1,5 @@
 {
-    "python.formatting.provider": "black"
+    "python.formatting.provider": "black",
+    "cairols.venvCommand": "source ./starknet/.venv/bin/activate",
+    "cairo.cairoFormatPath": "./starknet/.venv/bin/cairo-format",
 }
