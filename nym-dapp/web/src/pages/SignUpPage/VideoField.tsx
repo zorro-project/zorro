@@ -2,7 +2,6 @@ import {
   Box,
   Button,
   ButtonGroup,
-  Image,
   Link,
   ListItem,
   Modal,
@@ -20,9 +19,11 @@ import {
 } from '@chakra-ui/react'
 import { useState } from 'react'
 import { useController, useFormContext } from 'react-hook-form'
-import Webcam from 'react-webcam'
-import { useFilePicker } from 'use-file-picker'
 import ReactPlayer from 'react-player'
+import Webcam from 'react-webcam'
+import { dataUrlToBlob } from 'src/lib/util'
+import { useFilePicker } from 'use-file-picker'
+import { SignupFieldValues } from './types'
 
 const VideoModal = (props: {
   modalCtrl: UseDisclosureReturn
@@ -30,7 +31,6 @@ const VideoModal = (props: {
 }) => {
   const [webcamActive, setwebcamActive] = useState<boolean>(false)
   const [recording, setRecording] = useState(false)
-  const [recordedChunks, setRecordedChunks] = useState([])
 
   const [candidateVid, setCandidateVid] = useState<Blob | null>(null)
 
@@ -39,20 +39,12 @@ const VideoModal = (props: {
     accept: 'video/*',
     multiple: true,
     limitFilesConfig: { max: 1 },
-    // minFileSize: 0.1, // in megabytes
-    // maxFileSize: 5,
-    // imageSizeRestrictions: {
-    //   minHeight: 600,
-    //   minWidth: 768,
-    // },
   })
 
   React.useEffect(() => {
     if (filesContent.length < 1) return
-    const convertFileToBlob = async () =>
-      setCandidateVid(await (await fetch(filesContent[0].content)).blob())
-
-    convertFileToBlob()
+    ;(async () =>
+      setCandidateVid(await dataUrlToBlob(filesContent[0].content)))()
   }, [filesContent])
 
   const webcamRef = React.useRef<Webcam>(null)
@@ -60,12 +52,16 @@ const VideoModal = (props: {
 
   const handleStartCaptureClick = React.useCallback(() => {
     setRecording(true)
-    setRecordedChunks([])
     mediaRecorderRef.current = new MediaRecorder(webcamRef.current.stream, {
       mimeType: 'video/webm',
     })
     mediaRecorderRef.current.addEventListener('dataavailable', ({ data }) => {
-      setCandidateVid(data)
+      // Create a copy of the blob with the mime type set to 'video/webm'.
+      // Without this at least on MacOS/Chrome I get a mime type of
+      // video/x-matroska;codecs=avc1,opus, which Infura refuses to accept
+      // as a valid mime-type when uploading the video.
+      const video = data.slice(0, data.size, 'video/webm')
+      setCandidateVid(video)
     })
     mediaRecorderRef.current.start()
   }, [webcamRef, setRecording, mediaRecorderRef])
@@ -189,13 +185,13 @@ const VideoModal = (props: {
 const VideoField = () => {
   const modalControl = useDisclosure()
 
-  const { control } = useFormContext()
+  const { control } = useFormContext<SignupFieldValues>()
   const fieldController = useController({
     name: 'userVideo',
     control,
     rules: { required: true },
   })
-  const currentVideo: string | null = fieldController.field.value
+  const currentVideo = fieldController.field.value
 
   return (
     <>

@@ -21,38 +21,35 @@ import {
 import { useState } from 'react'
 import { useController, useFormContext } from 'react-hook-form'
 import Webcam from 'react-webcam'
+import { dataUrlToBlob } from 'src/lib/util'
 import { useFilePicker } from 'use-file-picker'
+import { SignupFieldValues } from './types'
 
 const SelfieModal = (props: {
   modalCtrl: UseDisclosureReturn
-  onSave: (newPhoto: string) => void
+  onSave: (newPhoto: Blob) => void
 }) => {
-  const [webcamActive, setwebcamActive] = useState<boolean>(false)
-  const [candidatePic, setCandidatePic] = useState<string | null>(null)
+  const [webcamActive, setWebcamActive] = useState<boolean>(false)
+  const [candidatePic, setCandidatePic] = useState<Blob | null>(null)
 
   const [openFileSelector, { filesContent }] = useFilePicker({
     readAs: 'DataURL',
     accept: 'image/*',
     multiple: true,
     limitFilesConfig: { max: 1 },
-    // minFileSize: 0.1, // in megabytes
-    // maxFileSize: 5,
-    // imageSizeRestrictions: {
-    //   minHeight: 600,
-    //   minWidth: 768,
-    // },
   })
 
   React.useEffect(() => {
     if (filesContent.length < 1) return
-    setCandidatePic(filesContent[0].content)
+    ;(async () =>
+      setCandidatePic(await dataUrlToBlob(filesContent[0].content)))()
   }, [filesContent])
 
-  const webcamRef = React.useRef(null)
+  const webcamRef = React.useRef<null | Webcam>(null)
 
-  const capture = () => {
-    setCandidatePic(webcamRef.current.getScreenshot())
-    setwebcamActive(false)
+  const capture = async () => {
+    setCandidatePic(await dataUrlToBlob(webcamRef.current.getScreenshot()))
+    setWebcamActive(false)
   }
 
   const saveSelfie = () => {
@@ -110,7 +107,7 @@ const SelfieModal = (props: {
                   <Button colorScheme="teal" onClick={capture}>
                     Capture Photo
                   </Button>
-                  <Button onClick={() => setwebcamActive(false)}>Cancel</Button>
+                  <Button onClick={() => setWebcamActive(false)}>Cancel</Button>
                 </ButtonGroup>
               </>
             )}
@@ -119,7 +116,7 @@ const SelfieModal = (props: {
                 <Stack spacing="8" align="center">
                   <Image
                     shadow="md"
-                    src={candidatePic}
+                    src={URL.createObjectURL(candidatePic)}
                     alt="Candidate picture"
                     borderRadius="lg"
                   />
@@ -137,7 +134,7 @@ const SelfieModal = (props: {
             {!candidatePic && !webcamActive && (
               <ButtonGroup justify="center" colorScheme="teal" pb="4">
                 <Button onClick={openFileSelector}>Upload Picture</Button>
-                <Button onClick={() => setwebcamActive(true)}>
+                <Button onClick={() => setWebcamActive(true)}>
                   Use Webcam
                 </Button>
               </ButtonGroup>
@@ -153,13 +150,13 @@ const SelfieModal = (props: {
 const Selfie = () => {
   const modalControl = useDisclosure()
 
-  const { control } = useFormContext()
+  const { control } = useFormContext<SignupFieldValues>()
   const fieldController = useController({
     name: 'userSelfie',
     control,
     rules: { required: true },
   })
-  const currentPic: string | null = fieldController.field.value
+  const currentPic = fieldController.field.value
 
   return (
     <>
@@ -169,7 +166,12 @@ const Selfie = () => {
       />
       {currentPic ? (
         <Stack>
-          <Image src={currentPic} width="36" borderRadius="lg" shadow="lg" />
+          <Image
+            src={URL.createObjectURL(currentPic)}
+            width="36"
+            borderRadius="lg"
+            shadow="lg"
+          />
           <Link as="button" variant="btn" onClick={modalControl.onOpen}>
             Change
           </Link>

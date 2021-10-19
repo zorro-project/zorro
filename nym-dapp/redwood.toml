@@ -9,7 +9,7 @@
   title = "Nym ID"
   port = 8910
   apiProxyPath = "/.redwood/functions"
-  includeEnvironmentVariables = [] # any ENV vars that should be available to the web side, see https://redwoodjs.com/docs/environment-variables#web
+  includeEnvironmentVariables = ['INFURA_IPFS_ID', 'INFURA_IPFS_SECRET'] # any ENV vars that should be available to the web side, see https://redwoodjs.com/docs/environment-variables#web
 [api]
   port = 8911
 [browser]

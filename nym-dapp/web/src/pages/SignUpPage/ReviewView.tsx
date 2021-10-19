@@ -22,10 +22,11 @@ import VideoField from 'src/pages/SignUpPage/VideoField'
 import { Card } from './Card'
 import ConnectButton from './ConnectButton'
 import Identicon from './Identicon'
+import { SignupFieldValues } from './types'
 
 const ReviewView = () => {
   const { account } = useEthers()
-  const { watch } = useFormContext()
+  const { watch } = useFormContext<SignupFieldValues>()
   const userSelfie = watch('userSelfie')
   const userVideo = watch('userVideo')
   // const { }
@@ -70,7 +71,12 @@ const ReviewView = () => {
                 </ListItem>
               </OrderedList>
             </FormControl>
-            <Image src={userSelfie} width="36" borderRadius="lg" shadow="lg" />
+            <Image
+              src={URL.createObjectURL(userSelfie)}
+              width="36"
+              borderRadius="lg"
+              shadow="lg"
+            />
           </Stack>
           <Stack
             direction={{ base: 'column', md: 'row' }}

@@ -23,6 +23,7 @@
     "@redwoodjs/web": "0.37.4",
     "@usedapp/core": "^0.5.4",
     "framer-motion": "^4",
+    "ipfs-http-client": "^53.0.1",
     "prop-types": "15.7.2",
     "react": "17.0.2",
     "react-dom": "17.0.2",
