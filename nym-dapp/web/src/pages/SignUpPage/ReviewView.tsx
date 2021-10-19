@@ -29,6 +29,15 @@ const ReviewView = () => {
   const { watch } = useFormContext<SignupFieldValues>()
   const userSelfie = watch('userSelfie')
   const userVideo = watch('userVideo')
+
+  const userSelfieUrl = React.useMemo(
+    () => URL.createObjectURL(userSelfie),
+    [userSelfie]
+  )
+  const userVideoUrl = React.useMemo(
+    () => URL.createObjectURL(userVideo),
+    [userVideo]
+  )
   // const { }
 
   return (
@@ -72,7 +81,7 @@ const ReviewView = () => {
               </OrderedList>
             </FormControl>
             <Image
-              src={URL.createObjectURL(userSelfie)}
+              src={userSelfieUrl}
               width="36"
               borderRadius="lg"
               shadow="lg"
@@ -99,7 +108,7 @@ const ReviewView = () => {
             {userVideo && (
               <Box overflow="hidden" width="36" borderRadius="lg" shadow="lg">
                 <ReactPlayer
-                  url={URL.createObjectURL(userVideo)}
+                  url={userVideoUrl}
                   controls
                   width="100%"
                   height="auto"

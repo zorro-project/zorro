@@ -21,10 +21,10 @@ import ConnectButton from './ConnectButton'
 const EditView = () => {
   return (
     <Stack spacing="6">
-      <Heading size="lg">Create Account</Heading>
+      <Heading size="lg">Create Public Profile</Heading>
       <Text>
-        Your Nym account is linked to your real identity, and each person can
-        only create a single Nym account. If you already have a Nym account,{' '}
+        Your Nym public profile is linked to your real identity, and each person
+        can only create a single Nym account. If you already have a Nym account,{' '}
         <Link href={routes.signIn()} textDecor="underline">
           sign in
         </Link>

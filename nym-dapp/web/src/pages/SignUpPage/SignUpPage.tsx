@@ -5,6 +5,8 @@ import {
   SlideFade,
   ButtonGroup,
   useColorModeValue,
+  CircularProgress,
+  Text,
 } from '@chakra-ui/react'
 import { MetaTags } from '@redwoodjs/web'
 import { useEthers } from '@usedapp/core'
@@ -18,23 +20,32 @@ const SignUpPage = () => {
   const methods = useForm<SignupFieldValues>({ mode: 'onChange' })
   const { account } = useEthers()
   const [isReviewing, setIsReviewing] = React.useState(false)
+  const [submitProgress, setSubmitProgress] = React.useState(0)
 
   const formValid = methods.formState.isValid && account != null
 
   const submit = React.useCallback<SubmitHandler<SignupFieldValues>>(
     async (data) => {
       console.log(data)
-      const uploadedSelfie = await ipfsClient.add(data.userSelfie as Blob)
-      console.log(uploadedSelfie)
-      const uploadedVideo = await ipfsClient.add(data.userVideo as Blob)
-      console.log('video done')
-      console.log(uploadedVideo)
-      console.log('submitted')
+      const reportProgress = (bytes: number) =>
+        setSubmitProgress(
+          (100 * bytes) / (data.userSelfie.size + data.userVideo.size)
+        )
+
+      const uploadedSelfie = await ipfsClient.add(data.userSelfie as Blob, {
+        progress: reportProgress,
+      })
+      const uploadedVideo = await ipfsClient.add(data.userVideo as Blob, {
+        progress: (progress) => reportProgress(data.userSelfie.size + progress),
+      })
+
+      const selfieCID = uploadedSelfie.cid.toV1().toString()
+      const videoCID = uploadedVideo.cid.toV1().toString()
     },
-    [methods]
+    []
   )
 
-  const controlButtons = (
+  let controlButtons = (
     <ButtonGroup pt="6" alignSelf="flex-end">
       {isReviewing ? (
         <>
@@ -54,6 +65,15 @@ const SignUpPage = () => {
       )}
     </ButtonGroup>
   )
+
+  if (methods.formState.isSubmitting) {
+    controlButtons = (
+      <Stack align="center" justify="center" direction="row" pt="6">
+        <CircularProgress value={submitProgress} />
+        <Text>Submitting...</Text>
+      </Stack>
+    )
+  }
 
   return (
     <Box
