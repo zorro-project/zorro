@@ -7,6 +7,9 @@
       "packages/*"
     ]
   },
+  "scripts": {
+    "db:reset": "rm -rf api/db/migrations/ && yarn rw prisma migrate dev --name init_db && yarn rw prisma db seed --preview-feature"
+  },
   "devDependencies": {
     "@redwoodjs/core": "0.37.4"
   },

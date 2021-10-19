@@ -9,8 +9,12 @@ generator client {
 }
 
 model UnsubmittedProfile {
-  id         Int    @id @default(autoincrement())
-  selfiePath String
-  videoPath  String
-  ethAddress String
+  id         Int     @id @default(autoincrement())
+  selfieCID  String
+  videoCID   String
+  ethAddress String  @unique
+  email      String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

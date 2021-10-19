@@ -6,7 +6,6 @@ import { DAppProvider } from '@usedapp/core'
 import FatalErrorPage from 'src/pages/FatalErrorPage'
 import Routes from 'src/Routes'
 
-import './index.css'
 import theme from './config/theme'
 
 const App = () => (

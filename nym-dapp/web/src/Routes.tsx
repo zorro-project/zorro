@@ -7,7 +7,8 @@
 // 'src/pages/HomePage/HomePage.js'         -> HomePage
 // 'src/pages/Admin/BooksPage/BooksPage.js' -> AdminBooksPage
 
-import { Router, Route } from '@redwoodjs/router'
+import { Set, Router, Route } from '@redwoodjs/router'
+import UnsubmittedProfilesLayout from 'src/layouts/UnsubmittedProfilesLayout'
 
 const Routes = () => {
   return (

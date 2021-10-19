@@ -8,13 +8,21 @@ import {
   CircularProgress,
   Text,
 } from '@chakra-ui/react'
-import { MetaTags } from '@redwoodjs/web'
+import { MetaTags, useMutation } from '@redwoodjs/web'
 import { useEthers } from '@usedapp/core'
 import { FormProvider, SubmitHandler, useForm } from 'react-hook-form'
 import ipfsClient from 'src/lib/ipfsClient'
 import EditView from './EditView'
 import ReviewView from './ReviewView'
 import { SignupFieldValues } from './types'
+
+const CREATE_UNSUBMITTED_PROFILE_MUTATION = gql`
+  mutation CREATE_UNSUBMITTED_PROFILE($input: CreateUnsubmittedProfileInput!) {
+    createUnsubmittedProfile(input: $input) {
+      id
+    }
+  }
+`
 
 const SignUpPage = () => {
   const methods = useForm<SignupFieldValues>({ mode: 'onChange' })
@@ -24,9 +32,11 @@ const SignUpPage = () => {
 
   const formValid = methods.formState.isValid && account != null
 
+  const [submitMutation] = useMutation(CREATE_UNSUBMITTED_PROFILE_MUTATION)
+
   const submit = React.useCallback<SubmitHandler<SignupFieldValues>>(
     async (data) => {
-      console.log(data)
+      setSubmitProgress(0)
       const reportProgress = (bytes: number) =>
         setSubmitProgress(
           (100 * bytes) / (data.userSelfie.size + data.userVideo.size)
@@ -41,6 +51,16 @@ const SignUpPage = () => {
 
       const selfieCID = uploadedSelfie.cid.toV1().toString()
       const videoCID = uploadedVideo.cid.toV1().toString()
+
+      await submitMutation({
+        variables: {
+          input: {
+            ethAddress: account,
+            selfieCID,
+            videoCID,
+          },
+        },
+      })
     },
     []
   )
