@@ -14,37 +14,10 @@ export const unsubmittedProfile = ({
   })
 }
 
-interface CreateUnsubmittedProfileArgs {
-  input: Prisma.UnsubmittedProfileCreateInput
-}
-
-export const createUnsubmittedProfile = ({
-  input,
-}: CreateUnsubmittedProfileArgs) => {
-  return db.unsubmittedProfile.create({
-    data: input,
-  })
-}
-
-interface UpdateUnsubmittedProfileArgs
-  extends Prisma.UnsubmittedProfileWhereUniqueInput {
-  input: Prisma.UnsubmittedProfileUpdateInput
-}
-
-export const updateUnsubmittedProfile = ({
-  id,
-  input,
-}: UpdateUnsubmittedProfileArgs) => {
-  return db.unsubmittedProfile.update({
-    data: input,
-    where: { id },
-  })
-}
-
-export const deleteUnsubmittedProfile = ({
-  id,
-}: Prisma.UnsubmittedProfileWhereUniqueInput) => {
-  return db.unsubmittedProfile.delete({
-    where: { id },
+export const updateUnsubmittedProfile = ({ ethAddress, input }) => {
+  return db.unsubmittedProfile.upsert({
+    create: { ...input, ethAddress },
+    update: { ...input },
+    where: { ethAddress },
   })
 }

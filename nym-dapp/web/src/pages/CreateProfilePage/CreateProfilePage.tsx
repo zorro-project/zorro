@@ -48,7 +48,8 @@ const SignUpPage = () => {
     unsubmittedProfile.called
       ? unsubmittedProfile.refetch(queryVars)
       : loadUnsubmittedProfile({ variables: queryVars })
-  }, [account, loadUnsubmittedProfile, unsubmittedProfile])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [account])
 
   React.useEffect(() => {
     if (!unsubmittedProfile.called || unsubmittedProfile.loading) return
@@ -57,14 +58,10 @@ const SignUpPage = () => {
       selfieCID: unsubmittedProfile.data?.unsubmittedProfile?.selfieCID,
       videoCID: unsubmittedProfile.data?.unsubmittedProfile?.videoCID,
     })
-  }, [
-    methods,
-    unsubmittedProfile.called,
-    unsubmittedProfile.data,
-    unsubmittedProfile.loading,
-  ])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [unsubmittedProfile.data])
 
-  const [createMutation] = useMutation<Update_Unsubmitted_Profile>(gql`
+  const [updateMutation] = useMutation<Update_Unsubmitted_Profile>(gql`
     mutation UPDATE_UNSUBMITTED_PROFILE(
       $ethAddress: String!
       $input: UpdateUnsubmittedProfileInput!
@@ -107,10 +104,10 @@ const SignUpPage = () => {
               .toString()
           : data.videoCID
 
-      await createMutation({
+      await updateMutation({
         variables: {
+          ethAddress: account,
           input: {
-            ethAddress: account,
             selfieCID,
             videoCID,
           },
@@ -119,7 +116,7 @@ const SignUpPage = () => {
 
       navigate(routes.pendingProfile())
     },
-    [account, createMutation]
+    [account, updateMutation]
   )
 
   let controlButtons = (
