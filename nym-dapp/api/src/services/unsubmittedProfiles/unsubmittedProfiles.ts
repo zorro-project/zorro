@@ -7,10 +7,10 @@ export const unsubmittedProfiles = () => {
 }
 
 export const unsubmittedProfile = ({
-  id,
+  ethAddress,
 }: Prisma.UnsubmittedProfileWhereUniqueInput) => {
   return db.unsubmittedProfile.findUnique({
-    where: { id },
+    where: { ethAddress },
   })
 }
 

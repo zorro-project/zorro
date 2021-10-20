@@ -7,31 +7,26 @@ import {
   FormHelperText,
   FormLabel,
   Heading,
-  Link,
   Stack,
   StackDivider,
   Text,
 } from '@chakra-ui/react'
-import { routes } from '@redwoodjs/router'
 import ConnectButton from 'src/components/ConnectButton/ConnectButton'
-import SelfieField from 'src/pages/SignUpPage/SelfieField'
-import VideoField from 'src/pages/SignUpPage/VideoField'
-import { Card } from '../../components/Card'
+import { Card } from 'src/components/Card'
+import SelfieField from 'src/pages/CreateProfilePage/SelfieField'
+import VideoField from 'src/pages/CreateProfilePage/VideoField'
 
 const EditView = () => {
   return (
     <Stack spacing="6">
       <Heading size="lg">Create Public Profile</Heading>
       <Text>
-        Your Nym public profile is linked to your real identity, and each person
-        can only create a single Nym account. If you already have a Nym account,{' '}
-        <Link href={routes.signIn()} textDecor="underline">
-          sign in
-        </Link>
-        .
+        Your public Nym profile is linked to your real identity, and each person
+        can only create a single profile. If you already have a Nym profile,
+        click "Connect to a wallet" above.
       </Text>
       <Text>
-        Once your account is active, you'll be able to create one or more{' '}
+        Once your profile is complete, you'll be able to create one or more{' '}
         <strong>Nym aliases</strong>. Nym aliases are private pseudonyms you can
         use to demonstrate that you're a real, unique human, without disclosing
         exactly <em>which</em> human you are.
@@ -49,7 +44,7 @@ const EditView = () => {
                 <FormLabel>Ethereum Wallet</FormLabel>
                 <FormHelperText>
                   Choose the Ethereum wallet you'd like to associate with your
-                  Nym account.
+                  Nym profile.
                 </FormHelperText>
               </FormControl>
               <ConnectButton />
@@ -60,7 +55,7 @@ const EditView = () => {
                 This wallet will be linked to your real identity, so use a new
                 one or one you don't mind revealing publicly.
               </AlertDescription>
-            </Alert>{' '}
+            </Alert>
           </Box>
 
           <Stack

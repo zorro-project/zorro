@@ -21,7 +21,7 @@ import { useState } from 'react'
 import { useController, useFormContext } from 'react-hook-form'
 import ReactPlayer from 'react-player'
 import Webcam from 'react-webcam'
-import { dataUrlToBlob } from 'src/lib/util'
+import { dataUrlToBlob, useDataFieldUrl } from 'src/lib/util'
 import { useFilePicker } from 'use-file-picker'
 import { SignupFieldValues } from './types'
 
@@ -186,28 +186,20 @@ const VideoField = () => {
   const modalControl = useDisclosure()
 
   const { control } = useFormContext<SignupFieldValues>()
-  const fieldController = useController({
-    name: 'userVideo',
+  const { field } = useController({
+    name: 'videoCID',
     control,
     rules: { required: true },
   })
-  const currentVideo = fieldController.field.value
+  const videoURL = useDataFieldUrl(field.value)
 
   return (
     <>
-      <VideoModal
-        modalCtrl={modalControl}
-        onSave={fieldController.field.onChange}
-      />
-      {currentVideo ? (
+      <VideoModal modalCtrl={modalControl} onSave={field.onChange} />
+      {videoURL ? (
         <Stack>
           <Box overflow="hidden" width="36" borderRadius="lg" shadow="lg">
-            <ReactPlayer
-              url={URL.createObjectURL(currentVideo)}
-              controls
-              width="100%"
-              height="auto"
-            />
+            <ReactPlayer url={videoURL} controls width="100%" height="auto" />
           </Box>
           <Link as="button" variant="btn" onClick={modalControl.onOpen}>
             Change

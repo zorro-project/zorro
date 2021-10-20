@@ -13,23 +13,15 @@ import { useEthers } from '@usedapp/core'
 import { useFormContext } from 'react-hook-form'
 import ReactPlayer from 'react-player'
 import Identicon from 'src/components/ConnectButton/Identicon'
+import { dataFieldToUrl } from 'src/lib/util'
 import { Card } from '../../components/Card'
 import { SignupFieldValues } from './types'
 
 const ReviewView = () => {
   const { account } = useEthers()
   const { watch } = useFormContext<SignupFieldValues>()
-  const userSelfie = watch('userSelfie')
-  const userVideo = watch('userVideo')
-
-  const userSelfieUrl = React.useMemo(
-    () => URL.createObjectURL(userSelfie),
-    [userSelfie]
-  )
-  const userVideoUrl = React.useMemo(
-    () => URL.createObjectURL(userVideo),
-    [userVideo]
-  )
+  const selfieUrl = dataFieldToUrl(watch('selfieCID'))
+  const videoUrl = dataFieldToUrl(watch('videoCID'))
 
   return (
     <Stack spacing="6">
@@ -71,12 +63,7 @@ const ReviewView = () => {
                 </ListItem>
               </OrderedList>
             </FormControl>
-            <Image
-              src={userSelfieUrl}
-              width="36"
-              borderRadius="lg"
-              shadow="lg"
-            />
+            <Image src={selfieUrl} width="36" borderRadius="lg" shadow="lg" />
           </Stack>
           <Stack
             direction={{ base: 'column', md: 'row' }}
@@ -92,14 +79,14 @@ const ReviewView = () => {
                 <ListItem>Right hand raised</ListItem>
                 <ListItem>
                   Repeat "I solemnly swear this is my first time registering a
-                  Nym account"
+                  Nym profile"
                 </ListItem>
               </OrderedList>
             </FormControl>
-            {userVideo && (
+            {videoUrl && (
               <Box overflow="hidden" width="36" borderRadius="lg" shadow="lg">
                 <ReactPlayer
-                  url={userVideoUrl}
+                  url={videoUrl}
                   controls
                   width="100%"
                   height="auto"

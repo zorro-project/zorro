@@ -21,7 +21,7 @@ import {
 import { useState } from 'react'
 import { useController, useFormContext } from 'react-hook-form'
 import Webcam from 'react-webcam'
-import { dataUrlToBlob } from 'src/lib/util'
+import { dataFieldToUrl, dataUrlToBlob, useDataFieldUrl } from 'src/lib/util'
 import { useFilePicker } from 'use-file-picker'
 import { SignupFieldValues } from './types'
 
@@ -147,31 +147,26 @@ const SelfieModal = (props: {
   )
 }
 
-const Selfie = () => {
+const SelfieField = () => {
   const modalControl = useDisclosure()
 
   const { control } = useFormContext<SignupFieldValues>()
-  const fieldController = useController({
-    name: 'userSelfie',
+  const { field } = useController({
+    name: 'selfieCID',
     control,
     rules: { required: true },
   })
-  const currentPic = fieldController.field.value
+  const selfieURL = useDataFieldUrl(field.value)
 
   return (
     <>
       <SelfieModal
         modalCtrl={modalControl}
-        onSave={(pic) => fieldController.field.onChange(pic)}
+        onSave={(pic) => field.onChange(pic)}
       />
-      {currentPic ? (
+      {selfieURL ? (
         <Stack>
-          <Image
-            src={URL.createObjectURL(currentPic)}
-            width="36"
-            borderRadius="lg"
-            shadow="lg"
-          />
+          <Image src={selfieURL} width="36" borderRadius="lg" shadow="lg" />
           <Link as="button" variant="btn" onClick={modalControl.onOpen}>
             Change
           </Link>
@@ -183,4 +178,4 @@ const Selfie = () => {
   )
 }
 
-export default Selfie
+export default SelfieField

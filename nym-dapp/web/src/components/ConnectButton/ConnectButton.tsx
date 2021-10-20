@@ -1,4 +1,4 @@
-import { Button, Link, Stack, Text, useDisclosure } from '@chakra-ui/react'
+import { Button, Stack, Text, useDisclosure } from '@chakra-ui/react'
 import { useEthers } from '@usedapp/core'
 import AccountModal from './AccountModal'
 import Identicon from './Identicon'
@@ -17,14 +17,7 @@ export default function ConnectButton() {
           onClose={modalControl.onClose}
         />
         <Button variant="outline" onClick={modalControl.onOpen}>
-          <Stack
-            direction="row"
-            alignItems="center"
-            // p="2"
-            // borderRadius="lg"
-            // border="1px"
-            // borderColor="gray.200"
-          >
+          <Stack direction="row" alignItems="center">
             <Text fontWeight="bold">
               {account.slice(0, 6)}...
               {account.slice(account.length - 4, account.length)}
