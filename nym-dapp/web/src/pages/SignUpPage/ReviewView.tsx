@@ -1,27 +1,19 @@
 import {
-  Alert,
-  AlertDescription,
-  AlertIcon,
   Box,
   FormControl,
-  Text,
   Heading,
-  Link,
+  Image,
+  ListItem,
+  OrderedList,
   Stack,
   StackDivider,
-  OrderedList,
-  ListItem,
-  Image,
+  Text,
 } from '@chakra-ui/react'
-import { routes } from '@redwoodjs/router'
 import { useEthers } from '@usedapp/core'
 import { useFormContext } from 'react-hook-form'
 import ReactPlayer from 'react-player'
-import SelfieField from 'src/pages/SignUpPage/SelfieField'
-import VideoField from 'src/pages/SignUpPage/VideoField'
-import { Card } from './Card'
-import ConnectButton from './ConnectButton'
-import Identicon from './Identicon'
+import Identicon from 'src/components/ConnectButton/Identicon'
+import { Card } from '../../components/Card'
 import { SignupFieldValues } from './types'
 
 const ReviewView = () => {
@@ -38,11 +30,10 @@ const ReviewView = () => {
     () => URL.createObjectURL(userVideo),
     [userVideo]
   )
-  // const { }
 
   return (
     <Stack spacing="6">
-      <Heading size="md">Review Details</Heading>
+      <Heading size="lg">Review Details</Heading>
       <Card>
         <Stack divider={<StackDivider />} spacing="8">
           <Box>

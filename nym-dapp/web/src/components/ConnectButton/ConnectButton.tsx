@@ -16,23 +16,22 @@ export default function ConnectButton() {
           isOpen={modalControl.isOpen}
           onClose={modalControl.onClose}
         />
-        <Stack
-          direction="row"
-          alignItems="center"
-          p="2"
-          borderRadius="lg"
-          border="1px"
-          borderColor="gray.200"
-        >
-          <Text fontWeight="bold">
-            {account.slice(0, 6)}...
-            {account.slice(account.length - 4, account.length)}
-          </Text>
-          <Identicon />
-        </Stack>
-        <Link as="button" variant="btn" onClick={modalControl.onOpen}>
-          Change
-        </Link>
+        <Button variant="outline" onClick={modalControl.onOpen}>
+          <Stack
+            direction="row"
+            alignItems="center"
+            // p="2"
+            // borderRadius="lg"
+            // border="1px"
+            // borderColor="gray.200"
+          >
+            <Text fontWeight="bold">
+              {account.slice(0, 6)}...
+              {account.slice(account.length - 4, account.length)}
+            </Text>
+            <Identicon />
+          </Stack>
+        </Button>
       </Stack>
     </>
   ) : (

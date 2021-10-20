@@ -13,10 +13,10 @@ import {
   Text,
 } from '@chakra-ui/react'
 import { routes } from '@redwoodjs/router'
+import ConnectButton from 'src/components/ConnectButton/ConnectButton'
 import SelfieField from 'src/pages/SignUpPage/SelfieField'
 import VideoField from 'src/pages/SignUpPage/VideoField'
-import { Card } from './Card'
-import ConnectButton from './ConnectButton'
+import { Card } from '../../components/Card'
 
 const EditView = () => {
   return (

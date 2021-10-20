@@ -96,12 +96,7 @@ const SignUpPage = () => {
   }
 
   return (
-    <Box
-      bg={useColorModeValue('gray.50', 'gray.800')}
-      px={{ base: '4', md: '10' }}
-      py="16"
-      minH="100vh"
-    >
+    <>
       <MetaTags
         title="Create Account"
         description="Sign up for a Nym account"
@@ -117,7 +112,7 @@ const SignUpPage = () => {
           </SlideFade>
         </form>
       </FormProvider>
-    </Box>
+    </>
   )
 }
 

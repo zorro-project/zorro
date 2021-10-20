@@ -8,14 +8,17 @@
 // 'src/pages/Admin/BooksPage/BooksPage.js' -> AdminBooksPage
 
 import { Set, Router, Route } from '@redwoodjs/router'
-import UnsubmittedProfilesLayout from 'src/layouts/UnsubmittedProfilesLayout'
+import AppLayout from './layouts/AppLayout/AppLayout'
 
 const Routes = () => {
   return (
     <Router>
-      <Route path="/sign-in" page={SignInPage} name="signIn" />
-      <Route path="/sign-up" page={SignUpPage} name="signUp" />
-      <Route notfound page={NotFoundPage} />
+      <Set wrap={AppLayout}>
+        <Route path="/pending-profile" page={PendingProfilePage} name="pendingProfile" />
+        <Route path="/sign-in" page={SignInPage} name="signIn" />
+        <Route path="/sign-up" page={SignUpPage} name="signUp" />
+        <Route notfound page={NotFoundPage} />
+      </Set>
     </Router>
   )
 }
