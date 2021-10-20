@@ -1,5 +1,0 @@
-{
-  "cairols.venvCommand": "source ./.venv/bin/activate",
-  "cairo.cairoFormatPath": "./.venv/bin/cairo-format",
-  "python.formatting.provider": "black"
-}
