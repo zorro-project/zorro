@@ -83,6 +83,11 @@ async def test_apply_via_notary(ctx):
     assert e_info.value.code == StarknetErrorCode.TRANSACTION_FAILED
 
 
+@pytest.mark.asyncio
+async def test_apply_via_notary(ctx):
+    print("test result", await ctx.nym.test().call())
+
+
 """
 def generate_public_key(private_key):
     public_key = private_to_stark_key(private_key)
