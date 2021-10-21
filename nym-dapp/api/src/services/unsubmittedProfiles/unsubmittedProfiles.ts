@@ -1,17 +1,17 @@
 import type { Prisma } from '@prisma/client'
-
 import { db } from 'src/lib/db'
 
 export const unsubmittedProfiles = () => {
   return db.unsubmittedProfile.findMany()
 }
 
-export const unsubmittedProfile = ({
+export const unsubmittedProfile = async ({
   ethAddress,
 }: Prisma.UnsubmittedProfileWhereUniqueInput) => {
-  return db.unsubmittedProfile.findUnique({
+  const record = await db.unsubmittedProfile.findUnique({
     where: { ethAddress },
   })
+  return { ...record, hasEmail: !!record.email }
 }
 
 export const updateUnsubmittedProfile = ({ ethAddress, input }) => {
@@ -21,3 +21,6 @@ export const updateUnsubmittedProfile = ({ ethAddress, input }) => {
     where: { ethAddress },
   })
 }
+
+export const unsubmittedProfileSetEmail = ({ ethAddress, email }) =>
+  db.unsubmittedProfile.update({ where: { ethAddress }, data: { email } })

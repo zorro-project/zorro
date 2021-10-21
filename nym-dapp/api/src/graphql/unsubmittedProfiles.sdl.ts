@@ -4,8 +4,11 @@ export const schema = gql`
     selfieCID: String!
     videoCID: String!
     ethAddress: String!
+    hasEmail: Boolean!
     createdAt: DateTime!
     updatedAt: DateTime!
+
+    UnaddressedFeedback: NotaryFeedback
   }
 
   type Query {
@@ -28,6 +31,11 @@ export const schema = gql`
     updateUnsubmittedProfile(
       ethAddress: String!
       input: UpdateUnsubmittedProfileInput!
+    ): UnsubmittedProfile! @skipAuth
+
+    unsubmittedProfileSetEmail(
+      ethAddress: String!
+      email: String!
     ): UnsubmittedProfile! @skipAuth
   }
 `

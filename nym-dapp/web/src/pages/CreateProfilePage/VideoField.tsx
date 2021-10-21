@@ -201,7 +201,12 @@ const VideoField = () => {
           <Box overflow="hidden" width="36" borderRadius="lg" shadow="lg">
             <ReactPlayer url={videoURL} controls width="100%" height="auto" />
           </Box>
-          <Link as="button" variant="btn" onClick={modalControl.onOpen}>
+          <Link
+            as="button"
+            type="button"
+            variant="btn"
+            onClick={modalControl.onOpen}
+          >
             Change
           </Link>
         </Stack>

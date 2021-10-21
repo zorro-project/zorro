@@ -1,17 +1,14 @@
-import {
-  FormControl,
-  FormHelperText,
-  FormLabel,
-  Heading,
-  Stack,
-  StackDivider,
-  Text,
-} from '@chakra-ui/react'
+import { Button, ButtonGroup } from '@chakra-ui/button'
+import { FormControl, FormHelperText, FormLabel } from '@chakra-ui/form-control'
+import { Heading, Stack, StackDivider, Text } from '@chakra-ui/layout'
+import { useFormContext } from 'react-hook-form'
 import { Card } from 'src/components/Card'
 import SelfieField from 'src/pages/CreateProfilePage/SelfieField'
 import VideoField from 'src/pages/CreateProfilePage/VideoField'
 
-const EditView = () => {
+const EditView = (props: { onContinue: () => void }) => {
+  const { formState } = useFormContext()
+
   return (
     <Stack spacing="6">
       <Heading size="lg">Create Public Profile</Heading>
@@ -53,6 +50,15 @@ const EditView = () => {
           </Stack>
         </Stack>
       </Card>
+      <ButtonGroup alignSelf="flex-end">
+        <Button
+          colorScheme="teal"
+          disabled={!formState.isValid}
+          onClick={props.onContinue}
+        >
+          Continue
+        </Button>
+      </ButtonGroup>
     </Stack>
   )
 }

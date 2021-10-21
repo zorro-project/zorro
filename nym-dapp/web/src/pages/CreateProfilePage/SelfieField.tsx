@@ -167,7 +167,12 @@ const SelfieField = () => {
       {selfieURL ? (
         <Stack>
           <Image src={selfieURL} width="36" borderRadius="lg" shadow="lg" />
-          <Link as="button" variant="btn" onClick={modalControl.onOpen}>
+          <Link
+            as="button"
+            type="button"
+            variant="btn"
+            onClick={modalControl.onOpen}
+          >
             Change
           </Link>
         </Stack>

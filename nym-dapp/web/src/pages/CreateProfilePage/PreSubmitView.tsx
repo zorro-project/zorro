@@ -1,25 +1,31 @@
+import { FormControl } from '@chakra-ui/form-control'
 import {
   Box,
-  FormControl,
   Heading,
-  Image,
   ListItem,
   OrderedList,
   Stack,
   StackDivider,
   Text,
-} from '@chakra-ui/react'
+} from '@chakra-ui/layout'
+import React from 'react'
 import { useEthers } from '@usedapp/core'
 import { useFormContext } from 'react-hook-form'
 import ReactPlayer from 'react-player'
 import Identicon from 'src/components/ConnectButton/Identicon'
 import { dataFieldToUrl } from 'src/lib/util'
-import { Card } from '../../components/Card'
-import { SignupFieldValues } from './types'
+import { Card } from 'src/components/Card'
+import { SignupFieldValues } from 'src/pages/CreateProfilePage/types'
+import { CircularProgress } from '@chakra-ui/progress'
+import { Image } from '@chakra-ui/image'
+import { ButtonGroup, Button } from '@chakra-ui/button'
 
-const ReviewView = () => {
+const PreSubmitView = (props: {
+  submitProgress: number
+  onEdit: () => void
+}) => {
   const { account } = useEthers()
-  const { watch } = useFormContext<SignupFieldValues>()
+  const { watch, formState } = useFormContext<SignupFieldValues>()
   const selfieUrl = dataFieldToUrl(watch('selfieCID'))
   const videoUrl = dataFieldToUrl(watch('videoCID'))
 
@@ -96,8 +102,25 @@ const ReviewView = () => {
           </Stack>
         </Stack>
       </Card>
+      {formState.isSubmitting ? (
+        <Stack align="center" justify="center" direction="row">
+          <CircularProgress value={props.submitProgress} />
+          <Text>Submitting...</Text>
+        </Stack>
+      ) : (
+        <ButtonGroup alignSelf="flex-end">
+          <Button onClick={props.onEdit}>Make Changes</Button>
+          <Button
+            colorScheme="blue"
+            type="submit"
+            disabled={!formState.isValid}
+          >
+            Submit
+          </Button>
+        </ButtonGroup>
+      )}
     </Stack>
   )
 }
 
-export default ReviewView
+export default PreSubmitView

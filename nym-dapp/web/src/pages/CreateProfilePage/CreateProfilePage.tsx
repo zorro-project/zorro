@@ -1,12 +1,6 @@
-import {
-  Button,
-  ButtonGroup,
-  CircularProgress,
-  SlideFade,
-  Stack,
-  Text,
-} from '@chakra-ui/react'
-import { navigate, Redirect, routes } from '@redwoodjs/router'
+import { SlideFade, Stack } from '@chakra-ui/react'
+import { Form } from '@redwoodjs/forms'
+import { Redirect, routes } from '@redwoodjs/router'
 import {
   CellSuccessProps,
   createCell,
@@ -14,15 +8,16 @@ import {
   useMutation,
 } from '@redwoodjs/web'
 import { useEthers } from '@usedapp/core'
-import { FormProvider, SubmitHandler, useForm } from 'react-hook-form'
+import { SubmitHandler, useForm } from 'react-hook-form'
 import ipfsClient from 'src/lib/ipfsClient'
-import EditView from 'src/pages/CreateProfilePage/ChooseVideoAndPhoto'
+import EditView from 'src/pages/CreateProfilePage/EditView'
 import {
   Find_Unsubmitted_Profile,
   Find_Unsubmitted_ProfileVariables,
   Update_Unsubmitted_Profile,
 } from 'types/graphql'
-import ReviewView from './ReviewView'
+import PendingApprovalView from './PendingApprovalView'
+import PreSubmitView from './PreSubmitView'
 import { SignupFieldValues } from './types'
 
 type CellProps = Find_Unsubmitted_ProfileVariables
@@ -30,6 +25,7 @@ type CellProps = Find_Unsubmitted_ProfileVariables
 const Success = ({
   account,
   unsubmittedProfile,
+  refetch,
 }: CellProps & CellSuccessProps<Find_Unsubmitted_Profile>) => {
   const methods = useForm<SignupFieldValues>({
     mode: 'onChange',
@@ -38,7 +34,9 @@ const Success = ({
       videoCID: unsubmittedProfile?.videoCID,
     },
   })
-  const [isReviewing, setIsReviewing] = React.useState(false)
+  const [currentView, setCurrentView] = React.useState<
+    'Edit' | 'PreSubmit' | 'PendingApproval'
+  >(unsubmittedProfile ? 'PendingApproval' : 'Edit')
   const [submitProgress, setSubmitProgress] = React.useState(0)
 
   const [updateMutation] = useMutation<Update_Unsubmitted_Profile>(gql`
@@ -90,48 +88,16 @@ const Success = ({
           input: {
             selfieCID,
             videoCID,
+            email: data.email,
           },
         },
       })
 
-      navigate(routes.pendingProfile())
+      refetch()
+      setCurrentView('PendingApproval')
     },
     [account, updateMutation]
   )
-
-  let controlButtons = (
-    <ButtonGroup pt="6" alignSelf="flex-end">
-      {isReviewing ? (
-        <>
-          <Button onClick={() => setIsReviewing(false)}>Make Changes</Button>
-          <Button
-            colorScheme="blue"
-            type="submit"
-            disabled={!methods.formState.isValid}
-          >
-            Submit
-          </Button>
-        </>
-      ) : (
-        <Button
-          colorScheme="teal"
-          disabled={!methods.formState.isValid}
-          onClick={() => setIsReviewing(true)}
-        >
-          Continue
-        </Button>
-      )}
-    </ButtonGroup>
-  )
-
-  if (methods.formState.isSubmitting) {
-    controlButtons = (
-      <Stack align="center" justify="center" direction="row" pt="6">
-        <CircularProgress value={submitProgress} />
-        <Text>Submitting...</Text>
-      </Stack>
-    )
-  }
 
   if (account == null) return <Redirect to={routes.signUp()} />
 
@@ -142,16 +108,33 @@ const Success = ({
         description="Sign up for a Nym profile"
       />
 
-      <FormProvider {...methods}>
-        <form onSubmit={methods.handleSubmit(submit)}>
-          <SlideFade key={isReviewing.toString()} in={true}>
-            <Stack maxW="xl" mx="auto">
-              {isReviewing ? <ReviewView /> : <EditView />}
-              {controlButtons}
-            </Stack>
-          </SlideFade>
-        </form>
-      </FormProvider>
+      <SlideFade key={currentView} in={true}>
+        <Stack maxW="xl" mx="auto">
+          {
+            {
+              Edit: (
+                <Form formMethods={methods} onSubmit={submit}>
+                  <EditView onContinue={() => setCurrentView('PreSubmit')} />
+                </Form>
+              ),
+              PreSubmit: (
+                <Form formMethods={methods} onSubmit={submit}>
+                  <PreSubmitView
+                    onEdit={() => setCurrentView('Edit')}
+                    submitProgress={submitProgress}
+                  />
+                </Form>
+              ),
+              PendingApproval: (
+                <PendingApprovalView
+                  onEdit={() => setCurrentView('Edit')}
+                  unsubmittedProfile={unsubmittedProfile}
+                />
+              ),
+            }[currentView]
+          }
+        </Stack>
+      </SlideFade>
     </>
   )
 }
@@ -162,6 +145,11 @@ const SignUpCell = createCell<CellProps>({
       unsubmittedProfile(ethAddress: $account) {
         selfieCID
         videoCID
+        hasEmail
+        ethAddress
+        UnaddressedFeedback {
+          feedback
+        }
       }
     }
   `,
