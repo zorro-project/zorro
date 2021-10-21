@@ -16,7 +16,7 @@ export const unsubmittedProfile = async ({
   const record = await db.unsubmittedProfile.findUnique({
     where: { ethAddress },
   })
-  return { ...record, hasEmail: !!record.email }
+  return record ? { ...record, hasEmail: !!record.email } : null
 }
 
 export const updateUnsubmittedProfile = ({ ethAddress, input }) => {
