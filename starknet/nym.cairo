@@ -12,6 +12,7 @@ from starkware.starknet.common.storage import Storage
 # - write js bindings
 # - support a list of notaries, adding/removing notaries
 # - write more extensive tests
+# - include shared security pool
 
 # Abusing a struct as an enum
 # member notary_address : felt Not necessary since is part of chain history
@@ -45,6 +46,10 @@ end
 func notary_address_var() -> (res : felt):
 end
 
+@storage_var
+func adjudicator_address_var() -> (res : felt):
+end
+
 # Maps from user's ethereum address to profile properties
 # TODO: decide what we want the key to be (using eth address right now.)
 # TODO: decide if want to map into some bigger struct that includes
@@ -60,12 +65,13 @@ end
 
 @external
 func initialize{storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-        notary_address : felt):
+        notary_address : felt, adjudicator_address):
     let (is_initialized) = is_initialized_var.read()
     assert is_initialized = 0
     is_initialized_var.write(1)
 
     notary_address_var.write(notary_address)
+    adjudicator_address_var.write(adjudicator_address)
     return ()
 end
 
@@ -137,13 +143,15 @@ func challenge{
 end
 
 @external
-func adjudicate{storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+func adjudicate{
+        storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
         eth_address : felt, is_valid : felt):
+    alloc_locals
+    assert_caller_is_adjudicator()
+    local syscall_ptr : felt* = syscall_ptr
     assert_profile_exists(eth_address)
+
     let (status : felt) = get_profile_value(eth_address, ProfilePropertyEnum.status)
-
-    # XXX: Need to authenticate adjudicator!
-
     # Can only adjudicate something that was challenged
     assert status = ProfileStatusEnum.challenged
 
@@ -219,6 +227,16 @@ func assert_caller_is_notary{
     let (notary_address) = notary_address_var.read()
     let (caller_address) = get_caller_address()
     assert notary_address = caller_address
+    return ()
+end
+
+@view
+func assert_caller_is_adjudicator{
+        storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, syscall_ptr : felt*, range_check_ptr}(
+        ):
+    let (adjudicator_address) = adjudicator_address_var.read()
+    let (caller_address) = get_caller_address()
+    assert adjudicator_address = caller_address
     return ()
 end
 
