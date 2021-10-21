@@ -14,9 +14,6 @@ from starkware.crypto.signature.signature import (
 
 from OpenZepplin.Signer import Signer
 
-# TODOS:
-# - write a test where a non-notary tries to call apply_via_notary
-
 notary = Signer(12345)
 other = Signer(234852304958)
 
@@ -83,9 +80,9 @@ async def test_apply_via_notary(ctx):
     assert e_info.value.code == StarknetErrorCode.TRANSACTION_FAILED
 
 
-@pytest.mark.asyncio
-async def test_apply_via_notary(ctx):
-    print("test result", await ctx.nym.test().call())
+# @pytest.mark.asyncio
+# async def test_apply_via_notary(ctx):
+# print("test result", await ctx.nym.test().call())
 
 
 """

@@ -8,27 +8,16 @@ from starkware.cairo.common.signature import verify_ecdsa_signature
 from starkware.starknet.common.syscalls import get_caller_address
 from starkware.starknet.common.storage import Storage
 
-# ipfs cid (limited to 64 bytes)
-struct Cid:
-    member a : felt
-    member b : felt
-end
-
-func assert_cid_is_empty(cid : Cid):
-    assert cid.a = 0
-    assert cid.b = 0
-end
-
-func assert_cid_is_not_empty(cid : Cid):
-    assert_not_zero(cid.a)
-    assert_not_zero(cid.b)
-end
+# TODOS
+# - write js bindings
+# - support a list of notaries, adding/removing notaries
+# - write more extensive tests
 
 # Abusing a struct as an enum
 # member notary_address : felt Not necessary since is part of chain history
 # TODO: maybe better not to use this pattern for profiles
 struct ProfilePropertyEnum:
-    member cid : Cid
+    member cid : felt
     member address : felt  # starknet address
     member created_timestamp : felt
 
@@ -84,16 +73,24 @@ end
 func submit_via_notary{
         storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr,
         ecdsa_ptr : SignatureBuiltin*, syscall_ptr : felt*}(
-        eth_address : felt, profile_cid : Cid, address : felt, created_timestamp : felt):
+        eth_address : felt, profile_cid : felt, address : felt, created_timestamp : felt):
+    alloc_locals
+    # local storage_ptr : Storage* = storage_ptr
     assert_initialized()
+
     assert_caller_is_notary()
+    local syscall_ptr : felt* = syscall_ptr
+    local pedersen_ptr : HashBuiltin* = pedersen_ptr
+    local range_check_ptr = range_check_ptr
+    local storage_ptr : Storage* = storage_ptr
 
     # Zero can mean 'false' for us, so we can simplify our logic by avoiding
     # overloading the meaning of 0x0
-    assert_not_zero(eth_address)
-    assert_cid_is_not_empty(profile_cid)
 
-    assert_profile_does_not_exist(profile_cid)
+    assert_not_zero(eth_address)
+    assert_not_zero(profile_cid)
+
+    assert_profile_does_not_exist(eth_address)
     assert_address_is_unused(address)
 
     # XXX: The ethereum address should sign the cid, and we should verify
@@ -118,7 +115,8 @@ end
 
 # evidence is ascii (could be url, could be text)
 @external
-func challenge{storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+func challenge{
+        storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
         eth_address : felt, evidence : felt):
     assert_profile_exists(eth_address)
 
@@ -139,7 +137,8 @@ func challenge{storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_
 end
 
 @external
-func adjudicate(eth_address : felt, is_valid : felt):
+func adjudicate{storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+        eth_address : felt, is_valid : felt):
     assert_profile_exists(eth_address)
     let (status : felt) = get_profile_value(eth_address, ProfilePropertyEnum.status)
 
@@ -149,11 +148,10 @@ func adjudicate(eth_address : felt, is_valid : felt):
     assert status = ProfileStatusEnum.challenged
 
     if is_valid == 1:
-        profile_var.write(
-            eth_address, ProfilePropertyEnum.status, ProfileStatusEnum.was_deemed_valid)
+        profiles_var.write(eth_address, ProfilePropertyEnum.status, ProfileStatusEnum.deemed_valid)
     else:
-        profile_var.write(
-            eth_address, ProfilePropertyEnum.status, ProfileStatusEnum.was_deemed_invalid)
+        profiles_var.write(
+            eth_address, ProfilePropertyEnum.status, ProfileStatusEnum.deemed_invalid)
         # TODO: pay challenger
     end
 
@@ -168,15 +166,20 @@ func get_profile_value{storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, rang
 end
 
 @view
-func get_is_person(address) -> (is_person : felt):
-    let (eth_address) = eth_address_lookup_var.read(address)
+func get_is_person{storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+        address) -> (is_person : felt):
+    alloc_locals
+    let (local eth_address) = eth_address_lookup_var.read(address)
+    local storage_ptr : Storage* = storage_ptr
+    local pedersen_ptr : HashBuiltin* = pedersen_ptr
+    local range_check_ptr = range_check_ptr
     assert_profile_exists(eth_address)
 
     let (status : felt) = get_profile_value(eth_address, ProfilePropertyEnum.status)
 
     # Statuses conidered registered: submitted_via_notary, deemed_valid
     # Statuses considered unregistered: challenged, deemed_invalid
-    let val = (status - ProfileStatusEnum.submited_via_notary) * (status - ProfileStatusEnum.deemed_valid)
+    let val = (status - ProfileStatusEnum.submitted_via_notary) * (status - ProfileStatusEnum.deemed_valid)
     if val == 0:
         return (is_person=1)
     else:
@@ -194,15 +197,19 @@ func assert_initialized{storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, ran
 end
 
 @view
-func assert_profile_exists(eth_address : felt):
-    let (cid : Cid) = profiles_var.read(eth_address, ProfilePropertyEnum.cid)
-    assert_cid_is_not_empty(cid)
+func assert_profile_exists{storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+        eth_address : felt):
+    let (cid) = profiles_var.read(eth_address, ProfilePropertyEnum.cid)
+    assert_not_zero(cid)
+    return ()
 end
 
 @view
-func assert_profile_does_not_exist(eth_address : felt):
-    let (cid : Cid) = profiles_var.read(eth_address, ProfilePropertyEnum.cid)
-    assert_cid_is_empty(cid)
+func assert_profile_does_not_exist{
+        storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr}(eth_address : felt):
+    let (cid) = profiles_var.read(eth_address, ProfilePropertyEnum.cid)
+    assert cid = 0
+    return ()
 end
 
 @view
@@ -216,17 +223,14 @@ func assert_caller_is_notary{
 end
 
 @view
-func assert_address_is_unused(address : felt):
+func assert_address_is_unused{storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+        address : felt):
     let (eth_address) = eth_address_lookup_var.read(address)
     assert eth_address = 0
+    return ()
 end
 
 @view
-func test() -> (idx : felt):
-    # let idx = Profile.address
-    # return (idx=idx)
-    # let y = Profile.address
-    # let y : felt = 1
-    # tempvar z = Profile.challenger_address
-    return (idx=Profile.created_timestamp)
+func log(x : felt) -> (x : felt):
+    return (x)
 end
