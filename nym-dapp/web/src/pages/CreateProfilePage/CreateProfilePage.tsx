@@ -114,7 +114,10 @@ const Success = ({
             {
               Edit: (
                 <Form formMethods={methods} onSubmit={submit}>
-                  <EditView onContinue={() => setCurrentView('PreSubmit')} />
+                  <EditView
+                    onContinue={() => setCurrentView('PreSubmit')}
+                    unsubmittedProfile={unsubmittedProfile}
+                  />
                 </Form>
               ),
               PreSubmit: (

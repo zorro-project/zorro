@@ -5,8 +5,13 @@ import { useFormContext } from 'react-hook-form'
 import { Card } from 'src/components/Card'
 import SelfieField from 'src/pages/CreateProfilePage/SelfieField'
 import VideoField from 'src/pages/CreateProfilePage/VideoField'
+import { Find_Unsubmitted_Profile } from 'types/graphql'
+import ProfileStatus from './ProfileStatus'
 
-const EditView = (props: { onContinue: () => void }) => {
+const EditView = (props: {
+  onContinue: () => void
+  unsubmittedProfile: Find_Unsubmitted_Profile['unsubmittedProfile']
+}) => {
   const { formState } = useFormContext()
 
   return (
@@ -17,6 +22,9 @@ const EditView = (props: { onContinue: () => void }) => {
         only create a single profile. If you already have a Nym profile, switch
         to that wallet.
       </Text>
+      {!formState.isDirty && (
+        <ProfileStatus profile={props.unsubmittedProfile} />
+      )}
       <Card>
         <Stack divider={<StackDivider />} spacing="8">
           <Stack
