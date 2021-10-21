@@ -2,8 +2,12 @@ import type { Prisma } from '@prisma/client'
 import { ResolverArgs } from '@redwoodjs/graphql-server'
 import { db } from 'src/lib/db'
 
-export const unsubmittedProfiles = () => {
-  return db.unsubmittedProfile.findMany()
+export const unsubmittedProfiles = ({ pendingReview }) => {
+  const whereClause = {}
+  if (pendingReview) whereClause.unaddressedFeedbackId = null
+  return db.unsubmittedProfile.findMany({
+    where: whereClause,
+  })
 }
 
 export const unsubmittedProfile = async ({
@@ -41,4 +45,25 @@ export const UnsubmittedProfile = {
     db.unsubmittedProfile
       .findUnique({ where: { id: root.id } })
       .NotaryFeedback(),
+}
+
+export const addNotaryFeedback = async ({ profileId, feedback }) => {
+  // TODO: authenticate that the given user is an approved notary
+
+  const notaryFeedback = await db.notaryFeedback.create({
+    data: { unsubmittedProfileId: profileId, feedback },
+  })
+  console.log({ notaryFeedback })
+  await db.unsubmittedProfile.update({
+    where: { id: profileId },
+    data: { unaddressedFeedbackId: notaryFeedback.id },
+  })
+  return true
+}
+
+export const approveProfile = ({ ethAddress }) => {
+  // TODO: actually submit the profile on-chain!
+
+  db.unsubmittedProfile.delete({ where: ethAddress })
+  return true
 }

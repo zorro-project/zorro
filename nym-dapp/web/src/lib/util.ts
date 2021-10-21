@@ -11,3 +11,6 @@ export const dataFieldToUrl: (
 
 export const useDataFieldUrl = (value: string | Blob | undefined) =>
   React.useMemo(() => dataFieldToUrl(value), [value])
+
+export type ArrayElement<ArrayType extends readonly unknown[]> =
+  ArrayType extends readonly (infer ElementType)[] ? ElementType : never

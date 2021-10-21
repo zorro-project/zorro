@@ -12,7 +12,8 @@ export const schema = gql`
   }
 
   type Query {
-    unsubmittedProfiles: [UnsubmittedProfile!]! @requireAuth
+    unsubmittedProfiles(pendingReview: Boolean): [UnsubmittedProfile!]!
+      @skipAuth
     unsubmittedProfile(ethAddress: String!): UnsubmittedProfile @skipAuth
   }
 
@@ -37,5 +38,8 @@ export const schema = gql`
       ethAddress: String!
       email: String!
     ): UnsubmittedProfile! @skipAuth
+
+    addNotaryFeedback(profileId: Int!, feedback: String!): Boolean! @skipAuth
+    approveProfile(profileId: Int!): Boolean! @skipAuth
   }
 `
