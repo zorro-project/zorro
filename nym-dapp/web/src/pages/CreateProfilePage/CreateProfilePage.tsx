@@ -6,60 +6,40 @@ import {
   Stack,
   Text,
 } from '@chakra-ui/react'
-import { navigate, routes } from '@redwoodjs/router'
-import { MetaTags, useMutation } from '@redwoodjs/web'
+import { navigate, Redirect, routes } from '@redwoodjs/router'
+import {
+  CellSuccessProps,
+  createCell,
+  MetaTags,
+  useMutation,
+} from '@redwoodjs/web'
 import { useEthers } from '@usedapp/core'
 import { FormProvider, SubmitHandler, useForm } from 'react-hook-form'
 import ipfsClient from 'src/lib/ipfsClient'
+import EditView from 'src/pages/CreateProfilePage/ChooseVideoAndPhoto'
 import {
-  Create_Unsubmitted_Profile,
   Find_Unsubmitted_Profile,
   Find_Unsubmitted_ProfileVariables,
   Update_Unsubmitted_Profile,
 } from 'types/graphql'
-import EditView from 'src/pages/CreateProfilePage/ChooseVideoAndPhoto'
 import ReviewView from './ReviewView'
 import { SignupFieldValues } from './types'
-import { useLazyQuery } from '@apollo/client'
 
-const SignUpPage = () => {
-  const methods = useForm<SignupFieldValues>({ mode: 'onChange' })
-  const { account } = useEthers()
+type CellProps = Find_Unsubmitted_ProfileVariables
+
+const Success = ({
+  account,
+  unsubmittedProfile,
+}: CellProps & CellSuccessProps<Find_Unsubmitted_Profile>) => {
+  const methods = useForm<SignupFieldValues>({
+    mode: 'onChange',
+    defaultValues: {
+      selfieCID: unsubmittedProfile?.selfieCID,
+      videoCID: unsubmittedProfile?.videoCID,
+    },
+  })
   const [isReviewing, setIsReviewing] = React.useState(false)
   const [submitProgress, setSubmitProgress] = React.useState(0)
-
-  const formValid = methods.formState.isValid && account != null
-
-  const [loadUnsubmittedProfile, unsubmittedProfile] =
-    useLazyQuery<Find_Unsubmitted_Profile>(
-      gql`
-        query FIND_UNSUBMITTED_PROFILE($ethAddress: String!) {
-          unsubmittedProfile(ethAddress: $ethAddress) {
-            selfieCID
-            videoCID
-          }
-        }
-      `
-    )
-  React.useEffect(() => {
-    if (!account) return
-    const queryVars: Find_Unsubmitted_ProfileVariables = { ethAddress: account }
-
-    unsubmittedProfile.called
-      ? unsubmittedProfile.refetch(queryVars)
-      : loadUnsubmittedProfile({ variables: queryVars })
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [account])
-
-  React.useEffect(() => {
-    if (!unsubmittedProfile.called || unsubmittedProfile.loading) return
-
-    methods.reset({
-      selfieCID: unsubmittedProfile.data?.unsubmittedProfile?.selfieCID,
-      videoCID: unsubmittedProfile.data?.unsubmittedProfile?.videoCID,
-    })
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [unsubmittedProfile.data])
 
   const [updateMutation] = useMutation<Update_Unsubmitted_Profile>(gql`
     mutation UPDATE_UNSUBMITTED_PROFILE(
@@ -124,14 +104,18 @@ const SignUpPage = () => {
       {isReviewing ? (
         <>
           <Button onClick={() => setIsReviewing(false)}>Make Changes</Button>
-          <Button colorScheme="blue" type="submit" disabled={!formValid}>
+          <Button
+            colorScheme="blue"
+            type="submit"
+            disabled={!methods.formState.isValid}
+          >
             Submit
           </Button>
         </>
       ) : (
         <Button
           colorScheme="teal"
-          disabled={!formValid}
+          disabled={!methods.formState.isValid}
           onClick={() => setIsReviewing(true)}
         >
           Continue
@@ -148,6 +132,8 @@ const SignUpPage = () => {
       </Stack>
     )
   }
+
+  if (account == null) return <Redirect to={routes.signUp()} />
 
   return (
     <>
@@ -168,6 +154,25 @@ const SignUpPage = () => {
       </FormProvider>
     </>
   )
+}
+
+const SignUpCell = createCell<CellProps>({
+  QUERY: gql`
+    query FIND_UNSUBMITTED_PROFILE($account: String!) {
+      unsubmittedProfile(ethAddress: $account) {
+        selfieCID
+        videoCID
+      }
+    }
+  `,
+  Success,
+})
+
+const SignUpPage = () => {
+  const { account } = useEthers()
+  if (account == null) return <Redirect to={routes.signUp()} />
+
+  return <SignUpCell account={account} />
 }
 
 export default SignUpPage

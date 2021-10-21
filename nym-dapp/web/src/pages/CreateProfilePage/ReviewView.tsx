@@ -25,7 +25,7 @@ const ReviewView = () => {
 
   return (
     <Stack spacing="6">
-      <Heading size="lg">Review Details</Heading>
+      <Heading size="lg">Review Public Profile</Heading>
       <Card>
         <Stack divider={<StackDivider />} spacing="8">
           <Box>
