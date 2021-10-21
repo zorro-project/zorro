@@ -4,13 +4,17 @@ export const schema = gql`
     selfieCID: String!
     videoCID: String!
     ethAddress: String!
+    hasEmail: Boolean!
     createdAt: DateTime!
     updatedAt: DateTime!
+
+    UnaddressedFeedback: NotaryFeedback
   }
 
   type Query {
-    unsubmittedProfiles: [UnsubmittedProfile!]! @requireAuth
-    unsubmittedProfile(id: Int!): UnsubmittedProfile @requireAuth
+    unsubmittedProfiles(pendingReview: Boolean): [UnsubmittedProfile!]!
+      @skipAuth
+    unsubmittedProfile(ethAddress: String!): UnsubmittedProfile @skipAuth
   }
 
   input CreateUnsubmittedProfileInput {
@@ -22,17 +26,20 @@ export const schema = gql`
   input UpdateUnsubmittedProfileInput {
     selfieCID: String
     videoCID: String
-    ethAddress: String
   }
 
   type Mutation {
-    createUnsubmittedProfile(
-      input: CreateUnsubmittedProfileInput!
-    ): UnsubmittedProfile! @requireAuth
     updateUnsubmittedProfile(
-      id: Int!
+      ethAddress: String!
       input: UpdateUnsubmittedProfileInput!
-    ): UnsubmittedProfile! @requireAuth
-    deleteUnsubmittedProfile(id: Int!): UnsubmittedProfile! @requireAuth
+    ): UnsubmittedProfile! @skipAuth
+
+    unsubmittedProfileSetEmail(
+      ethAddress: String!
+      email: String!
+    ): UnsubmittedProfile! @skipAuth
+
+    addNotaryFeedback(profileId: Int!, feedback: String!): Boolean! @skipAuth
+    approveProfile(profileId: Int!): Boolean! @skipAuth
   }
 `

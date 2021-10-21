@@ -1,118 +1,49 @@
-import {
-  Box,
-  Button,
-  Stack,
-  SlideFade,
-  ButtonGroup,
-  useColorModeValue,
-  CircularProgress,
-  Text,
-} from '@chakra-ui/react'
-import { MetaTags, useMutation } from '@redwoodjs/web'
+import { Alert, AlertDescription, AlertIcon } from '@chakra-ui/alert'
+import { Box, Heading, ListItem, OrderedList, Text } from '@chakra-ui/layout'
+import { Redirect, routes } from '@redwoodjs/router'
+import { MetaTags } from '@redwoodjs/web'
 import { useEthers } from '@usedapp/core'
-import { FormProvider, SubmitHandler, useForm } from 'react-hook-form'
-import ipfsClient from 'src/lib/ipfsClient'
-import EditView from './EditView'
-import ReviewView from './ReviewView'
-import { SignupFieldValues } from './types'
-
-const CREATE_UNSUBMITTED_PROFILE_MUTATION = gql`
-  mutation CREATE_UNSUBMITTED_PROFILE($input: CreateUnsubmittedProfileInput!) {
-    createUnsubmittedProfile(input: $input) {
-      id
-    }
-  }
-`
+import ConnectButton from 'src/components/ConnectButton/ConnectButton'
 
 const SignUpPage = () => {
-  const methods = useForm<SignupFieldValues>({ mode: 'onChange' })
   const { account } = useEthers()
-  const [isReviewing, setIsReviewing] = React.useState(false)
-  const [submitProgress, setSubmitProgress] = React.useState(0)
-
-  const formValid = methods.formState.isValid && account != null
-
-  const [submitMutation] = useMutation(CREATE_UNSUBMITTED_PROFILE_MUTATION)
-
-  const submit = React.useCallback<SubmitHandler<SignupFieldValues>>(
-    async (data) => {
-      setSubmitProgress(0)
-      const reportProgress = (bytes: number) =>
-        setSubmitProgress(
-          (100 * bytes) / (data.userSelfie.size + data.userVideo.size)
-        )
-
-      const uploadedSelfie = await ipfsClient.add(data.userSelfie as Blob, {
-        progress: reportProgress,
-      })
-      const uploadedVideo = await ipfsClient.add(data.userVideo as Blob, {
-        progress: (progress) => reportProgress(data.userSelfie.size + progress),
-      })
-
-      const selfieCID = uploadedSelfie.cid.toV1().toString()
-      const videoCID = uploadedVideo.cid.toV1().toString()
-
-      await submitMutation({
-        variables: {
-          input: {
-            ethAddress: account,
-            selfieCID,
-            videoCID,
-          },
-        },
-      })
-    },
-    []
-  )
-
-  let controlButtons = (
-    <ButtonGroup pt="6" alignSelf="flex-end">
-      {isReviewing ? (
-        <>
-          <Button onClick={() => setIsReviewing(false)}>Make Changes</Button>
-          <Button colorScheme="blue" type="submit" disabled={!formValid}>
-            Submit
-          </Button>
-        </>
-      ) : (
-        <Button
-          colorScheme="teal"
-          disabled={!formValid}
-          onClick={() => setIsReviewing(true)}
-        >
-          Continue
-        </Button>
-      )}
-    </ButtonGroup>
-  )
-
-  if (methods.formState.isSubmitting) {
-    controlButtons = (
-      <Stack align="center" justify="center" direction="row" pt="6">
-        <CircularProgress value={submitProgress} />
-        <Text>Submitting...</Text>
-      </Stack>
-    )
-  }
+  if (account != null) return <Redirect to={routes.createProfile()} />
 
   return (
-    <>
-      <MetaTags
-        title="Create Account"
-        description="Sign up for a Nym account"
-      />
-
-      <FormProvider {...methods}>
-        <form onSubmit={methods.handleSubmit(submit)}>
-          <SlideFade key={isReviewing.toString()} in={true}>
-            <Stack maxW="xl" mx="auto">
-              {isReviewing ? <ReviewView /> : <EditView />}
-              {controlButtons}
-            </Stack>
-          </SlideFade>
-        </form>
-      </FormProvider>
-    </>
+    <Box maxW="xl" mx="auto">
+      <MetaTags title="Sign Up" />
+      <Heading size="lg" pb="4">
+        Sign Up for Nym
+      </Heading>
+      <Text>
+        <strong>Nym</strong> is a new way to prove to Dapps that you're a real
+        person, while preserving your privacy. It works like this:
+      </Text>
+      <OrderedList py="4" px="4">
+        <ListItem>
+          First you create a public <strong>Nym profile</strong>. Your Nym
+          profile is linked to your real identity, and each person can only
+          create a single profile.
+        </ListItem>
+        <ListItem>
+          Once your profile is complete, you'll be able to create one or more{' '}
+          <strong>Nym aliases</strong>. Nym aliases are private pseudonyms you
+          can use to demonstrate that you're a real, unique human, without
+          disclosing exactly <em>which</em> human you are.
+        </ListItem>
+      </OrderedList>
+      <Text>To get started, just connect an Ethereum wallet.</Text>
+      <ConnectButton colorScheme="blue" my="8" width="100%">
+        Connect my wallet!
+      </ConnectButton>
+      <Alert status="warning">
+        <AlertIcon />
+        <AlertDescription fontSize="sm">
+          Note: the wallet you choose will be linked to your real identity, so
+          use a new one or one you don't mind revealing publicly.
+        </AlertDescription>
+      </Alert>
+    </Box>
   )
 }
 

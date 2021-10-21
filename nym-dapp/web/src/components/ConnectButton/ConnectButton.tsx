@@ -1,15 +1,25 @@
-import { Button, Link, Stack, Text, useDisclosure } from '@chakra-ui/react'
+import {
+  Button,
+  Stack,
+  Text,
+  useDisclosure,
+  ButtonProps,
+} from '@chakra-ui/react'
 import { useEthers } from '@usedapp/core'
 import AccountModal from './AccountModal'
 import Identicon from './Identicon'
 
 // Adapted from https://dev.to/jacobedawson/build-a-web3-dapp-in-react-login-with-metamask-4chp
 
-export default function ConnectButton() {
-  const { activateBrowserWallet, account } = useEthers()
+export default function ConnectButton(props: ButtonProps) {
+  const ethers = useEthers()
   const modalControl = useDisclosure()
 
-  return account ? (
+  const signIn = async () => {
+    ethers.activateBrowserWallet()
+  }
+
+  return ethers.account ? (
     <>
       <Stack>
         <AccountModal
@@ -17,17 +27,13 @@ export default function ConnectButton() {
           onClose={modalControl.onClose}
         />
         <Button variant="outline" onClick={modalControl.onOpen}>
-          <Stack
-            direction="row"
-            alignItems="center"
-            // p="2"
-            // borderRadius="lg"
-            // border="1px"
-            // borderColor="gray.200"
-          >
+          <Stack direction="row" alignItems="center">
             <Text fontWeight="bold">
-              {account.slice(0, 6)}...
-              {account.slice(account.length - 4, account.length)}
+              {ethers.account.slice(0, 6)}...
+              {ethers.account.slice(
+                ethers.account.length - 4,
+                ethers.account.length
+              )}
             </Text>
             <Identicon />
           </Stack>
@@ -35,6 +41,11 @@ export default function ConnectButton() {
       </Stack>
     </>
   ) : (
-    <Button onClick={() => activateBrowserWallet()}>Connect to a wallet</Button>
+    <Button
+      onClick={signIn}
+      // eslint-disable-next-line react/no-children-prop
+      children="Sign In"
+      {...props}
+    />
   )
 }
