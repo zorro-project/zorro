@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+# TODO: rewrite using `starknet.js` after https://github.com/seanjameshan/starknet.js/pull/9 is merged
+
 import asyncio
 from asyncio.tasks import wait_for
 import random

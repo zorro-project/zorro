@@ -2,6 +2,7 @@
 %builtins pedersen range_check ecdsa
 
 from starkware.cairo.common.math import assert_not_zero, assert_not_equal
+from starkware.cairo.common.uint256 import Uint256, uint256_check, uint256_not
 from starkware.cairo.common.cairo_builtins import HashBuiltin, SignatureBuiltin
 from starkware.cairo.common.hash import hash2
 from starkware.cairo.common.signature import verify_ecdsa_signature
@@ -9,9 +10,11 @@ from starkware.starknet.common.syscalls import get_caller_address
 from starkware.starknet.common.storage import Storage
 
 # TODOS
-# - script for deploying to StarkNet
-# - payment logic (just use OpenZepplin ERC20 contract for now?)
-# - shared security pool
+# - initialize self_address_var
+# - implement `transfer_from` call in `challenge`
+# - import IERC20
+# - test challenge procedure
+# - pay out bounty for accurate challenges
 
 # Bonus TODOS
 # - self approval via bounty
@@ -26,11 +29,11 @@ from starkware.starknet.common.storage import Storage
 # Whoever gets to it:
 # - write js bindings
 
-# Abusing a struct as an enum
 # member notary_address : felt Not necessary since is part of chain history
 # TODO: maybe better not to use this pattern for profiles
 struct ProfilePropertyEnum:
-    member cid : felt
+    member cid_low : felt
+    member cid_high : felt
     member address : felt  # starknet address
     member created_timestamp : felt
 
@@ -51,6 +54,17 @@ end
 
 @storage_var
 func is_initialized_var() -> (res : felt):
+end
+
+# There's no syscall yet for getting a contract's own address, so we store
+# our own here and set it during initialization
+@storage_var
+func self_address_var() -> (res : felt):
+end
+
+# Stores the address of the ERC20 token that we touch
+@storage_var
+func token_address_var() -> (res : felt):
 end
 
 # TODO: in actuality, we want to maintain a list of valid notaries
@@ -91,7 +105,7 @@ end
 func submit_via_notary{
         storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr,
         ecdsa_ptr : SignatureBuiltin*, syscall_ptr : felt*}(
-        eth_address : felt, profile_cid : felt, address : felt, created_timestamp : felt):
+        eth_address : felt, profile_cid : Uint256, address : felt, created_timestamp : felt):
     alloc_locals
     # local storage_ptr : Storage* = storage_ptr
     assert_initialized()
@@ -104,9 +118,11 @@ func submit_via_notary{
 
     # Zero can mean 'false' for us, so we can simplify our logic by avoiding
     # overloading the meaning of 0x0
-
     assert_not_zero(eth_address)
-    assert_not_zero(profile_cid)
+    assert_not_zero(address)
+    uint256_check(profile_cid)
+    local range_check_ptr = range_check_ptr
+    assert_uint256_is_not_zero(profile_cid)
 
     assert_profile_does_not_exist(eth_address)
     assert_address_is_unused(address)
@@ -117,7 +133,8 @@ func submit_via_notary{
     # the owner of the eth address by submitting an invalid profile to lock
     # them out of proving their personhood with that eth address.
 
-    profiles_var.write(eth_address, ProfilePropertyEnum.cid, profile_cid)
+    profiles_var.write(eth_address, ProfilePropertyEnum.cid_low, profile_cid.low)
+    profiles_var.write(eth_address, ProfilePropertyEnum.cid_high, profile_cid.high)
     profiles_var.write(eth_address, ProfilePropertyEnum.address, address)
     profiles_var.write(
         eth_address, ProfilePropertyEnum.status, ProfileStatusEnum.submitted_via_notary)
@@ -143,13 +160,14 @@ func challenge{
     # don't let people challenge a profile which was already challenged
     assert_not_equal(status, ProfileStatusEnum.challenged)
 
-    # XXX: need to require a deposit from challenger, but starknet doesn't
-    # have native value transfers yet
-
     profiles_var.write(eth_address, ProfilePropertyEnum.status, ProfileStatusEnum.challenged)
     let (challenger_address) = get_caller_address()
     profiles_var.write(eth_address, ProfilePropertyEnum.challenger_address, challenger_address)
     profiles_var.write(eth_address, ProfilePropertyEnum.challenge_evidence, evidence)
+
+    # XXX: need to require a deposit from challenger, but starknet doesn't
+    # have native value transfers yet
+    # transfer_from(challenger_address)
 
     return ()
 end
@@ -219,16 +237,24 @@ end
 @view
 func assert_profile_exists{storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         eth_address : felt):
-    let (cid) = profiles_var.read(eth_address, ProfilePropertyEnum.cid)
-    assert_not_zero(cid)
+    alloc_locals
+    let (cid_low) = profiles_var.read(eth_address, ProfilePropertyEnum.cid_low)
+    let (cid_high) = profiles_var.read(eth_address, ProfilePropertyEnum.cid_high)
+    local storage_ptr : Storage* = storage_ptr
+    local pedersen_ptr : HashBuiltin* = pedersen_ptr
+    local range_check_ptr = range_check_ptr
+
+    assert_uint256_is_not_zero(Uint256(cid_low, cid_high))
     return ()
 end
 
 @view
 func assert_profile_does_not_exist{
         storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr}(eth_address : felt):
-    let (cid) = profiles_var.read(eth_address, ProfilePropertyEnum.cid)
-    assert cid = 0
+    let (cid_low) = profiles_var.read(eth_address, ProfilePropertyEnum.cid_low)
+    let (cid_high) = profiles_var.read(eth_address, ProfilePropertyEnum.cid_high)
+    assert cid_low = 0
+    assert cid_high = 0
     return ()
 end
 
@@ -263,4 +289,14 @@ end
 @view
 func log(x : felt) -> (x : felt):
     return (x)
+end
+
+func assert_uint256_is_not_zero(x : Uint256):
+    if x.low == 0:
+        assert_not_zero(x.high)
+    end
+    if x.high == 0:
+        assert_not_zero(x.low)
+    end
+    return ()
 end

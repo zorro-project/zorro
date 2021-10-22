@@ -3,6 +3,7 @@
 # temporarily useful.
 
 # Derived from  https://github.com/starkware-libs/cairo-lang/blob/master/src/starkware/starknet/cli/starknet_cli.py
+# TODO: toss this in favor of using `starknet.js` after # TODO: rewrite using `starknet.js` after https://github.com/seanjameshan/starknet.js/pull/9 is merged is merged
 
 import asyncio
 import functools

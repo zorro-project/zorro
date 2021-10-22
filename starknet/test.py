@@ -17,10 +17,12 @@ from OpenZepplin.Signer import Signer
 
 adjudicator = Signer(7891011)
 notary = Signer(12345)
-other = Signer(234852304958)
+challenger = Signer(888333444555)
 
 applicant_eth_address = 0x1234
-profile_cid = 1234567
+
+profile_cid_low = 1234567
+profile_cid_high = 453430
 
 
 @pytest.fixture(scope="module")
@@ -38,18 +40,48 @@ async def deploy_and_initialize_account(starknet, signer):
     return account
 
 
+async def create_erc20(starknet):
+    minter = Signer(897654321)
+    minter_account = await deploy_and_initialize_account(starknet, minter)
+    erc20 = await starknet.deploy(get_contract_path("OpenZepplin/ERC20.cairo"))
+    # Initializing the ERC20 contract mints 1000 tokens to the sender of the
+    # initialization transaction (in this case, `treasurer`.)
+    await minter.send_transaction(
+        minter_account, erc20.contract_address, "initialize", []
+    )
+
+    async def give_tokens(recipient, amount):
+        return await minter.send_transaction(
+            minter_account,
+            erc20.contract_address,
+            "transfer",
+            [recipient, amount],
+        )
+
+    return give_tokens
+
+
 @pytest.fixture(scope="module")
 async def ctx():
     starknet = await Starknet.empty()
 
     notary_account = await deploy_and_initialize_account(starknet, notary)
     adjudicator_account = await deploy_and_initialize_account(starknet, adjudicator)
+    challenger_account = await deploy_and_initialize_account(starknet, challenger)
 
     nym = await starknet.deploy(get_contract_path("nym.cairo"))
     await nym.initialize(
         notary_address=notary_account.contract_address,
         adjudicator_address=adjudicator_account.contract_address,
     ).invoke()
+
+    give_tokens = await create_erc20(starknet)
+
+    # Give 50 tokens to the eventual challenger so they can afford to challenge
+    await give_tokens(challenger_account.contract_address, 50)
+
+    # Give 950 tokens to the nym contract (its shared security pool)
+    await give_tokens(nym.contract_address, 950)
 
     return SimpleNamespace(
         starknet=starknet,
@@ -61,13 +93,6 @@ async def ctx():
 
 @pytest.mark.asyncio
 async def test_submit_via_notary(ctx):
-
-    """
-    private_key = 1
-    user = generate_public_key(private_key)
-    (message_hash, (sig_r, sig_s)) = sign_message(private_key, profile)
-    """
-
     async def submit_via_notary():
         address = 123
         created_timestamp = int(time.time())
@@ -75,7 +100,13 @@ async def test_submit_via_notary(ctx):
             ctx.notary_account,
             ctx.nym.contract_address,
             "submit_via_notary",
-            [applicant_eth_address, profile_cid, address, created_timestamp],
+            [
+                applicant_eth_address,
+                profile_cid_low,
+                profile_cid_high,
+                address,
+                created_timestamp,
+            ],
         )
 
     await submit_via_notary()
@@ -83,7 +114,7 @@ async def test_submit_via_notary(ctx):
     # ensure result is in contract storage
     assert await ctx.nym.get_profile_value(
         eth_address=applicant_eth_address, index=0
-    ).call() == (profile_cid,)
+    ).call() == (profile_cid_low,)
 
     # applying a second time should result in an error, because the
     # profile already exists
