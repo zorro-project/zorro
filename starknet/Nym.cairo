@@ -9,10 +9,22 @@ from starkware.starknet.common.syscalls import get_caller_address
 from starkware.starknet.common.storage import Storage
 
 # TODOS
-# - write js bindings
+# - script for deploying to StarkNet
+# - payment logic (just use OpenZepplin ERC20 contract for now?)
+# - shared security pool
+
+# Bonus TODOS
+# - self approval via bounty
+# - appeal adjudication decisions to kleros
+# - privacy via nyms
 # - support a list of notaries, adding/removing notaries
-# - write more extensive tests
-# - include shared security pool
+# - multisig (hoping someone else does this for us)
+
+# Necessary before any launch
+# - much more extensive tests
+
+# Whoever gets to it:
+# - write js bindings
 
 # Abusing a struct as an enum
 # member notary_address : felt Not necessary since is part of chain history
