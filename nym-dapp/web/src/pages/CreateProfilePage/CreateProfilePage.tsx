@@ -9,7 +9,7 @@ import {
 } from '@redwoodjs/web'
 import { useEthers } from '@usedapp/core'
 import { SubmitHandler, useForm } from 'react-hook-form'
-import ipfsClient from 'src/lib/ipfsClient'
+import ipfsClient from 'src/lib/ipfs'
 import EditView from 'src/pages/CreateProfilePage/EditView'
 import {
   Find_Unsubmitted_Profile,

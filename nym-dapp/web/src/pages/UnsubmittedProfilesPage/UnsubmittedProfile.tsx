@@ -42,7 +42,8 @@ const UnsubmittedProfile: React.FC<{
     }
   `)
   const onApprove = async () => {
-    await approve()
+    console.log('approving')
+    // await approve()
     setReviewed(true)
   }
 
