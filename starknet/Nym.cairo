@@ -2,21 +2,22 @@
 %builtins pedersen range_check ecdsa
 
 from starkware.cairo.common.math import assert_not_zero, assert_not_equal
-from starkware.cairo.common.uint256 import Uint256, uint256_check, uint256_not
 from starkware.cairo.common.cairo_builtins import HashBuiltin, SignatureBuiltin
 from starkware.cairo.common.hash import hash2
 from starkware.cairo.common.signature import verify_ecdsa_signature
 from starkware.starknet.common.syscalls import get_caller_address
 from starkware.starknet.common.storage import Storage
 
+from OpenZepplin.IERC20 import IERC20
+from lib.cid import Cid, assert_cid_is_zero, assert_cid_is_not_zero
+
 # TODOS
-# - initialize self_address_var
-# - implement `transfer_from` call in `challenge`
-# - import IERC20
-# - test challenge procedure
+# - make challenge evidence a cid
 # - pay out bounty for accurate challenges
+# - test challenge process (will need to call `allowance`)
 
 # Bonus TODOS
+# - convert to using structs rather than using struct enum approach (likely more gas-efficient)
 # - self approval via bounty
 # - appeal adjudication decisions to kleros
 # - privacy via nyms
@@ -29,6 +30,9 @@ from starkware.starknet.common.storage import Storage
 # Whoever gets to it:
 # - write js bindings
 
+const CHALLENGE_DEPOSIT_SIZE = 25
+const CHALLENGE_REWARD_SIZE = 25
+
 # member notary_address : felt Not necessary since is part of chain history
 # TODO: maybe better not to use this pattern for profiles
 struct ProfilePropertyEnum:
@@ -39,8 +43,9 @@ struct ProfilePropertyEnum:
 
     member status : felt  # one of ProfileStatusEnum
 
-    # track who the challenger is so we can pay them if they prove to be right
     member challenge_evidence : felt
+
+    # track who the challenger is so we can pay them if they prove to be right
     member challenger_address : felt
 end
 
@@ -91,13 +96,15 @@ end
 
 @external
 func initialize{storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-        notary_address : felt, adjudicator_address):
+        notary_address : felt, adjudicator_address, self_address : felt, token_address : felt):
     let (is_initialized) = is_initialized_var.read()
     assert is_initialized = 0
     is_initialized_var.write(1)
 
     notary_address_var.write(notary_address)
     adjudicator_address_var.write(adjudicator_address)
+    self_address_var.write(self_address)
+    token_address_var.write(token_address)
     return ()
 end
 
@@ -105,7 +112,7 @@ end
 func submit_via_notary{
         storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr,
         ecdsa_ptr : SignatureBuiltin*, syscall_ptr : felt*}(
-        eth_address : felt, profile_cid : Uint256, address : felt, created_timestamp : felt):
+        eth_address : felt, profile_cid : Cid, address : felt, created_timestamp : felt):
     alloc_locals
     # local storage_ptr : Storage* = storage_ptr
     assert_initialized()
@@ -116,13 +123,12 @@ func submit_via_notary{
     local range_check_ptr = range_check_ptr
     local storage_ptr : Storage* = storage_ptr
 
-    # Zero can mean 'false' for us, so we can simplify our logic by avoiding
-    # overloading the meaning of 0x0
+    # There's no way to tell the difference between uninitialized memory, and
+    # something that was stored to be zero.
+    # Avoiding overloading the meaning of 0x0:
     assert_not_zero(eth_address)
     assert_not_zero(address)
-    uint256_check(profile_cid)
-    local range_check_ptr = range_check_ptr
-    assert_uint256_is_not_zero(profile_cid)
+    assert_cid_is_not_zero(profile_cid)
 
     assert_profile_does_not_exist(eth_address)
     assert_address_is_unused(address)
@@ -155,7 +161,9 @@ func challenge{
         eth_address : felt, evidence : felt):
     assert_profile_exists(eth_address)
 
-    let (status : felt) = get_profile_value(eth_address, ProfilePropertyEnum.status)
+    let (status) = get_profile_value(eth_address, ProfilePropertyEnum.status)
+    let (self_address) = self_address_var.read()
+    let (token_address) = token_address_var.read()
 
     # don't let people challenge a profile which was already challenged
     assert_not_equal(status, ProfileStatusEnum.challenged)
@@ -165,9 +173,11 @@ func challenge{
     profiles_var.write(eth_address, ProfilePropertyEnum.challenger_address, challenger_address)
     profiles_var.write(eth_address, ProfilePropertyEnum.challenge_evidence, evidence)
 
-    # XXX: need to require a deposit from challenger, but starknet doesn't
-    # have native value transfers yet
-    # transfer_from(challenger_address)
+    IERC20.transfer_from(
+        contract_address=token_address,
+        sender=challenger_address,
+        recipient=self_address,
+        amount=CHALLENGE_DEPOSIT_SIZE)
 
     return ()
 end
@@ -186,11 +196,26 @@ func adjudicate{
     assert status = ProfileStatusEnum.challenged
 
     if is_valid == 1:
+        storage_ptr = storage_ptr
         profiles_var.write(eth_address, ProfilePropertyEnum.status, ProfileStatusEnum.deemed_valid)
+        tempvar range_check_ptr = range_check_ptr
+        tempvar storage_ptr = storage_ptr
+        tempvar pedersen_ptr = pedersen_ptr
+        tempvar syscall_ptr = syscall_ptr
     else:
         profiles_var.write(
             eth_address, ProfilePropertyEnum.status, ProfileStatusEnum.deemed_invalid)
-        # TODO: pay challenger
+        let (challenger_address) = get_profile_value(
+            eth_address, ProfilePropertyEnum.challenger_address)
+        let (token_address) = token_address_var.read()
+        IERC20.transfer(
+            contract_address=token_address,
+            recipient=challenger_address,
+            amount=(CHALLENGE_DEPOSIT_SIZE + CHALLENGE_REWARD_SIZE))
+        tempvar range_check_ptr = range_check_ptr
+        tempvar storage_ptr = storage_ptr
+        tempvar pedersen_ptr = pedersen_ptr
+        tempvar syscall_ptr = syscall_ptr
     end
 
     return ()
@@ -240,21 +265,23 @@ func assert_profile_exists{storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, 
     alloc_locals
     let (cid_low) = profiles_var.read(eth_address, ProfilePropertyEnum.cid_low)
     let (cid_high) = profiles_var.read(eth_address, ProfilePropertyEnum.cid_high)
+    local cid : Cid = Cid(cid_low, cid_high)
     local storage_ptr : Storage* = storage_ptr
     local pedersen_ptr : HashBuiltin* = pedersen_ptr
     local range_check_ptr = range_check_ptr
 
-    assert_uint256_is_not_zero(Uint256(cid_low, cid_high))
+    assert_cid_is_not_zero(cid)
     return ()
 end
 
 @view
 func assert_profile_does_not_exist{
         storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr}(eth_address : felt):
+    alloc_locals
     let (cid_low) = profiles_var.read(eth_address, ProfilePropertyEnum.cid_low)
     let (cid_high) = profiles_var.read(eth_address, ProfilePropertyEnum.cid_high)
-    assert cid_low = 0
-    assert cid_high = 0
+    local cid : Cid = Cid(cid_low, cid_high)
+    assert_cid_is_zero(cid)
     return ()
 end
 
@@ -289,14 +316,4 @@ end
 @view
 func log(x : felt) -> (x : felt):
     return (x)
-end
-
-func assert_uint256_is_not_zero(x : Uint256):
-    if x.low == 0:
-        assert_not_zero(x.high)
-    end
-    if x.high == 0:
-        assert_not_zero(x.low)
-    end
-    return ()
 end
