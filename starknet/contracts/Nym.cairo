@@ -12,8 +12,18 @@ from starkware.starknet.common.storage import Storage
 from OpenZepplin.IERC20 import IERC20
 from lib.cid import Cid, assert_cid_is_zero, assert_cid_is_not_zero
 
+# Development speed TODOS
+# - shift to using locals everywhere to avoid losing refs
+# - shift to passing in all implicit args everywhere to avoid losing refs
+# - change naming convention on vars
+
+# - add a get_profile method
+# - add a get_highest_profile_id method
+# - switch to autoincrement ids
+
 # Bonus TODOS
 # - self approval via bounty
+# - serial challenges
 # - appeal adjudication decisions to kleros
 # - convert to using structs rather than using struct enum approach (likely more gas-efficient)
 # - privacy via nyms
@@ -30,12 +40,13 @@ from lib.cid import Cid, assert_cid_is_zero, assert_cid_is_not_zero
 # - rechallenging
 #   - if no rechallenges: profiles can become impervious
 #   - if rechallenges: griefing vector? someone could just keep challenging you. could increase deposit 2x each challenge)
-# - whether challenge bounty can be configured
+# - whether challenge bounty can be configured. Decision: not for now
 # - contract upgradeability
+# - write an export function?
 # - splitting contract into separate parts (e.g. could have a separate contract for managing challenges)
 
 const CHALLENGE_DEPOSIT_SIZE = 25  # This constant is also in test.py
-const CHALLENGE_REWARD_SIZE = 25 # This constant is also in test.py
+const CHALLENGE_REWARD_SIZE = 25  # This constant is also in test.py
 
 # member notary_address : felt Not necessary since is part of chain history
 # TODO: maybe better not to use this pattern for profiles
