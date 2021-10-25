@@ -14,3 +14,7 @@ export const useDataFieldUrl = (value: string | Blob | undefined) =>
 
 export type ArrayElement<ArrayType extends readonly unknown[]> =
   ArrayType extends readonly (infer ElementType)[] ? ElementType : never
+
+export const assert = (condition: boolean, message: string) => {
+  if (!condition) throw new Error(message)
+}
