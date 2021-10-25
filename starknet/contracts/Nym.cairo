@@ -15,7 +15,6 @@ from lib.cid import Cid, assert_cid_is_zero, assert_cid_is_not_zero
 # Development speed TODOS
 # - shift to using locals everywhere to avoid losing refs
 # - shift to passing in all implicit args everywhere to avoid losing refs
-# - change naming convention on vars
 
 # - add a get_profile method
 # - add a get_highest_profile_id method
@@ -74,27 +73,27 @@ struct ProfileStatusEnum:
 end
 
 @storage_var
-func is_initialized_var() -> (res : felt):
+func _is_initialized() -> (res : felt):
 end
 
 # There's no syscall yet for getting a contract's own address, so we store
 # our own here and set it during initialization
 @storage_var
-func self_address_var() -> (res : felt):
+func _self_address() -> (res : felt):
 end
 
 # TODO: in actuality, we want to maintain a list of valid notaries
 @storage_var
-func notary_address_var() -> (res : felt):
+func _notary_address() -> (res : felt):
 end
 
 @storage_var
-func adjudicator_address_var() -> (res : felt):
+func _adjudicator_address() -> (res : felt):
 end
 
 # Stores the address of the ERC20 token that we touch
 @storage_var
-func token_address_var() -> (res : felt):
+func _token_address() -> (res : felt):
 end
 
 # Internal accounting: record how much of our balance is due to challenge
@@ -102,7 +101,7 @@ end
 # (It should be possible for the shared security pool to be drained w/o revoking
 # challengers' deposits.)
 @storage_var
-func challenge_deposit_balance_var() -> (res : felt):
+func _challenge_deposit_balance() -> (res : felt):
 end
 
 # Maps from user's ethereum address to profile properties
@@ -110,26 +109,26 @@ end
 # TODO: decide if want to map into some bigger struct that includes
 # other information about the profile, like whether or not it is challenged, etc
 @storage_var
-func profiles_var(eth_address : felt, profile_property : felt) -> (res : felt):
+func _profiles(eth_address : felt, profile_property : felt) -> (res : felt):
 end
 
 # internal index mapping from starknet address to eth address.
 # necessary for `get_is_person`
 @storage_var
-func eth_address_lookup_var(address : felt) -> (eth_address : felt):
+func _eth_address_lookup(address : felt) -> (eth_address : felt):
 end
 
 @external
 func initialize{storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         notary_address : felt, adjudicator_address, self_address : felt, token_address : felt):
-    let (is_initialized) = is_initialized_var.read()
+    let (is_initialized) = _is_initialized.read()
     assert is_initialized = 0
-    is_initialized_var.write(1)
+    _is_initialized.write(1)
 
-    notary_address_var.write(notary_address)
-    adjudicator_address_var.write(adjudicator_address)
-    self_address_var.write(self_address)
-    token_address_var.write(token_address)
+    _notary_address.write(notary_address)
+    _adjudicator_address.write(adjudicator_address)
+    _self_address.write(self_address)
+    _token_address.write(token_address)
     return ()
 end
 
@@ -164,17 +163,16 @@ func submit_via_notary{
     # the owner of the eth address by submitting an invalid profile to lock
     # them out of proving their personhood with that eth address.
 
-    profiles_var.write(eth_address, ProfilePropertyEnum.cid_low, profile_cid.low)
-    profiles_var.write(eth_address, ProfilePropertyEnum.cid_high, profile_cid.high)
-    profiles_var.write(eth_address, ProfilePropertyEnum.address, address)
-    profiles_var.write(
-        eth_address, ProfilePropertyEnum.status, ProfileStatusEnum.submitted_via_notary)
+    _profiles.write(eth_address, ProfilePropertyEnum.cid_low, profile_cid.low)
+    _profiles.write(eth_address, ProfilePropertyEnum.cid_high, profile_cid.high)
+    _profiles.write(eth_address, ProfilePropertyEnum.address, address)
+    _profiles.write(eth_address, ProfilePropertyEnum.status, ProfileStatusEnum.submitted_via_notary)
 
     # Starknet doesn't yet have a timestamp opcode, but according to them it's hopefully coming in a few weeks
     # For now, we can trust the notary to include it accurately, and the profile could be challenged if it is not accurate.
-    profiles_var.write(eth_address, ProfilePropertyEnum.created_timestamp, created_timestamp)
+    _profiles.write(eth_address, ProfilePropertyEnum.created_timestamp, created_timestamp)
 
-    eth_address_lookup_var.write(address, eth_address)
+    _eth_address_lookup.write(address, eth_address)
 
     return ()
 end
@@ -187,22 +185,20 @@ func challenge{
     assert_profile_exists(eth_address)
 
     let (status) = get_profile_value(eth_address, ProfilePropertyEnum.status)
-    let (self_address) = self_address_var.read()
-    let (token_address) = token_address_var.read()
+    let (self_address) = _self_address.read()
+    let (token_address) = _token_address.read()
 
     # don't let people challenge a profile which was already challenged
     assert_not_equal(status, ProfileStatusEnum.challenged)
 
-    profiles_var.write(eth_address, ProfilePropertyEnum.status, ProfileStatusEnum.challenged)
+    _profiles.write(eth_address, ProfilePropertyEnum.status, ProfileStatusEnum.challenged)
     let (challenger_address) = get_caller_address()
-    profiles_var.write(eth_address, ProfilePropertyEnum.challenger_address, challenger_address)
-    profiles_var.write(
-        eth_address, ProfilePropertyEnum.challenge_evidence_cid_low, evidence_cid.low)
-    profiles_var.write(
-        eth_address, ProfilePropertyEnum.challenge_evidence_cid_high, evidence_cid.high)
+    _profiles.write(eth_address, ProfilePropertyEnum.challenger_address, challenger_address)
+    _profiles.write(eth_address, ProfilePropertyEnum.challenge_evidence_cid_low, evidence_cid.low)
+    _profiles.write(eth_address, ProfilePropertyEnum.challenge_evidence_cid_high, evidence_cid.high)
 
-    let (challenge_deposit_balance) = challenge_deposit_balance_var.read()
-    challenge_deposit_balance_var.write(challenge_deposit_balance)
+    let (challenge_deposit_balance) = _challenge_deposit_balance.read()
+    _challenge_deposit_balance.write(challenge_deposit_balance)
 
     IERC20.transfer_from(
         contract_address=token_address,
@@ -228,14 +224,13 @@ func adjudicate{
 
     if is_valid == 1:
         storage_ptr = storage_ptr  # TODO: get rid of this? weird line.
-        profiles_var.write(eth_address, ProfilePropertyEnum.status, ProfileStatusEnum.deemed_valid)
+        _profiles.write(eth_address, ProfilePropertyEnum.status, ProfileStatusEnum.deemed_valid)
         tempvar range_check_ptr = range_check_ptr
         tempvar storage_ptr = storage_ptr
         tempvar pedersen_ptr = pedersen_ptr
         tempvar syscall_ptr = syscall_ptr
     else:
-        profiles_var.write(
-            eth_address, ProfilePropertyEnum.status, ProfileStatusEnum.deemed_invalid)
+        _profiles.write(eth_address, ProfilePropertyEnum.status, ProfileStatusEnum.deemed_invalid)
         local storage_ptr : Storage* = storage_ptr
 
         local pedersen_ptr : HashBuiltin* = pedersen_ptr
@@ -251,7 +246,7 @@ func adjudicate{
 
         let (challenger_address) = get_profile_value(
             eth_address, ProfilePropertyEnum.challenger_address)
-        let (token_address) = token_address_var.read()
+        let (token_address) = _token_address.read()
         let reward_amount = has_funds_for_reward * CHALLENGE_REWARD_SIZE
         IERC20.transfer(
             contract_address=token_address,
@@ -266,8 +261,8 @@ func adjudicate{
     # If the challenger won, they got their deposit back. If the challenger lost,
     # their deposit was eaten by the protocol (and de-facto added to the shared
     # security pool.) Either way, we don't need to reserve the deposit anymore.
-    let (challenge_deposit_balance) = challenge_deposit_balance_var.read()
-    challenge_deposit_balance_var.write(challenge_deposit_balance - CHALLENGE_DEPOSIT_SIZE)
+    let (challenge_deposit_balance) = _challenge_deposit_balance.read()
+    _challenge_deposit_balance.write(challenge_deposit_balance - CHALLENGE_DEPOSIT_SIZE)
 
     return ()
 end
@@ -275,7 +270,7 @@ end
 @view
 func get_profile_value{storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         eth_address : felt, index : felt) -> (res : felt):
-    let (res) = profiles_var.read(eth_address, index)
+    let (res) = _profiles.read(eth_address, index)
     return (res)
 end
 
@@ -283,7 +278,7 @@ end
 func get_is_person{storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         address) -> (is_person : felt):
     alloc_locals
-    let (local eth_address) = eth_address_lookup_var.read(address)
+    let (local eth_address) = _eth_address_lookup.read(address)
     local storage_ptr : Storage* = storage_ptr
     local pedersen_ptr : HashBuiltin* = pedersen_ptr
     local range_check_ptr = range_check_ptr
@@ -305,7 +300,7 @@ end
 
 @view
 func assert_initialized{storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
-    let (is_initialized) = is_initialized_var.read()
+    let (is_initialized) = _is_initialized.read()
     assert is_initialized = 1
     return ()
 end
@@ -314,8 +309,8 @@ end
 func assert_profile_exists{storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         eth_address : felt):
     alloc_locals
-    let (cid_low) = profiles_var.read(eth_address, ProfilePropertyEnum.cid_low)
-    let (cid_high) = profiles_var.read(eth_address, ProfilePropertyEnum.cid_high)
+    let (cid_low) = _profiles.read(eth_address, ProfilePropertyEnum.cid_low)
+    let (cid_high) = _profiles.read(eth_address, ProfilePropertyEnum.cid_high)
     local cid : Cid = Cid(cid_low, cid_high)
     local storage_ptr : Storage* = storage_ptr
     local pedersen_ptr : HashBuiltin* = pedersen_ptr
@@ -329,8 +324,8 @@ end
 func assert_profile_does_not_exist{
         storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr}(eth_address : felt):
     alloc_locals
-    let (cid_low) = profiles_var.read(eth_address, ProfilePropertyEnum.cid_low)
-    let (cid_high) = profiles_var.read(eth_address, ProfilePropertyEnum.cid_high)
+    let (cid_low) = _profiles.read(eth_address, ProfilePropertyEnum.cid_low)
+    let (cid_high) = _profiles.read(eth_address, ProfilePropertyEnum.cid_high)
     local cid : Cid = Cid(cid_low, cid_high)
     assert_cid_is_zero(cid)
     return ()
@@ -340,7 +335,7 @@ end
 func assert_caller_is_notary{
         storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, syscall_ptr : felt*, range_check_ptr}(
         ):
-    let (notary_address) = notary_address_var.read()
+    let (notary_address) = _notary_address.read()
     let (caller_address) = get_caller_address()
     assert notary_address = caller_address
     return ()
@@ -350,7 +345,7 @@ end
 func assert_caller_is_adjudicator{
         storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, syscall_ptr : felt*, range_check_ptr}(
         ):
-    let (adjudicator_address) = adjudicator_address_var.read()
+    let (adjudicator_address) = _adjudicator_address.read()
     let (caller_address) = get_caller_address()
     assert adjudicator_address = caller_address
     return ()
@@ -359,7 +354,7 @@ end
 @view
 func assert_address_is_unused{storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         address : felt):
-    let (eth_address) = eth_address_lookup_var.read(address)
+    let (eth_address) = _eth_address_lookup.read(address)
     assert eth_address = 0
     return ()
 end
@@ -368,9 +363,9 @@ end
 func get_amount_available_for_challenge_rewards{
         storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
         ) -> (res : felt):
-    let (token_address) = token_address_var.read()
-    let (self_address) = self_address_var.read()
-    let (challenge_deposit_balance) = challenge_deposit_balance_var.read()
+    let (token_address) = _token_address.read()
+    let (self_address) = _self_address.read()
+    let (challenge_deposit_balance) = _challenge_deposit_balance.read()
 
     # Any funds that aren't challenge deposit reserves are for the security reward pool
     let (total_funds) = IERC20.balance_of(contract_address=token_address, user=self_address)
