@@ -1,9 +1,9 @@
 %lang starknet
-%builtins pedersen range_check ecdsa
+%builtins pedersen range_check bitwise
 
 from starkware.cairo.common.math import assert_not_zero, assert_not_equal
 from starkware.cairo.common.math_cmp import is_le
-from starkware.cairo.common.cairo_builtins import HashBuiltin, SignatureBuiltin
+from starkware.cairo.common.cairo_builtins import HashBuiltin, BitwiseBuiltin
 from starkware.cairo.common.hash import hash2
 from starkware.cairo.common.signature import verify_ecdsa_signature
 from starkware.starknet.common.syscalls import get_caller_address
@@ -11,10 +11,6 @@ from starkware.starknet.common.storage import Storage
 
 from OpenZepplin.IERC20 import IERC20
 from lib.cid import Cid, assert_cid_is_zero, assert_cid_is_not_zero
-
-# Development speed TODOS
-# - shift to using locals everywhere to avoid losing refs
-# - shift to passing in all implicit args everywhere to avoid losing refs
 
 # - add a get_profile method
 # - add a get_highest_profile_id method
@@ -134,18 +130,19 @@ end
 
 @external
 func submit_via_notary{
-        storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr,
-        ecdsa_ptr : SignatureBuiltin*, syscall_ptr : felt*}(
+        bitwise_ptr : BitwiseBuiltin*, storage_ptr : Storage*, pedersen_ptr : HashBuiltin*,
+        range_check_ptr, syscall_ptr : felt*}(
         eth_address : felt, profile_cid : Cid, address : felt, created_timestamp : felt):
     alloc_locals
-    # local storage_ptr : Storage* = storage_ptr
     assert_initialized()
 
     assert_caller_is_notary()
-    local syscall_ptr : felt* = syscall_ptr
+
+    # builtin assert functions lose refs
+    local storage_ptr : Storage* = storage_ptr
     local pedersen_ptr : HashBuiltin* = pedersen_ptr
     local range_check_ptr = range_check_ptr
-    local storage_ptr : Storage* = storage_ptr
+    local syscall_ptr : felt* = syscall_ptr
 
     # There's no way to tell the difference between uninitialized memory, and
     # something that was stored to be zero.
@@ -177,28 +174,28 @@ func submit_via_notary{
     return ()
 end
 
-# evidence is ascii (could be url, could be text)
 @external
 func challenge{
-        storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
-        eth_address : felt, evidence_cid : Cid):
+        bitwise_ptr : BitwiseBuiltin*, storage_ptr : Storage*, pedersen_ptr : HashBuiltin*,
+        range_check_ptr, syscall_ptr : felt*}(eth_address : felt, evidence_cid : Cid):
+    alloc_locals
     assert_profile_exists(eth_address)
 
-    let (status) = get_profile_value(eth_address, ProfilePropertyEnum.status)
-    let (self_address) = _self_address.read()
-    let (token_address) = _token_address.read()
+    let (local status) = get_profile_value(eth_address, ProfilePropertyEnum.status)
+    let (local self_address) = _self_address.read()
+    let (local token_address) = _token_address.read()
+    let (local challenger_address) = get_caller_address()
 
     # don't let people challenge a profile which was already challenged
     assert_not_equal(status, ProfileStatusEnum.challenged)
 
     _profiles.write(eth_address, ProfilePropertyEnum.status, ProfileStatusEnum.challenged)
-    let (challenger_address) = get_caller_address()
     _profiles.write(eth_address, ProfilePropertyEnum.challenger_address, challenger_address)
     _profiles.write(eth_address, ProfilePropertyEnum.challenge_evidence_cid_low, evidence_cid.low)
     _profiles.write(eth_address, ProfilePropertyEnum.challenge_evidence_cid_high, evidence_cid.high)
 
     let (challenge_deposit_balance) = _challenge_deposit_balance.read()
-    _challenge_deposit_balance.write(challenge_deposit_balance)
+    _challenge_deposit_balance.write(challenge_deposit_balance + CHALLENGE_DEPOSIT_SIZE)
 
     IERC20.transfer_from(
         contract_address=token_address,
@@ -211,11 +208,10 @@ end
 
 @external
 func adjudicate{
-        storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
-        eth_address : felt, is_valid : felt):
+        bitwise_ptr : BitwiseBuiltin*, storage_ptr : Storage*, pedersen_ptr : HashBuiltin*,
+        range_check_ptr, syscall_ptr : felt*}(eth_address : felt, is_valid : felt):
     alloc_locals
     assert_caller_is_adjudicator()
-    local syscall_ptr : felt* = syscall_ptr
     assert_profile_exists(eth_address)
 
     let (status : felt) = get_profile_value(eth_address, ProfilePropertyEnum.status)
@@ -225,21 +221,20 @@ func adjudicate{
     if is_valid == 1:
         storage_ptr = storage_ptr  # TODO: get rid of this? weird line.
         _profiles.write(eth_address, ProfilePropertyEnum.status, ProfileStatusEnum.deemed_valid)
+
+        tempvar bitwise_ptr = bitwise_ptr
         tempvar range_check_ptr = range_check_ptr
         tempvar storage_ptr = storage_ptr
         tempvar pedersen_ptr = pedersen_ptr
         tempvar syscall_ptr = syscall_ptr
     else:
         _profiles.write(eth_address, ProfilePropertyEnum.status, ProfileStatusEnum.deemed_invalid)
-        local storage_ptr : Storage* = storage_ptr
-
-        local pedersen_ptr : HashBuiltin* = pedersen_ptr
-        local range_check_ptr = range_check_ptr
-        local storage_ptr : Storage* = storage_ptr
         let (amount_available_for_challenge_rewards) = get_amount_available_for_challenge_rewards()
 
+        local bitwise_ptr : BitwiseBuiltin* = bitwise_ptr
         local storage_ptr : Storage* = storage_ptr
         local pedersen_ptr : HashBuiltin* = pedersen_ptr
+        local range_check_ptr = range_check_ptr
         local syscall_ptr : felt* = syscall_ptr
         let (local has_funds_for_reward) = is_le(
             CHALLENGE_REWARD_SIZE, amount_available_for_challenge_rewards)
@@ -252,6 +247,8 @@ func adjudicate{
             contract_address=token_address,
             recipient=challenger_address,
             amount=(CHALLENGE_DEPOSIT_SIZE + reward_amount))
+
+        tempvar bitwise_ptr = bitwise_ptr
         tempvar range_check_ptr = range_check_ptr
         tempvar storage_ptr = storage_ptr
         tempvar pedersen_ptr = pedersen_ptr
@@ -268,23 +265,21 @@ func adjudicate{
 end
 
 @view
-func get_profile_value{storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-        eth_address : felt, index : felt) -> (res : felt):
+func get_profile_value{
+        bitwise_ptr : BitwiseBuiltin*, storage_ptr : Storage*, pedersen_ptr : HashBuiltin*,
+        range_check_ptr, syscall_ptr : felt*}(eth_address : felt, index : felt) -> (res : felt):
     let (res) = _profiles.read(eth_address, index)
     return (res)
 end
 
 @view
-func get_is_person{storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-        address) -> (is_person : felt):
+func get_is_person{
+        bitwise_ptr : BitwiseBuiltin*, storage_ptr : Storage*, pedersen_ptr : HashBuiltin*,
+        range_check_ptr, syscall_ptr : felt*}(address) -> (is_person : felt):
     alloc_locals
     let (local eth_address) = _eth_address_lookup.read(address)
-    local storage_ptr : Storage* = storage_ptr
-    local pedersen_ptr : HashBuiltin* = pedersen_ptr
-    local range_check_ptr = range_check_ptr
+    let (local status) = get_profile_value(eth_address, ProfilePropertyEnum.status)
     assert_profile_exists(eth_address)
-
-    let (status : felt) = get_profile_value(eth_address, ProfilePropertyEnum.status)
 
     # Statuses conidered registered: submitted_via_notary, deemed_valid
     # Statuses considered unregistered: challenged, deemed_invalid
@@ -299,22 +294,22 @@ end
 # Guards
 
 @view
-func assert_initialized{storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
+func assert_initialized{
+        bitwise_ptr : BitwiseBuiltin*, storage_ptr : Storage*, pedersen_ptr : HashBuiltin*,
+        range_check_ptr, syscall_ptr : felt*}():
     let (is_initialized) = _is_initialized.read()
     assert is_initialized = 1
     return ()
 end
 
 @view
-func assert_profile_exists{storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-        eth_address : felt):
+func assert_profile_exists{
+        bitwise_ptr : BitwiseBuiltin*, storage_ptr : Storage*, pedersen_ptr : HashBuiltin*,
+        range_check_ptr, syscall_ptr : felt*}(eth_address : felt):
     alloc_locals
     let (cid_low) = _profiles.read(eth_address, ProfilePropertyEnum.cid_low)
     let (cid_high) = _profiles.read(eth_address, ProfilePropertyEnum.cid_high)
     local cid : Cid = Cid(cid_low, cid_high)
-    local storage_ptr : Storage* = storage_ptr
-    local pedersen_ptr : HashBuiltin* = pedersen_ptr
-    local range_check_ptr = range_check_ptr
 
     assert_cid_is_not_zero(cid)
     return ()
@@ -322,7 +317,8 @@ end
 
 @view
 func assert_profile_does_not_exist{
-        storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr}(eth_address : felt):
+        bitwise_ptr : BitwiseBuiltin*, storage_ptr : Storage*, pedersen_ptr : HashBuiltin*,
+        range_check_ptr, syscall_ptr : felt*}(eth_address : felt):
     alloc_locals
     let (cid_low) = _profiles.read(eth_address, ProfilePropertyEnum.cid_low)
     let (cid_high) = _profiles.read(eth_address, ProfilePropertyEnum.cid_high)
@@ -333,8 +329,8 @@ end
 
 @view
 func assert_caller_is_notary{
-        storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, syscall_ptr : felt*, range_check_ptr}(
-        ):
+        bitwise_ptr : BitwiseBuiltin*, storage_ptr : Storage*, pedersen_ptr : HashBuiltin*,
+        range_check_ptr, syscall_ptr : felt*}():
     let (notary_address) = _notary_address.read()
     let (caller_address) = get_caller_address()
     assert notary_address = caller_address
@@ -343,8 +339,8 @@ end
 
 @view
 func assert_caller_is_adjudicator{
-        storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, syscall_ptr : felt*, range_check_ptr}(
-        ):
+        bitwise_ptr : BitwiseBuiltin*, storage_ptr : Storage*, pedersen_ptr : HashBuiltin*,
+        range_check_ptr, syscall_ptr : felt*}():
     let (adjudicator_address) = _adjudicator_address.read()
     let (caller_address) = get_caller_address()
     assert adjudicator_address = caller_address
@@ -352,8 +348,9 @@ func assert_caller_is_adjudicator{
 end
 
 @view
-func assert_address_is_unused{storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-        address : felt):
+func assert_address_is_unused{
+        bitwise_ptr : BitwiseBuiltin*, storage_ptr : Storage*, pedersen_ptr : HashBuiltin*,
+        range_check_ptr, syscall_ptr : felt*}(address : felt):
     let (eth_address) = _eth_address_lookup.read(address)
     assert eth_address = 0
     return ()
@@ -361,8 +358,8 @@ end
 
 @view
 func get_amount_available_for_challenge_rewards{
-        storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
-        ) -> (res : felt):
+        bitwise_ptr : BitwiseBuiltin*, storage_ptr : Storage*, pedersen_ptr : HashBuiltin*,
+        range_check_ptr, syscall_ptr : felt*}() -> (res : felt):
     let (token_address) = _token_address.read()
     let (self_address) = _self_address.read()
     let (challenge_deposit_balance) = _challenge_deposit_balance.read()
