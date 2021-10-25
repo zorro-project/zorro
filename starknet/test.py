@@ -19,11 +19,6 @@ adjudicator = Signer(7891011)
 notary = Signer(12345)
 challenger = Signer(888333444555)
 
-applicant_eth_address = 0x1234
-
-profile_cid_low = 1234567
-profile_cid_high = 453430
-
 
 @pytest.fixture(scope="module")
 def event_loop():
@@ -95,25 +90,34 @@ async def ctx():
     )
 
 
+async def submit_via_notary(
+    ctx, applicant_eth_address, profile_cid_low, profile_cid_high, address
+):
+    created_timestamp = int(time.time())
+    await notary.send_transaction(
+        ctx.notary_account,
+        ctx.nym.contract_address,
+        "submit_via_notary",
+        [
+            applicant_eth_address,
+            profile_cid_low,
+            profile_cid_high,
+            address,
+            created_timestamp,
+        ],
+    )
+
+
 @pytest.mark.asyncio
 async def test_submit_via_notary(ctx):
-    async def submit_via_notary():
-        address = 123
-        created_timestamp = int(time.time())
-        await notary.send_transaction(
-            ctx.notary_account,
-            ctx.nym.contract_address,
-            "submit_via_notary",
-            [
-                applicant_eth_address,
-                profile_cid_low,
-                profile_cid_high,
-                address,
-                created_timestamp,
-            ],
-        )
+    applicant_eth_address = 0x1234
+    address = 123
+    profile_cid_low = 1234567
+    profile_cid_high = 453430
 
-    await submit_via_notary()
+    await submit_via_notary(
+        ctx, applicant_eth_address, profile_cid_low, profile_cid_high, address
+    )
 
     # ensure result is in contract storage
     assert await ctx.nym.get_profile_value(
@@ -123,6 +127,16 @@ async def test_submit_via_notary(ctx):
     # applying a second time should result in an error, because the
     # profile already exists
     with pytest.raises(StarkException) as e_info:
-        await submit_via_notary()
+        await submit_via_notary(
+            ctx, applicant_eth_address, profile_cid_low, profile_cid_high, address
+        )
     # XXX: it would be nice if we could explicitly check that an assert failed
     assert e_info.value.code == StarknetErrorCode.TRANSACTION_FAILED
+
+
+@pytest.mark.asyncio
+async def test_challenge(ctx):
+    eth_address = 0x234324
+    await submit_via_notary(
+        ctx, eth_address, profile_cid_low=1, profile_cid_high=2, address=3
+    )
