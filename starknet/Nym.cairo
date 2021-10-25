@@ -2,6 +2,7 @@
 %builtins pedersen range_check ecdsa
 
 from starkware.cairo.common.math import assert_not_zero, assert_not_equal
+from starkware.cairo.common.math_cmp import is_le
 from starkware.cairo.common.cairo_builtins import HashBuiltin, SignatureBuiltin
 from starkware.cairo.common.hash import hash2
 from starkware.cairo.common.signature import verify_ecdsa_signature
@@ -12,14 +13,12 @@ from OpenZepplin.IERC20 import IERC20
 from lib.cid import Cid, assert_cid_is_zero, assert_cid_is_not_zero
 
 # TODOS
-# - make challenge evidence a cid
-# - pay out bounty for accurate challenges
-# - test challenge process (will need to call `allowance`)
+# - test challenges/arbitration (will need to call `allowance`)
 
 # Bonus TODOS
-# - convert to using structs rather than using struct enum approach (likely more gas-efficient)
 # - self approval via bounty
 # - appeal adjudication decisions to kleros
+# - convert to using structs rather than using struct enum approach (likely more gas-efficient)
 # - privacy via nyms
 # - support a list of notaries, adding/removing notaries
 # - multisig (hoping someone else does this for us)
@@ -29,6 +28,14 @@ from lib.cid import Cid, assert_cid_is_zero, assert_cid_is_not_zero
 
 # Whoever gets to it:
 # - write js bindings
+
+# Things to consider:
+# - rechallenging
+#   - if no rechallenges: profiles can become impervious
+#   - if rechallenges: griefing vector? someone could just keep challenging you. could increase deposit 2x each challenge)
+# - whether challenge bounty can be configured
+# - contract upgradeability
+# - splitting contract into separate parts (e.g. could have a separate contract for managing challenges)
 
 const CHALLENGE_DEPOSIT_SIZE = 25
 const CHALLENGE_REWARD_SIZE = 25
@@ -43,7 +50,8 @@ struct ProfilePropertyEnum:
 
     member status : felt  # one of ProfileStatusEnum
 
-    member challenge_evidence : felt
+    member challenge_evidence_cid_low : felt
+    member challenge_evidence_cid_high : felt
 
     # track who the challenger is so we can pay them if they prove to be right
     member challenger_address : felt
@@ -67,11 +75,6 @@ end
 func self_address_var() -> (res : felt):
 end
 
-# Stores the address of the ERC20 token that we touch
-@storage_var
-func token_address_var() -> (res : felt):
-end
-
 # TODO: in actuality, we want to maintain a list of valid notaries
 @storage_var
 func notary_address_var() -> (res : felt):
@@ -79,6 +82,19 @@ end
 
 @storage_var
 func adjudicator_address_var() -> (res : felt):
+end
+
+# Stores the address of the ERC20 token that we touch
+@storage_var
+func token_address_var() -> (res : felt):
+end
+
+# Internal accounting: record how much of our balance is due to challenge
+# deposits, so we don't accidentally give out people's deposits as rewards.
+# (It should be possible for the shared security pool to be drained w/o revoking
+# challengers' deposits.)
+@storage_var
+func challenge_deposit_balance_var() -> (res : felt):
 end
 
 # Maps from user's ethereum address to profile properties
@@ -89,7 +105,8 @@ end
 func profiles_var(eth_address : felt, profile_property : felt) -> (res : felt):
 end
 
-# internal index mapping from starknet address to eth address. necessary for is_human
+# internal index mapping from starknet address to eth address.
+# necessary for `get_is_person`
 @storage_var
 func eth_address_lookup_var(address : felt) -> (eth_address : felt):
 end
@@ -158,7 +175,7 @@ end
 @external
 func challenge{
         storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
-        eth_address : felt, evidence : felt):
+        eth_address : felt, evidence_cid : Cid):
     assert_profile_exists(eth_address)
 
     let (status) = get_profile_value(eth_address, ProfilePropertyEnum.status)
@@ -171,7 +188,13 @@ func challenge{
     profiles_var.write(eth_address, ProfilePropertyEnum.status, ProfileStatusEnum.challenged)
     let (challenger_address) = get_caller_address()
     profiles_var.write(eth_address, ProfilePropertyEnum.challenger_address, challenger_address)
-    profiles_var.write(eth_address, ProfilePropertyEnum.challenge_evidence, evidence)
+    profiles_var.write(
+        eth_address, ProfilePropertyEnum.challenge_evidence_cid_low, evidence_cid.low)
+    profiles_var.write(
+        eth_address, ProfilePropertyEnum.challenge_evidence_cid_high, evidence_cid.high)
+
+    let (challenge_deposit_balance) = challenge_deposit_balance_var.read()
+    challenge_deposit_balance_var.write(challenge_deposit_balance)
 
     IERC20.transfer_from(
         contract_address=token_address,
@@ -196,7 +219,7 @@ func adjudicate{
     assert status = ProfileStatusEnum.challenged
 
     if is_valid == 1:
-        storage_ptr = storage_ptr
+        storage_ptr = storage_ptr  # TODO: get rid of this? weird line.
         profiles_var.write(eth_address, ProfilePropertyEnum.status, ProfileStatusEnum.deemed_valid)
         tempvar range_check_ptr = range_check_ptr
         tempvar storage_ptr = storage_ptr
@@ -205,18 +228,38 @@ func adjudicate{
     else:
         profiles_var.write(
             eth_address, ProfilePropertyEnum.status, ProfileStatusEnum.deemed_invalid)
+        local storage_ptr : Storage* = storage_ptr
+
+        local pedersen_ptr : HashBuiltin* = pedersen_ptr
+        local range_check_ptr = range_check_ptr
+        local storage_ptr : Storage* = storage_ptr
+        let (amount_available_for_challenge_rewards) = get_amount_available_for_challenge_rewards()
+
+        local storage_ptr : Storage* = storage_ptr
+        local pedersen_ptr : HashBuiltin* = pedersen_ptr
+        local syscall_ptr : felt* = syscall_ptr
+        let (local has_funds_for_reward) = is_le(
+            CHALLENGE_REWARD_SIZE, amount_available_for_challenge_rewards)
+
         let (challenger_address) = get_profile_value(
             eth_address, ProfilePropertyEnum.challenger_address)
         let (token_address) = token_address_var.read()
+        let reward_amount = has_funds_for_reward * CHALLENGE_REWARD_SIZE
         IERC20.transfer(
             contract_address=token_address,
             recipient=challenger_address,
-            amount=(CHALLENGE_DEPOSIT_SIZE + CHALLENGE_REWARD_SIZE))
+            amount=(CHALLENGE_DEPOSIT_SIZE + reward_amount))
         tempvar range_check_ptr = range_check_ptr
         tempvar storage_ptr = storage_ptr
         tempvar pedersen_ptr = pedersen_ptr
         tempvar syscall_ptr = syscall_ptr
     end
+
+    # If the challenger won, they got their deposit back. If the challenger lost,
+    # their deposit was eaten by the protocol (and de-facto added to the shared
+    # security pool.) Either way, we don't need to reserve the deposit anymore.
+    let (challenge_deposit_balance) = challenge_deposit_balance_var.read()
+    challenge_deposit_balance_var.write(challenge_deposit_balance - CHALLENGE_DEPOSIT_SIZE)
 
     return ()
 end
@@ -311,6 +354,20 @@ func assert_address_is_unused{storage_ptr : Storage*, pedersen_ptr : HashBuiltin
     let (eth_address) = eth_address_lookup_var.read(address)
     assert eth_address = 0
     return ()
+end
+
+@view
+func get_amount_available_for_challenge_rewards{
+        storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
+        ) -> (res : felt):
+    let (token_address) = token_address_var.read()
+    let (self_address) = self_address_var.read()
+    let (challenge_deposit_balance) = challenge_deposit_balance_var.read()
+
+    # Any funds that aren't challenge deposit reserves are for the security reward pool
+    let (total_funds) = IERC20.balance_of(contract_address=token_address, user=self_address)
+
+    return (total_funds - challenge_deposit_balance)
 end
 
 @view

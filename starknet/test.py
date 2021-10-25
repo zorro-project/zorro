@@ -58,7 +58,7 @@ async def create_erc20(starknet):
             [recipient, amount],
         )
 
-    return (erc20.contract_address, give_tokens)
+    return (erc20, give_tokens)
 
 
 @pytest.fixture(scope="module")
@@ -69,14 +69,14 @@ async def ctx():
     adjudicator_account = await deploy_and_initialize_account(starknet, adjudicator)
     challenger_account = await deploy_and_initialize_account(starknet, challenger)
 
-    (token_address, give_tokens) = await create_erc20(starknet)
+    (erc20, give_tokens) = await create_erc20(starknet)
 
     nym = await starknet.deploy(get_contract_path("nym.cairo"))
     await nym.initialize(
         notary_address=notary_account.contract_address,
         adjudicator_address=adjudicator_account.contract_address,
         self_address=nym.contract_address,
-        token_address=token_address,
+        token_address=erc20.contract_address,
     ).invoke()
 
     # Give 50 tokens to the eventual challenger so they can afford to challenge
@@ -91,6 +91,7 @@ async def ctx():
         adjudicator_account=adjudicator_account,
         challenger_account=challenger_account,
         nym=nym,
+        erc20=erc20,
     )
 
 
