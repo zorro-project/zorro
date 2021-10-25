@@ -24,6 +24,7 @@
     "@usedapp/core": "^0.5.4",
     "framer-motion": "^4",
     "ipfs-http-client": "^53.0.1",
+    "lodash": "^4.17.21",
     "prop-types": "15.7.2",
     "react": "17.0.2",
     "react-dom": "17.0.2",
@@ -32,5 +33,9 @@
     "react-player": "^2.9.0",
     "react-webcam": "^6.0.0",
     "use-file-picker": "^1.4.0"
+  },
+  "devDependencies": {
+    "fast-check": "^2.18.0",
+    "web-encoding": "^1.1.5"
   }
 }
