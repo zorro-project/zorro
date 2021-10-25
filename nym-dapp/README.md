@@ -6,17 +6,17 @@
 > to release a truly production-ready 1.0 in early 2022.
 
 ## Getting Started
+
 - [Tutorial](https://redwoodjs.com/tutorial/welcome-to-redwood): getting started and complete overview guide.
 - [Docs](https://redwoodjs.com/docs/introduction): using the Redwood Router, handling assets and files, list of command-line tools, and more.
 - [Redwood Community](https://community.redwoodjs.com): get help, share tips and tricks, and collaborate on everything about RedwoodJS.
 
 ### Setup
 
-We use Yarn as our package manager. To get the dependencies installed, just do this in the root directory:
-
-```terminal
-yarn install
-```
+- We use Yarn as our package manager. To get the dependencies installed, just do this in the root directory: `yarn install`
+- Run postgres locally. One option is to install [postgres.app](postgres.app)
+- Set up environment: Copy a `.env.example` over to `.env` and fill it out
+- Initialize database: `yarn rw prisma migrate reset`
 
 ### Fire it up
 
