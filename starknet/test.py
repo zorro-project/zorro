@@ -124,8 +124,8 @@ async def test_submit_via_notary(ctx):
     )
 
     # ensure result is in contract storage
-    assert await ctx.nym.get_profile_value(
-        eth_address=applicant_eth_address, index=0
+    assert await ctx.nym.__get_profile_cid_low(
+        eth_address=applicant_eth_address
     ).call() == (profile_cid_low,)
 
     # applying a second time should result in an error, because the
