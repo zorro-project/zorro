@@ -12,6 +12,7 @@ from starkware.starknet.common.storage import Storage
 from OpenZepplin.IERC20 import IERC20
 from lib.cid import Cid, assert_cid_is_zero, assert_cid_is_not_zero
 
+# - convert to using structs rather than using struct enum approach (likely more gas-efficient)
 # - add a get_profile method
 # - add a get_highest_profile_id method
 # - switch to autoincrement ids
@@ -20,7 +21,6 @@ from lib.cid import Cid, assert_cid_is_zero, assert_cid_is_not_zero
 # - self approval via bounty
 # - serial challenges
 # - appeal adjudication decisions to kleros
-# - convert to using structs rather than using struct enum approach (likely more gas-efficient)
 # - privacy via nyms
 # - support a list of notaries, adding/removing notaries
 # - multisig (hoping someone else does this for us)
@@ -35,6 +35,7 @@ from lib.cid import Cid, assert_cid_is_zero, assert_cid_is_not_zero
 # - rechallenging
 #   - if no rechallenges: profiles can become impervious
 #   - if rechallenges: griefing vector? someone could just keep challenging you. could increase deposit 2x each challenge)
+#   - Decision: allow serial (but not parallel) rechallenges
 # - whether challenge bounty can be configured. Decision: not for now
 # - contract upgradeability
 # - write an export function?
