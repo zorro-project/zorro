@@ -13,7 +13,7 @@ from starkware.crypto.signature.signature import (
     sign,
 )
 
-from OpenZepplin.Signer import Signer
+from utils.OpenZepplin.Signer import Signer
 
 adjudicator = Signer(7891011)
 notary = Signer(12345)
@@ -31,12 +31,12 @@ def event_loop():
 
 
 def get_contract_path(path):
-    return os.path.join(os.path.dirname(__file__), path)
+    return os.path.join(os.path.dirname(__file__), "contracts", path)
 
 
 async def deploy_and_initialize_account(starknet, signer):
     account = await starknet.deploy(get_contract_path("OpenZepplin/Account.cairo"))
-    await account.initialize(signer.public_key, account.contract_address, 0).invoke()
+    await account.initialize(signer.public_key, account.contract_address).invoke()
     return account
 
 
@@ -71,7 +71,7 @@ async def ctx():
 
     (erc20, give_tokens) = await create_erc20(starknet)
 
-    nym = await starknet.deploy(get_contract_path("nym.cairo"))
+    nym = await starknet.deploy(get_contract_path("Nym.cairo"))
     await nym.initialize(
         notary_address=notary_account.contract_address,
         adjudicator_address=adjudicator_account.contract_address,
