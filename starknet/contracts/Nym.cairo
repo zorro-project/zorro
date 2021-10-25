@@ -12,9 +12,6 @@ from starkware.starknet.common.storage import Storage
 from OpenZepplin.IERC20 import IERC20
 from lib.cid import Cid, assert_cid_is_zero, assert_cid_is_not_zero
 
-# TODOS
-# - test challenges/arbitration (will need to call `allowance`)
-
 # Bonus TODOS
 # - self approval via bounty
 # - appeal adjudication decisions to kleros
@@ -37,8 +34,8 @@ from lib.cid import Cid, assert_cid_is_zero, assert_cid_is_not_zero
 # - contract upgradeability
 # - splitting contract into separate parts (e.g. could have a separate contract for managing challenges)
 
-const CHALLENGE_DEPOSIT_SIZE = 25
-const CHALLENGE_REWARD_SIZE = 25
+const CHALLENGE_DEPOSIT_SIZE = 25  # This constant is also in test.py
+const CHALLENGE_REWARD_SIZE = 25 # This constant is also in test.py
 
 # member notary_address : felt Not necessary since is part of chain history
 # TODO: maybe better not to use this pattern for profiles

@@ -20,6 +20,10 @@ notary = Signer(12345)
 challenger = Signer(888333444555)
 
 
+CHALLENGE_DEPOSIT_SIZE = 25  # This constant is also in Nym.cairo
+CHALLENGE_REWARD_SIZE = 25  # This constant is also in Nym.cairo
+
+
 @pytest.fixture(scope="module")
 def event_loop():
     return asyncio.new_event_loop()
@@ -135,8 +139,58 @@ async def test_submit_via_notary(ctx):
 
 
 @pytest.mark.asyncio
-async def test_challenge(ctx):
+async def test_challenge_and_adjudication(ctx):
     eth_address = 0x234324
+    address = 321
+
+    async def get_challenger_balance():
+        (balance,) = await ctx.erc20.balance_of(
+            ctx.challenger_account.contract_address
+        ).call()
+        return balance
+
     await submit_via_notary(
-        ctx, eth_address, profile_cid_low=1, profile_cid_high=2, address=3
+        ctx, eth_address, profile_cid_low=1, profile_cid_high=2, address=address
     )
+
+    # TODO: confirm status
+    # TODO: confirm get_is_person result
+    assert await ctx.nym.get_is_person(address=address).call() == (1,)
+    initial_balance = await get_challenger_balance()
+
+    await challenger.send_transaction(
+        ctx.challenger_account,
+        ctx.erc20.contract_address,
+        "approve",
+        [ctx.nym.contract_address, 25],
+    )
+    await challenger.send_transaction(
+        ctx.challenger_account,
+        ctx.nym.contract_address,
+        "challenge",
+        [
+            eth_address,
+            1,
+            2,
+        ],
+    )
+
+    # TODO: confirm status
+    assert await get_challenger_balance() == initial_balance - CHALLENGE_DEPOSIT_SIZE
+    assert await ctx.nym.get_is_person(address=address).call() == (0,)
+
+    await adjudicator.send_transaction(
+        ctx.adjudicator_account,
+        ctx.nym.contract_address,
+        "adjudicate",
+        [
+            eth_address,
+            1,
+        ],
+    )
+
+    # TODO: confirm status
+    assert await get_challenger_balance() == initial_balance - CHALLENGE_DEPOSIT_SIZE
+    assert await ctx.nym.get_is_person(address=address).call() == (1,)
+
+    # TODO: test scenario where final adjudication says the profile is invalid
