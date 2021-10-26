@@ -4,6 +4,12 @@
   "private": true,
   "dependencies": {
     "@redwoodjs/api": "0.37.4",
-    "@redwoodjs/graphql-server": "0.37.4"
+    "@redwoodjs/graphql-server": "0.37.4",
+    "ethers": "^5.5.1"
+  },
+  "devDependencies": {
+    "graphql": "^15.6.1",
+    "graphql-request": "^3.6.1",
+    "random-weighted-choice": "^0.1.4"
   }
 }

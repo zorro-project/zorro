@@ -1,3 +1,5 @@
+import importPoH from './seed/importPoH'
+
 /* eslint-disable no-console */
 const { PrismaClient } = require('@prisma/client')
 const dotenv = require('dotenv')
@@ -8,8 +10,10 @@ const db = new PrismaClient({
 })
 
 async function main() {
+  await importPoH()
+
   console.log('Seeding unsubmitted profiles')
-  const profiles = await db.unsubmittedProfile.createMany({
+  await db.unsubmittedProfile.createMany({
     data: [
       {
         selfieCID:
@@ -45,24 +49,15 @@ async function main() {
     where: { id: feedback.unsubmittedProfileId },
     data: { unaddressedFeedbackId: feedback.id },
   })
-  // // Change to match your data model and seeding needs
-  // const data = [
-  //   { name: 'alice', email: 'alice@example.com' },
-  //   { name: 'mark', email: 'mark@example.com' },
-  //   { name: 'jackie', email: 'jackie@example.com' },
-  //   { name: 'bob', email: 'bob@example.com' },
-  // ]
 
-  // // Note: if using PostgreSQL, using `createMany` to insert multiple records is much faster
-  // // @see: https://www.prisma.io/docs/reference/api-reference/prisma-client-reference#createmany
-  // return Promise.all(
-  //   data.map(async (user) => {
-  //     const record = await db.user.create({
-  //       data: { name: user.name, email: user.email },
-  //     })
-  //     console.log(record)
-  //   })
-  // )
+  const pohProfiles = await importPoH()
+
+  await db.profilesCache.createMany({
+    data: pohProfiles.map((profile) => ({
+      ...profile,
+      createdTimestamp: new Date(),
+    })),
+  })
 }
 
 main()
