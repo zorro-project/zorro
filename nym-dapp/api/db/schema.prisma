@@ -39,3 +39,27 @@ model UnsubmittedProfile {
 
   NotaryFeedback NotaryFeedback[]
 }
+
+enum ProfileStatus {
+  submitted_via_notary
+  challenged
+  deemed_valid
+  deemed_invalid
+}
+
+// Cache of profiles from the `profiles` storage var in Nym.cairo
+model ProfilesCache {
+  nymId      Int           @id @default(autoincrement()) // TODO: this shouldn't have a default
+  ethAddress String        @unique
+  status     ProfileStatus
+
+  CID      String
+  photoCID String?
+  videoCID String?
+
+  // Associated StarkNet address
+  address String?
+
+  createdTimestamp DateTime @default(now()) // TODO: this shouldn't have a default
+
+}
