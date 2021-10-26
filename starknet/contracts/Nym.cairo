@@ -29,7 +29,6 @@ struct Profile:
     member challenger_address : felt
 end
 
-# TODO: document allowable transitions
 # Abusing a struct as an enum
 struct ProfileStatusEnum:
     member submitted_via_notary : felt
@@ -37,10 +36,42 @@ struct ProfileStatusEnum:
     member challenged : felt
     member deemed_valid : felt
     member deemed_invalid : felt
-    # member appealed_to_kleros : felt
-    # member kleros_deemed_invalid : felt
-    # member kleros_deemed_valid : felt
+    member appealed_to_kleros : felt
+    member kleros_deemed_valid : felt
+    member kleros_deemed_invalid : felt
 end
+
+#
+#           |                                  |
+#           v                                  v
+#    submitted_via_notary            submitted_via_deposit
+#           |                                  |
+#           \__________________________________/
+#                            |
+#                            v
+#                        challenged <-----------------------\
+#                            |                              |
+#                    _______/ \_______                      |
+#                   /                 \                     |
+#                  v                   v                    |
+#             deemed_valid        deemed_invalid            |
+#                  |                   |                    |
+#                  \_________  ________/                    |
+#                            \/                             |
+#                            |                              |
+#                            v                              |
+#                    appealed_to_kleros                     |
+#                            |                              |
+#                    _______/ \_______                      |
+#                   /                 \                     |
+#                  v                   v                    |
+#        kleros_deemed_valid   kleros_deemed_invalid        |
+#                  |                   |                    |
+#                  \_________  ________/                    |
+#                            \/                             |
+#                            |                              |
+#                            \------------------------------/
+#
 
 #
 # Storage vars
@@ -181,9 +212,10 @@ func challenge{
     let (local token_address) = _token_address.read()
     let (local challenger_address) = get_caller_address()
 
-    # don't let people challenge a profile which was already challenged
-    # XXX: should implement a specific allow list of the statuses that can be challenged.
-    # namely: submitted_via_notary, submitted_via_bounty, ...
+    # don't let people challenge a profile which is already awaiting adjudication
+    # XXX: to make this safer when code volves in the future, specific allow
+    # list of the statuses that can be challenged.  namely:
+    # submitted_via_notary, submitted_via_bounty, ...
     assert_not_equal(profile.status, ProfileStatusEnum.challenged)
 
     let new_profile = Profile(
