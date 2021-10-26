@@ -18,6 +18,7 @@ from lib.cid import Cid, assert_cid_is_zero, assert_cid_is_not_zero
 
 const CHALLENGE_DEPOSIT_SIZE = 25  # This constant is also in test.py
 const CHALLENGE_REWARD_SIZE = 25  # This constant is also in test.py
+const SUBMISSION_DEPOSIT_SIZE = 25
 
 struct Profile:
     member cid : Cid
@@ -32,6 +33,7 @@ end
 # Abusing a struct as an enum
 struct ProfileStatusEnum:
     member submitted_via_notary : felt
+    member submitted_via_deposit : felt
     member challenged : felt
     member deemed_valid : felt
     member deemed_invalid : felt
@@ -147,6 +149,24 @@ func submit_via_notary{
     _profiles.write(eth_address, profile)
     _eth_address_lookup.write(address, eth_address)
 
+    return ()
+end
+
+@external
+func submit_via_deposit{
+        bitwise_ptr : BitwiseBuiltin*, storage_ptr : Storage*, pedersen_ptr : HashBuiltin*,
+        range_check_ptr, syscall_ptr : felt*}():
+    # XXX: implement
+    # XXX: should increment deposit reserve
+    return ()
+end
+
+@external
+func reclaim_submission_deposit{
+        bitwise_ptr : BitwiseBuiltin*, storage_ptr : Storage*, pedersen_ptr : HashBuiltin*,
+        range_check_ptr, syscall_ptr : felt*}():
+    # XXX: implement
+    # if enough time has passed...
     return ()
 end
 
