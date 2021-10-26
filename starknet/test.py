@@ -23,6 +23,10 @@ challenger = Signer(888333444555)
 CHALLENGE_DEPOSIT_SIZE = 25  # This constant is also in Nym.cairo
 CHALLENGE_REWARD_SIZE = 25  # This constant is also in Nym.cairo
 
+# Note: could use a factory clone method to speed up tests, like this:
+# https://github.com/fracek/starknet-pythonic-template/blob/main/tests/starknet/test_counter.py
+# Or maybe could avoid compilation time by caching compiled json
+
 
 @pytest.fixture(scope="module")
 def event_loop():
@@ -111,6 +115,11 @@ async def submit_via_notary(
         ],
     )
 
+    (profile_id,) = await ctx.nym.get_profile_id_by_eth_address(
+        applicant_eth_address
+    ).call()
+    return profile_id
+
 
 @pytest.mark.asyncio
 async def test_submit_via_notary(ctx):
@@ -119,14 +128,12 @@ async def test_submit_via_notary(ctx):
     profile_cid_low = 1234567
     profile_cid_high = 453430
 
-    await submit_via_notary(
+    profile_id = await submit_via_notary(
         ctx, applicant_eth_address, profile_cid_low, profile_cid_high, address
     )
 
     # ensure result is in contract storage
-    assert await ctx.nym.__get_profile_cid_low(
-        eth_address=applicant_eth_address
-    ).call() == (profile_cid_low,)
+    assert await ctx.nym.__get_profile_cid_low(profile_id).call() == (profile_cid_low,)
 
     # applying a second time should result in an error, because the
     # profile already exists
@@ -149,7 +156,7 @@ async def test_challenge_and_adjudication(ctx):
         ).call()
         return balance
 
-    await submit_via_notary(
+    profile_id = await submit_via_notary(
         ctx, eth_address, profile_cid_low=1, profile_cid_high=2, address=address
     )
 
@@ -169,7 +176,7 @@ async def test_challenge_and_adjudication(ctx):
         ctx.nym.contract_address,
         "challenge",
         [
-            eth_address,
+            profile_id,
             1,
             2,
         ],
@@ -184,7 +191,7 @@ async def test_challenge_and_adjudication(ctx):
         ctx.nym.contract_address,
         "adjudicate",
         [
-            eth_address,
+            profile_id,
             1,
         ],
     )

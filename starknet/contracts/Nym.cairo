@@ -20,9 +20,11 @@ const CHALLENGE_DEPOSIT_SIZE = 25  # This constant is also in test.py
 const CHALLENGE_REWARD_SIZE = 25  # This constant is also in test.py
 const SUBMISSION_DEPOSIT_SIZE = 25
 
+# If you add a member to `Profile`, remember to update all Profile constructor calls
 struct Profile:
     member cid : Cid
     member address : felt  # starknet address
+    member eth_address : felt
     member created_timestamp : felt
     member status : felt  # one of ProfileStatusEnum
     member challenge_evidence_cid : Cid
@@ -42,6 +44,10 @@ struct ProfileStatusEnum:
 end
 
 #
+# Profile status transition chart
+#
+
+#
 #           |                                  |
 #           v                                  v
 #    submitted_via_notary            submitted_via_deposit
@@ -56,8 +62,7 @@ end
 #                  v                   v                    |
 #             deemed_valid        deemed_invalid            |
 #                  |                   |                    |
-#                  \_________  ________/                    |
-#                            \/                             |
+#                  \___________________/                    |
 #                            |                              |
 #                            v                              |
 #                    appealed_to_kleros                     |
@@ -67,8 +72,8 @@ end
 #                  v                   v                    |
 #        kleros_deemed_valid   kleros_deemed_invalid        |
 #                  |                   |                    |
-#                  \_________  ________/                    |
-#                            \/                             |
+#                  \___________________/                    |
+#                            |                              |
 #                            |                              |
 #                            \------------------------------/
 #
@@ -109,18 +114,28 @@ end
 func _challenge_deposit_balance() -> (res : felt):
 end
 
+@storage_var
+func _num_profiles() -> (res : felt):
+end
+
 # Maps from user's ethereum address to profile properties
 # TODO: decide what we want the key to be (using eth address right now.)
 # TODO: decide if want to map into some bigger struct that includes
 # other information about the profile, like whether or not it is challenged, etc
 @storage_var
-func _profiles(eth_address : felt) -> (res : Profile):
+func _profiles(profile_id : felt) -> (res : Profile):
 end
 
-# internal index mapping from starknet address to eth address.
+# internal index mapping from starknet address to `profile_id`
 # necessary for `get_is_person`
 @storage_var
-func _eth_address_lookup(address : felt) -> (eth_address : felt):
+func _map_from_address_to_profile_id(address : felt) -> (profile_id : felt):
+end
+
+# internal index mapping from eth address to `profile_id`
+# necessary for checking that an eth address isn't already in use while submitting
+@storage_var
+func _map_from_eth_address_to_profile_id(eth_address : felt) -> (profile_id : felt):
 end
 
 #
@@ -145,7 +160,8 @@ end
 func submit_via_notary{
         bitwise_ptr : BitwiseBuiltin*, storage_ptr : Storage*, pedersen_ptr : HashBuiltin*,
         range_check_ptr, syscall_ptr : felt*}(
-        eth_address : felt, profile_cid : Cid, address : felt, created_timestamp : felt):
+        eth_address : felt, profile_cid : Cid, address : felt, created_timestamp : felt) -> (
+        profile_id : felt):
     assert_initialized()
     assert_caller_is_notary()
 
@@ -158,6 +174,8 @@ func submit_via_notary{
 
     assert_eth_address_is_unused(eth_address)
     assert_address_is_unused(address)
+
+    let (profile_id) = _generate_next_profile_id()
 
     # XXX: The ethereum address should sign the cid, and we should verify that
     # signature here. Otherwise, someone could claim someone else's eth address,
@@ -172,24 +190,36 @@ func submit_via_notary{
     let profile = Profile(
         cid=profile_cid,
         address=address,
+        eth_address=eth_address,
         created_timestamp=created_timestamp,
         status=ProfileStatusEnum.submitted_via_notary,
         challenge_evidence_cid=Cid(0, 0),
         challenger_address=0)
 
-    _profiles.write(eth_address, profile)
-    _eth_address_lookup.write(address, eth_address)
+    _profiles.write(profile_id, profile)
+    _map_from_address_to_profile_id.write(address, profile_id)
+    _map_from_eth_address_to_profile_id.write(eth_address, profile_id)
 
-    return ()
+    return (profile_id)
 end
 
 @external
 func submit_via_deposit{
         bitwise_ptr : BitwiseBuiltin*, storage_ptr : Storage*, pedersen_ptr : HashBuiltin*,
-        range_check_ptr, syscall_ptr : felt*}():
+        range_check_ptr, syscall_ptr : felt*}() -> (profile_id : felt):
     # XXX: implement
     # XXX: should increment deposit reserve
-    return ()
+    return (0)
+end
+
+func _generate_next_profile_id{
+        bitwise_ptr : BitwiseBuiltin*, storage_ptr : Storage*, pedersen_ptr : HashBuiltin*,
+        range_check_ptr, syscall_ptr : felt*}() -> (res : felt):
+    let (num_profiles) = _num_profiles.read()
+    let next_profile_id = num_profiles + 1
+    _num_profiles.write(next_profile_id)
+
+    return (next_profile_id)
 end
 
 @external
@@ -204,10 +234,10 @@ end
 @external
 func challenge{
         bitwise_ptr : BitwiseBuiltin*, storage_ptr : Storage*, pedersen_ptr : HashBuiltin*,
-        range_check_ptr, syscall_ptr : felt*}(eth_address : felt, evidence_cid : Cid):
+        range_check_ptr, syscall_ptr : felt*}(profile_id : felt, evidence_cid : Cid):
     alloc_locals
 
-    let (local profile) = get_profile(eth_address)
+    let (local profile) = get_profile(profile_id)
     let (local self_address) = _self_address.read()
     let (local token_address) = _token_address.read()
     let (local challenger_address) = get_caller_address()
@@ -221,11 +251,12 @@ func challenge{
     let new_profile = Profile(
         cid=profile.cid,
         address=profile.address,
+        eth_address=profile.eth_address,
         created_timestamp=profile.created_timestamp,
         status=ProfileStatusEnum.challenged,
         challenge_evidence_cid=evidence_cid,
         challenger_address=challenger_address)
-    _profiles.write(eth_address, new_profile)
+    _profiles.write(profile_id, new_profile)
 
     # Require the challenger to pay a deposit
     let (challenge_deposit_balance) = _challenge_deposit_balance.read()
@@ -242,11 +273,11 @@ end
 @external
 func adjudicate{
         bitwise_ptr : BitwiseBuiltin*, storage_ptr : Storage*, pedersen_ptr : HashBuiltin*,
-        range_check_ptr, syscall_ptr : felt*}(eth_address : felt, is_valid : felt):
+        range_check_ptr, syscall_ptr : felt*}(profile_id : felt, is_valid : felt):
     alloc_locals
     assert_caller_is_adjudicator()
 
-    let (local profile) = get_profile(eth_address)
+    let (local profile) = get_profile(profile_id)
 
     # Can only adjudicate a profile that was challenged
     assert profile.status = ProfileStatusEnum.challenged
@@ -257,11 +288,12 @@ func adjudicate{
     let new_profile = Profile(
         cid=profile.cid,
         address=profile.address,
+        eth_address=profile.eth_address,
         created_timestamp=profile.created_timestamp,
         status=new_status,
         challenge_evidence_cid=profile.challenge_evidence_cid,
         challenger_address=profile.challenger_address)
-    _profiles.write(eth_address, new_profile)
+    _profiles.write(profile_id, new_profile)
 
     if is_valid == 0:
         # The challenger was correct
@@ -309,6 +341,14 @@ end
 #
 
 @view
+func get_num_profiles{
+        bitwise_ptr : BitwiseBuiltin*, storage_ptr : Storage*, pedersen_ptr : HashBuiltin*,
+        range_check_ptr, syscall_ptr : felt*}() -> (res : felt):
+    let (num_profiles) = _num_profiles.read()
+    return (num_profiles)
+end
+
+@view
 func get_profile{
         bitwise_ptr : BitwiseBuiltin*, storage_ptr : Storage*, pedersen_ptr : HashBuiltin*,
         range_check_ptr, syscall_ptr : felt*}(eth_address : felt) -> (res : Profile):
@@ -318,12 +358,21 @@ func get_profile{
 end
 
 @view
+func get_profile_id_by_eth_address{
+        bitwise_ptr : BitwiseBuiltin*, storage_ptr : Storage*, pedersen_ptr : HashBuiltin*,
+        range_check_ptr, syscall_ptr : felt*}(eth_address : felt) -> (profile_id : felt):
+    let (profile_id) = _map_from_eth_address_to_profile_id.read(eth_address)
+    assert_not_zero(profile_id)
+    return (profile_id)
+end
+
+@view
 func get_is_person{
         bitwise_ptr : BitwiseBuiltin*, storage_ptr : Storage*, pedersen_ptr : HashBuiltin*,
         range_check_ptr, syscall_ptr : felt*}(address) -> (is_person : felt):
     alloc_locals
-    let (eth_address) = _eth_address_lookup.read(address)
-    let (profile) = get_profile(eth_address)
+    let (profile_id) = _map_from_address_to_profile_id.read(address)
+    let (profile) = get_profile(profile_id)
 
     # Statuses conidered registered: submitted_via_notary, deemed_valid
     # Statuses considered unregistered: challenged, deemed_invalid
@@ -386,8 +435,8 @@ end
 func assert_eth_address_is_unused{
         bitwise_ptr : BitwiseBuiltin*, storage_ptr : Storage*, pedersen_ptr : HashBuiltin*,
         range_check_ptr, syscall_ptr : felt*}(eth_address : felt):
-    let (profile) = _profiles.read(eth_address)
-    assert_cid_is_zero(profile.cid)
+    let (profile_id) = _map_from_eth_address_to_profile_id.read(eth_address)
+    assert profile_id = 0
     return ()
 end
 
@@ -395,13 +444,13 @@ end
 func assert_address_is_unused{
         bitwise_ptr : BitwiseBuiltin*, storage_ptr : Storage*, pedersen_ptr : HashBuiltin*,
         range_check_ptr, syscall_ptr : felt*}(address : felt):
-    let (eth_address) = _eth_address_lookup.read(address)
-    assert eth_address = 0
+    let (profile_id) = _map_from_address_to_profile_id.read(address)
+    assert profile_id = 0
     return ()
 end
 
 #
-# Temporary stuff for testing, etc
+# Temporary stuff for testing, stubbing missing StarkNet functionality, etc
 #
 
 @view
