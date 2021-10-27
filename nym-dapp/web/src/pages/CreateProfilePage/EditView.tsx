@@ -3,7 +3,7 @@ import { FormControl, FormHelperText, FormLabel } from '@chakra-ui/form-control'
 import { Heading, Stack, StackDivider, Text } from '@chakra-ui/layout'
 import { useFormContext } from 'react-hook-form'
 import { Card } from 'src/components/Card'
-import SelfieField from 'src/pages/CreateProfilePage/SelfieField'
+import PhotoField from 'src/pages/CreateProfilePage/PhotoField'
 import VideoField from 'src/pages/CreateProfilePage/VideoField'
 import { Find_Unsubmitted_Profile } from 'types/graphql'
 import ProfileStatus from './ProfileStatus'
@@ -39,7 +39,7 @@ const EditView = (props: {
                 We need a picture of you to make sure you're a unique human.
               </FormHelperText>
             </FormControl>
-            <SelfieField />
+            <PhotoField />
           </Stack>
           <Stack
             direction={{ base: 'column', md: 'row' }}

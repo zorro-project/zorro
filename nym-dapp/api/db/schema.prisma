@@ -26,7 +26,7 @@ model NotaryFeedback {
 
 model UnsubmittedProfile {
   id         Int     @id @default(autoincrement())
-  selfieCID  String
+  photoCID   String
   videoCID   String
   ethAddress String  @unique
   email      String?
@@ -49,7 +49,7 @@ enum ProfileStatus {
 
 // Cache of profiles from the `profiles` storage var in Nym.cairo
 model ProfilesCache {
-  nymId      Int           @id @default(autoincrement()) // TODO: this shouldn't have a default
+  nymId      Int           @id @default(autoincrement())
   ethAddress String        @unique
   status     ProfileStatus
 
@@ -60,6 +60,6 @@ model ProfilesCache {
   // Associated StarkNet address
   address String?
 
-  createdTimestamp DateTime @default(now()) // TODO: this shouldn't have a default
+  createdTimestamp DateTime
 
 }

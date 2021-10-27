@@ -4,7 +4,7 @@ export const standard = defineScenario<Prisma.UnsubmittedProfileCreateArgs>({
   unsubmittedProfile: {
     one: {
       data: {
-        selfieCID: 'String',
+        photoCID: 'String',
         videoCID: 'String',
         ethAddress: 'String',
         updatedAt: '2021-10-19T14:11:15Z',
@@ -12,7 +12,7 @@ export const standard = defineScenario<Prisma.UnsubmittedProfileCreateArgs>({
     },
     two: {
       data: {
-        selfieCID: 'String',
+        photoCID: 'String',
         videoCID: 'String',
         ethAddress: 'String',
         updatedAt: '2021-10-19T14:11:15Z',

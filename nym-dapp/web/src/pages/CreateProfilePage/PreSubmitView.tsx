@@ -26,7 +26,7 @@ const PreSubmitView = (props: {
 }) => {
   const { account } = useEthers()
   const { watch, formState } = useFormContext<SignupFieldValues>()
-  const selfieUrl = dataFieldToUrl(watch('selfieCID'))
+  const photoUrl = dataFieldToUrl(watch('photoCID'))
   const videoUrl = dataFieldToUrl(watch('videoCID'))
 
   return (
@@ -69,7 +69,7 @@ const PreSubmitView = (props: {
                 </ListItem>
               </OrderedList>
             </FormControl>
-            <Image src={selfieUrl} width="36" borderRadius="lg" shadow="lg" />
+            <Image src={photoUrl} width="36" borderRadius="lg" shadow="lg" />
           </Stack>
           <Stack
             direction={{ base: 'column', md: 'row' }}

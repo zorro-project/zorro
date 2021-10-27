@@ -16,7 +16,7 @@ import {
 const UnsubmittedProfile: React.FC<{
   profile: ArrayElement<Unsubmitted_Profiles_Page['unsubmittedProfiles']>
 }> = ({ profile }) => {
-  const selfieUrl = dataFieldToUrl(profile.selfieCID)
+  const photoUrl = dataFieldToUrl(profile.photoCID)
   const videoUrl = dataFieldToUrl(profile.videoCID)
 
   const [reviewed, setReviewed] = React.useState(false)
@@ -63,7 +63,7 @@ const UnsubmittedProfile: React.FC<{
       </Td>
       <Td>
         <Image
-          src={selfieUrl}
+          src={photoUrl}
           width="36"
           borderRadius="lg"
           shadow="lg"

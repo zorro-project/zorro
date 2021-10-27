@@ -1,7 +1,7 @@
 export const schema = gql`
   type UnsubmittedProfile {
     id: Int!
-    selfieCID: String!
+    photoCID: String!
     videoCID: String!
     ethAddress: String!
     hasEmail: Boolean!
@@ -18,13 +18,13 @@ export const schema = gql`
   }
 
   input CreateUnsubmittedProfileInput {
-    selfieCID: String!
+    photoCID: String!
     videoCID: String!
     ethAddress: String!
   }
 
   input UpdateUnsubmittedProfileInput {
-    selfieCID: String
+    photoCID: String
     videoCID: String
   }
 

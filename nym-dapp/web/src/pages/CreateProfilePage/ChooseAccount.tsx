@@ -13,7 +13,7 @@ import {
 } from '@chakra-ui/react'
 import ConnectButton from 'src/components/ConnectButton/ConnectButton'
 import { Card } from '../../components/Card'
-import SelfieField from './SelfieField'
+import PhotoField from './PhotoField'
 import VideoField from './VideoField'
 
 const EditView = () => {
@@ -70,7 +70,7 @@ const EditView = () => {
                 We need a picture of you to make sure you're a unique human.
               </FormHelperText>
             </FormControl>
-            <SelfieField />
+            <PhotoField />
           </Stack>
           <Stack
             direction={{ base: 'column', md: 'row' }}

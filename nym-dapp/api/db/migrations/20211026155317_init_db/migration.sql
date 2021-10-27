@@ -15,7 +15,7 @@ CREATE TABLE "NotaryFeedback" (
 -- CreateTable
 CREATE TABLE "UnsubmittedProfile" (
     "id" SERIAL NOT NULL,
-    "selfieCID" TEXT NOT NULL,
+    "photoCID" TEXT NOT NULL,
     "videoCID" TEXT NOT NULL,
     "ethAddress" TEXT NOT NULL,
     "email" TEXT,

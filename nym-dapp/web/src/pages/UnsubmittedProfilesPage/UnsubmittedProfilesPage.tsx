@@ -11,7 +11,7 @@ const UnsubmittedProfilesPage = () => {
     query UNSUBMITTED_PROFILES_PAGE {
       unsubmittedProfiles(pendingReview: true) {
         id
-        selfieCID
+        photoCID
         videoCID
         ethAddress
       }

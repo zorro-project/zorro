@@ -30,7 +30,7 @@ const Success = ({
   const methods = useForm<SignupFieldValues>({
     mode: 'onChange',
     defaultValues: {
-      selfieCID: unsubmittedProfile?.selfieCID,
+      photoCID: unsubmittedProfile?.photoCID,
       videoCID: unsubmittedProfile?.videoCID,
     },
   })
@@ -56,20 +56,20 @@ const Success = ({
       const reportProgress = (bytes: number) =>
         setSubmitProgress(
           (100 * bytes) /
-            (data.selfieCID instanceof Blob ? data.selfieCID.size : 0) +
+            (data.photoCID instanceof Blob ? data.photoCID.size : 0) +
             (data.videoCID instanceof Blob ? data.videoCID.size : 0)
         )
 
-      const selfieCID =
-        data.selfieCID instanceof Blob
+      const photoCID =
+        data.photoCID instanceof Blob
           ? (
-              await ipfsClient.add(data.selfieCID as Blob, {
+              await ipfsClient.add(data.photoCID as Blob, {
                 progress: reportProgress,
               })
             ).cid
               .toV1()
               .toString()
-          : data.selfieCID
+          : data.photoCID
 
       const videoCID =
         data.videoCID instanceof Blob
@@ -86,7 +86,7 @@ const Success = ({
         variables: {
           ethAddress: account,
           input: {
-            selfieCID,
+            photoCID,
             videoCID,
             email: data.email,
           },
@@ -146,7 +146,7 @@ const SignUpCell = createCell<CellProps>({
   QUERY: gql`
     query FIND_UNSUBMITTED_PROFILE($account: String!) {
       unsubmittedProfile(ethAddress: $account) {
-        selfieCID
+        photoCID
         videoCID
         hasEmail
         ethAddress

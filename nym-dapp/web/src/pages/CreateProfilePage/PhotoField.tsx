@@ -21,11 +21,11 @@ import {
 import { useState } from 'react'
 import { useController, useFormContext } from 'react-hook-form'
 import Webcam from 'react-webcam'
-import { dataFieldToUrl, dataUrlToBlob, useDataFieldUrl } from 'src/lib/util'
+import { dataUrlToBlob, useDataFieldUrl } from 'src/lib/util'
 import { useFilePicker } from 'use-file-picker'
 import { SignupFieldValues } from './types'
 
-const SelfieModal = (props: {
+const PhotoModal = (props: {
   modalCtrl: UseDisclosureReturn
   onSave: (newPhoto: Blob) => void
 }) => {
@@ -52,7 +52,7 @@ const SelfieModal = (props: {
     setWebcamActive(false)
   }
 
-  const saveSelfie = () => {
+  const savePhoto = () => {
     props.onSave(candidatePic)
     setCandidatePic(null)
     props.modalCtrl.onClose()
@@ -121,7 +121,7 @@ const SelfieModal = (props: {
                     borderRadius="lg"
                   />
                   <ButtonGroup justify="center" pb="4">
-                    <Button colorScheme="blue" onClick={saveSelfie}>
+                    <Button colorScheme="blue" onClick={savePhoto}>
                       Use This
                     </Button>
                     <Button onClick={() => setCandidatePic(null)}>
@@ -147,26 +147,26 @@ const SelfieModal = (props: {
   )
 }
 
-const SelfieField = () => {
+const PhotoField = () => {
   const modalControl = useDisclosure()
 
   const { control } = useFormContext<SignupFieldValues>()
   const { field } = useController({
-    name: 'selfieCID',
+    name: 'photoCID',
     control,
     rules: { required: true },
   })
-  const selfieURL = useDataFieldUrl(field.value)
+  const photoUrl = useDataFieldUrl(field.value)
 
   return (
     <>
-      <SelfieModal
+      <PhotoModal
         modalCtrl={modalControl}
         onSave={(pic) => field.onChange(pic)}
       />
-      {selfieURL ? (
+      {photoUrl ? (
         <Stack>
-          <Image src={selfieURL} width="36" borderRadius="lg" shadow="lg" />
+          <Image src={photoUrl} width="36" borderRadius="lg" shadow="lg" />
           <Link
             as="button"
             type="button"
@@ -183,4 +183,4 @@ const SelfieField = () => {
   )
 }
 
-export default SelfieField
+export default PhotoField
