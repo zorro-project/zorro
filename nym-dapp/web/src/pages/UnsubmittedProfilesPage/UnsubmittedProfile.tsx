@@ -7,6 +7,7 @@ import { Textarea } from '@chakra-ui/textarea'
 import { routes } from '@redwoodjs/router'
 import { MetaTags, useMutation, useQuery } from '@redwoodjs/web'
 import ReactPlayer from 'react-player'
+import { PhotoBox, VideoBox } from 'src/components/SquareBox'
 import { ArrayElement, dataFieldToUrl } from 'src/lib/util'
 import {
   MutationAddNotaryFeedbackArgs,
@@ -16,9 +17,6 @@ import {
 const UnsubmittedProfile: React.FC<{
   profile: ArrayElement<Unsubmitted_Profiles_Page['unsubmittedProfiles']>
 }> = ({ profile }) => {
-  const photoUrl = dataFieldToUrl(profile.photoCID)
-  const videoUrl = dataFieldToUrl(profile.videoCID)
-
   const [reviewed, setReviewed] = React.useState(false)
   const feedbackRef = React.useRef<typeof Textarea>()
 
@@ -62,18 +60,10 @@ const UnsubmittedProfile: React.FC<{
         </Text>
       </Td>
       <Td>
-        <Image
-          src={photoUrl}
-          width="36"
-          borderRadius="lg"
-          shadow="lg"
-          background="gray.200"
-        />
+        <PhotoBox photo={profile.photoCID} width="36" />
       </Td>
       <Td>
-        <Box overflow="hidden" width="36" borderRadius="lg" shadow="lg">
-          <ReactPlayer url={videoUrl} controls width="100%" height="auto" />
-        </Box>
+        <VideoBox video={profile.videoCID} width="36" />
       </Td>
       <Td>
         <Stack>

@@ -21,7 +21,8 @@ import {
 import { useState } from 'react'
 import { useController, useFormContext } from 'react-hook-form'
 import Webcam from 'react-webcam'
-import { dataUrlToBlob, useDataFieldUrl } from 'src/lib/util'
+import { PhotoBox } from 'src/components/SquareBox'
+import { dataUrlToBlob } from 'src/lib/util'
 import { useFilePicker } from 'use-file-picker'
 import { SignupFieldValues } from './types'
 
@@ -156,7 +157,6 @@ const PhotoField = () => {
     control,
     rules: { required: true },
   })
-  const photoUrl = useDataFieldUrl(field.value)
 
   return (
     <>
@@ -164,9 +164,9 @@ const PhotoField = () => {
         modalCtrl={modalControl}
         onSave={(pic) => field.onChange(pic)}
       />
-      {photoUrl ? (
+      {field.value ? (
         <Stack>
-          <Image src={photoUrl} width="36" borderRadius="lg" shadow="lg" />
+          <PhotoBox photo={field.value} width="36" shadow="lg" />
           <Link
             as="button"
             type="button"

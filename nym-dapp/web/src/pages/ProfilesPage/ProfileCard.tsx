@@ -76,7 +76,6 @@ const ProfileCard = ({
         bgColor="rgba(255, 255, 255, 0.8)"
         align="center"
         spacing={0}
-        // fontWeight="bold"
         fontSize="sm"
       >
         <Stack direction="row" alignItems="center">

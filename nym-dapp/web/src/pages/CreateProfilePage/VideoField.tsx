@@ -21,7 +21,8 @@ import { useState } from 'react'
 import { useController, useFormContext } from 'react-hook-form'
 import ReactPlayer from 'react-player'
 import Webcam from 'react-webcam'
-import { dataUrlToBlob, useDataFieldUrl } from 'src/lib/util'
+import { VideoBox } from 'src/components/SquareBox'
+import { dataUrlToBlob } from 'src/lib/util'
 import { useFilePicker } from 'use-file-picker'
 import { SignupFieldValues } from './types'
 
@@ -191,16 +192,13 @@ const VideoField = () => {
     control,
     rules: { required: true },
   })
-  const videoURL = useDataFieldUrl(field.value)
 
   return (
     <>
       <VideoModal modalCtrl={modalControl} onSave={field.onChange} />
-      {videoURL ? (
+      {field.value ? (
         <Stack>
-          <Box overflow="hidden" width="36" borderRadius="lg" shadow="lg">
-            <ReactPlayer url={videoURL} controls width="100%" height="auto" />
-          </Box>
+          <VideoBox video={field.value} width="36" shadow="lg" />
           <Link
             as="button"
             type="button"

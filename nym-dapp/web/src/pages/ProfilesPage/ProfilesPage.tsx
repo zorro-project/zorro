@@ -110,7 +110,6 @@ const ProfilesPage = () => {
                       }
                       ref={ref}
                       height={height}
-                      // height={cardSize * rowCount}
                       width={width}
                       rowHeight={cardSize}
                       columnCount={columnCount}

@@ -6,7 +6,6 @@ import {
 import { Button, ButtonGroup } from '@chakra-ui/button'
 import Icon from '@chakra-ui/icon'
 import { ExternalLinkIcon } from '@chakra-ui/icons'
-import { Image } from '@chakra-ui/image'
 import {
   Box,
   Heading,
@@ -20,10 +19,9 @@ import { CellSuccessProps, createCell, MetaTags } from '@redwoodjs/web'
 import dayjs from 'dayjs'
 import React from 'react'
 import { FaCalendarPlus } from 'react-icons/fa'
-import ReactPlayer from 'react-player'
 import { Card } from 'src/components/Card'
 import Identicon from 'src/components/ConnectButton/Identicon'
-import { useDataFieldUrl } from 'src/lib/util'
+import { PhotoBox, VideoBox } from 'src/components/SquareBox'
 import { Profile_Page } from 'types/graphql'
 import NotFoundPage from '../NotFoundPage/NotFoundPage'
 import { STATUS_CONFIGS } from './types'
@@ -45,9 +43,6 @@ const Profile = ({ profile }: { profile: Profile_Page['cachedProfile'] }) => {
   const { ethAddress, photoCID, videoCID, status } = profile
 
   const statusConfig = STATUS_CONFIGS[status]
-
-  const photoUrl = useDataFieldUrl(photoCID)
-  const videoUrl = useDataFieldUrl(videoCID)
 
   return (
     <>
@@ -95,23 +90,11 @@ const Profile = ({ profile }: { profile: Profile_Page['cachedProfile'] }) => {
             <Stack direction={{ base: 'column', md: 'row' }} spacing="4">
               <Box flex="1">
                 <Heading size="md">Photo</Heading>
-                <Image
-                  src={photoUrl}
-                  alt="Profile Photo"
-                  borderRadius="lg"
-                  shadow="lg"
-                />
+                <PhotoBox photo={photoCID} />
               </Box>
               <Box flex="1">
                 <Heading size="md">Video</Heading>
-                <Box overflow="hidden" borderRadius="lg" shadow="md">
-                  <ReactPlayer
-                    url={videoUrl}
-                    controls
-                    width="100%"
-                    height="auto"
-                  />
-                </Box>
+                <VideoBox video={videoCID} />
               </Box>
             </Stack>
             <Box>
