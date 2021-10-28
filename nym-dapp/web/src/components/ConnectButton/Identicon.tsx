@@ -1,19 +1,24 @@
-import { useEffect, useRef } from 'react'
-import { useEthers } from '@usedapp/core'
+import { Box, BoxProps } from '@chakra-ui/react'
 import Jazzicon from '@metamask/jazzicon'
-import { css } from '@emotion/react'
-import { Box } from '@chakra-ui/react'
+import { useEffect, useRef } from 'react'
 
-export default function Identicon() {
+type Props = {
+  account: string
+  size?: number
+} & BoxProps
+const Identicon = ({ account, size = 16, ...props }: Props) => {
   const ref = useRef<HTMLDivElement>()
-  const { account } = useEthers()
 
   useEffect(() => {
-    if (account && ref.current) {
+    if (ref.current) {
       ref.current.innerHTML = ''
-      ref.current.appendChild(Jazzicon(16, parseInt(account.slice(2, 10), 16)))
+      ref.current.appendChild(
+        Jazzicon(size, parseInt(account.slice(2, 10), size))
+      )
     }
-  }, [account])
+  }, [ref])
 
-  return <Box height="20px" ref={ref as any} />
+  return <Box height="20px" {...props} ref={ref as any} />
 }
+
+export default Identicon

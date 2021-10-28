@@ -14,7 +14,7 @@ const AppLayout = ({ children }: AppLayoutProps) => {
       pb="16"
       minH="100vh"
     >
-      <Stack pb="8" direction="row" justify="flex-end">
+      <Stack pb={{ base: 8, md: 0 }} direction="row" justify="flex-end">
         <ConnectButton />
       </Stack>
       {children}

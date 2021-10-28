@@ -1,4 +1,4 @@
-import type { ProfilesCache } from '@prisma/client'
+import type { CachedProfile } from '@prisma/client'
 import * as fs from 'fs'
 import { gql, request } from 'graphql-request'
 import fetch from 'node-fetch'
@@ -37,7 +37,7 @@ const query = gql`
 // const directory =
 const CACHE_FILE = path.join(__dirname, 'POHUsers.json')
 
-export default async function importPoH(): Promise<Partial<ProfilesCache>[]> {
+export default async function importPoH(): Promise<Partial<CachedProfile>[]> {
   if (!fs.existsSync(CACHE_FILE)) {
     const data = await request(
       'https://gateway.thegraph.com/api/d98c97feb09f87d2d86956a815a5dbb5/subgraphs/id/0xb2a33ae0e07fd2ca8dbde9545f6ce0b3234dc4e8-0',

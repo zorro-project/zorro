@@ -3,11 +3,16 @@ export const dataUrlToBlob = async (dataUrl: string) =>
 
 export const dataFieldToUrl: (
   value: string | Blob | undefined
-) => string | undefined = (value) =>
-  value &&
-  (value instanceof Blob
-    ? URL.createObjectURL(value)
-    : `https://${value}.ipfs.infura-ipfs.io`)
+) => string | undefined = (value) => {
+  if (value instanceof Blob) {
+    return URL.createObjectURL(value)
+  }
+  if (value?.includes('/')) {
+    // For local development we're using some profiles hosted on Kleros IPFS
+    return `https://ipfs.kleros.io/ipfs/${value}`
+  }
+  return `https://${value}.ipfs.infura-ipfs.io`
+}
 
 export const useDataFieldUrl = (value: string | Blob | undefined) =>
   React.useMemo(() => dataFieldToUrl(value), [value])

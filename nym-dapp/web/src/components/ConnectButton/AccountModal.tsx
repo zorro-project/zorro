@@ -49,7 +49,7 @@ export default function AccountModal({ isOpen, onClose }: Props) {
             </Button>
           </Flex>
           <Flex alignItems="center" mt={2} mb={4} lineHeight={1}>
-            <Identicon />
+            <Identicon account={account} />
             <Text
               fontSize="xl"
               fontWeight="semibold"

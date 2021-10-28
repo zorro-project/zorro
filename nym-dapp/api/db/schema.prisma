@@ -47,11 +47,12 @@ enum ProfileStatus {
   deemed_invalid
 }
 
-// Cache of profiles from the `profiles` storage var in Nym.cairo
-model ProfilesCache {
-  nymId      Int           @id @default(autoincrement())
-  ethAddress String        @unique
-  status     ProfileStatus
+// Cache of profiles populated from the `profiles` storage var in Nym.cairo
+model CachedProfile {
+  nymId            Int           @id @default(autoincrement())
+  ethAddress       String        @unique
+  status           ProfileStatus
+  createdTimestamp DateTime
 
   CID      String
   photoCID String?
@@ -59,7 +60,4 @@ model ProfilesCache {
 
   // Associated StarkNet address
   address String?
-
-  createdTimestamp DateTime
-
 }

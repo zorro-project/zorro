@@ -35,7 +35,7 @@ export default function ConnectButton(props: ButtonProps) {
                 ethers.account.length
               )}
             </Text>
-            <Identicon />
+            <Identicon account={ethers.account} />
           </Stack>
         </Button>
       </Stack>

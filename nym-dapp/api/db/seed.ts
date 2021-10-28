@@ -50,7 +50,7 @@ async function main() {
 
   const pohProfiles = await importPoH()
 
-  await db.profilesCache.createMany({
+  await db.cachedProfile.createMany({
     data: pohProfiles.map((profile) => ({
       ...profile,
       createdTimestamp: new Date(),

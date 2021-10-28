@@ -45,7 +45,7 @@ const PreSubmitView = (props: {
                 <Text fontWeight="bold" display="block">
                   {account}
                 </Text>
-                <Identicon />
+                <Identicon account={account} />
               </Stack>
             </Stack>
           </Box>

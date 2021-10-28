@@ -27,15 +27,15 @@ CREATE TABLE "UnsubmittedProfile" (
 );
 
 -- CreateTable
-CREATE TABLE "ProfilesCache" (
+CREATE TABLE "CachedProfile" (
     "nymId" SERIAL NOT NULL,
     "ethAddress" TEXT NOT NULL,
     "status" "ProfileStatus" NOT NULL,
+    "createdTimestamp" TIMESTAMP(3) NOT NULL,
     "CID" TEXT NOT NULL,
     "photoCID" TEXT,
     "videoCID" TEXT,
     "address" TEXT,
-    "createdTimestamp" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     PRIMARY KEY ("nymId")
 );
@@ -47,7 +47,7 @@ CREATE INDEX "NotaryFeedback.unsubmittedProfileId_index" ON "NotaryFeedback"("un
 CREATE UNIQUE INDEX "UnsubmittedProfile.ethAddress_unique" ON "UnsubmittedProfile"("ethAddress");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "ProfilesCache.ethAddress_unique" ON "ProfilesCache"("ethAddress");
+CREATE UNIQUE INDEX "CachedProfile.ethAddress_unique" ON "CachedProfile"("ethAddress");
 
 -- AddForeignKey
 ALTER TABLE "NotaryFeedback" ADD FOREIGN KEY ("unsubmittedProfileId") REFERENCES "UnsubmittedProfile"("id") ON DELETE CASCADE ON UPDATE CASCADE;

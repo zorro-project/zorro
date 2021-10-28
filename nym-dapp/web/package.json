@@ -22,6 +22,7 @@
     "@redwoodjs/router": "0.37.4",
     "@redwoodjs/web": "0.37.4",
     "@usedapp/core": "^0.5.4",
+    "dayjs": "^1.10.7",
     "framer-motion": "^4",
     "ipfs-http-client": "^53.0.1",
     "lodash": "^4.17.21",
@@ -31,10 +32,16 @@
     "react-hook-form": "^7.17.4",
     "react-icons": "^4.3.1",
     "react-player": "^2.9.0",
+    "react-virtualized-auto-sizer": "^1.0.6",
     "react-webcam": "^6.0.0",
+    "react-window": "^1.8.6",
+    "react-window-infinite-loader": "^1.0.7",
     "use-file-picker": "^1.4.0"
   },
   "devDependencies": {
+    "@types/react-virtualized-auto-sizer": "^1.0.1",
+    "@types/react-window": "^1.8.5",
+    "@types/react-window-infinite-loader": "^1.0.5",
     "fast-check": "^2.18.0",
     "web-encoding": "^1.1.5"
   }
