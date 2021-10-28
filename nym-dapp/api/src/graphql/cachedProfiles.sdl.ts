@@ -37,5 +37,7 @@ export const schema = gql`
   type Query {
     cachedProfiles(first: Int!, cursor: ID = 0): CachedProfileConnection
       @skipAuth
+
+    cachedProfile(id: ID!): CachedProfile @skipAuth
   }
 `

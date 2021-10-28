@@ -15,6 +15,7 @@ const Routes = () => {
     <Router>
       <Set wrap={AppLayout}>
         <Route path="/profiles" page={ProfilesPage} name="profiles" />
+        <Route path="/profiles/{id}" page={ProfilePage} name="profile" />
         <Route path="/unsubmitted-profiles" page={UnsubmittedProfilesPage} name="unsubmittedProfiles" />
         <Route path="/sign-up" page={SignUpPage} name="signUp" />
         <Route path="/create-profile" page={CreateProfilePage} name="createProfile" />

@@ -5,33 +5,10 @@ import { Skeleton } from '@chakra-ui/skeleton'
 import { Image } from '@chakra-ui/image'
 import Identicon from 'src/components/ConnectButton/Identicon'
 import dayjs from 'dayjs'
-import { FaCheck, FaGavel } from 'react-icons/fa'
+import { FaCalendarCheck, FaCheck, FaGavel } from 'react-icons/fa'
 import Icon, { IconProps } from '@chakra-ui/icon'
-
-type StatusConfig = { icon: any; iconColor: IconProps['color']; text: string }
-
-const STATUS_CONFIGS: Record<ProfileStatus, StatusConfig> = {
-  submitted_via_notary: {
-    icon: FaCheck,
-    iconColor: 'green.500',
-    text: 'Approved',
-  },
-  challenged: {
-    icon: FaGavel,
-    iconColor: 'yellow.500',
-    text: 'Challenged',
-  },
-  deemed_valid: {
-    icon: FaGavel,
-    iconColor: 'green.500',
-    text: 'Passed Challenge',
-  },
-  deemed_invalid: {
-    icon: FaGavel,
-    iconColor: 'red.500',
-    text: 'Failed Challenge',
-  },
-}
+import { routes } from '@redwoodjs/router'
+import { STATUS_CONFIGS } from '../ProfilePage/types'
 
 const ProfileCard = ({
   profile,
@@ -62,7 +39,7 @@ const ProfileCard = ({
   return (
     <Box
       as="a"
-      href={`/profiles/${profile.nymId}`}
+      href={routes.profile({ id: profile.ethAddress })}
       display="flex"
       shadow="md"
       w="100%"
@@ -99,18 +76,16 @@ const ProfileCard = ({
         bgColor="rgba(255, 255, 255, 0.8)"
         align="center"
         spacing={0}
-        fontWeight="bold"
+        // fontWeight="bold"
         fontSize="sm"
       >
-        <Text>
-          <Text as="span" color="gray.500">
-            Submitted
-          </Text>{' '}
-          {dayjs(profile.createdTimestamp).format('MMM D, YYYY')}
-        </Text>
+        <Stack direction="row" alignItems="center">
+          <Icon as={FaCalendarCheck} />
+          <Text>{dayjs(profile.createdTimestamp).format('MMM D, YYYY')}</Text>
+        </Stack>
         <Stack direction="row" alignItems="center">
           <Icon as={statusConfig.icon} color={statusConfig.iconColor} />
-          <Text color="gray.500">{statusConfig.text}</Text>
+          <Text fontWeight="bold">{statusConfig.text}</Text>
         </Stack>
       </Stack>
     </Box>

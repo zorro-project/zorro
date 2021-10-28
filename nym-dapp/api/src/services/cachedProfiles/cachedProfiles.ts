@@ -1,5 +1,5 @@
 import { db } from 'src/lib/db'
-import { CachedProfileConnection } from 'types/graphql'
+import { CachedProfile, CachedProfileConnection } from 'types/graphql'
 
 export const cachedProfiles = async ({
   first,
@@ -23,7 +23,7 @@ export const cachedProfiles = async ({
   const endCursor = edges[edges.length - 1].cursor
 
   return {
-    id: 1,
+    id: '1',
     edges,
     pageInfo: {
       endCursor,
@@ -32,3 +32,6 @@ export const cachedProfiles = async ({
     count: await db.cachedProfile.count(),
   }
 }
+
+export const cachedProfile = async ({ id }): Promise<CachedProfile> =>
+  await db.cachedProfile.findFirst({ where: { ethAddress: id } })

@@ -6,7 +6,7 @@ type AppLayoutProps = {
   children?: React.ReactNode
 }
 
-const AppLayout = ({ children }: AppLayoutProps) => {
+const AppLayout = ({ children, ...props }: AppLayoutProps) => {
   return (
     <Box
       bg={useColorModeValue('gray.50', 'gray.800')}

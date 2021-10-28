@@ -4,6 +4,7 @@ export const dataUrlToBlob = async (dataUrl: string) =>
 export const dataFieldToUrl: (
   value: string | Blob | undefined
 ) => string | undefined = (value) => {
+  if (value == null) return undefined
   if (value instanceof Blob) {
     return URL.createObjectURL(value)
   }
