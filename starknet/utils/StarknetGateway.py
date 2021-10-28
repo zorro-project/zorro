@@ -30,14 +30,14 @@ from starkware.starkware_utils.error_handling import StarkErrorCode
 def get_gateway_client() -> GatewayClient:
     retry_config = RetryConfig(n_retries=1)
     return GatewayClient(
-        url="https://alpha2.starknet.io/gateway", retry_config=retry_config
+        url="https://alpha3.starknet.io/gateway", retry_config=retry_config
     )
 
 
 def get_feeder_gateway_client() -> FeederGatewayClient:
     retry_config = RetryConfig(n_retries=1)
     return FeederGatewayClient(
-        url="https://alpha2.starknet.io/feeder_gateway", retry_config=retry_config
+        url="https://alpha3.starknet.io/feeder_gateway", retry_config=retry_config
     )
 
 
