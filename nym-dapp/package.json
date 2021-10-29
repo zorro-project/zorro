@@ -11,17 +11,17 @@
     "db:reset": "rm -rf api/db/migrations/ && yarn rw prisma migrate dev --name init_db && yarn rw prisma db seed --preview-feature"
   },
   "devDependencies": {
-    "@redwoodjs/core": "0.37.4"
+    "@redwoodjs/core": "^0.38.0"
   },
   "eslintConfig": {
     "extends": "@redwoodjs/eslint-config",
     "root": true
   },
   "engines": {
-    "node": "14.x",
+    "node": "16.x",
     "yarn": "1.x"
   },
-  "resolutions": {
-    "@webpack-cli/serve": "1.5.2"
+  "prisma": {
+    "seed": "yarn rw exec seed"
   }
 }
