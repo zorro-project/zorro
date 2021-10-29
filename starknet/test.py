@@ -142,12 +142,8 @@ async def test_submit_with_notarization(ctx):
     # applying a second time should result in an error, because the
     # profile already exists
     with pytest.raises(StarkException) as e_info:
-        execution_result = await submit_with_notarization(
+        await submit_with_notarization(
             ctx, profile_cid_low, profile_cid_high, eth_address, address
-        )
-        print(
-            "FAILED EXECUTION RESULT !!!!!!!! ********* !!!!!!!!!! ******** !!!!!!!!!!********* !!!!!!!",
-            execution_result,
         )
     # XXX: it would be nice if we could explicitly check that an assert failed
     assert e_info.value.code == StarknetErrorCode.TRANSACTION_FAILED

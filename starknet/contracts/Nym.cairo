@@ -577,7 +577,7 @@ func __log(x : felt) -> (x : felt):
     return (x)
 end
 
-# The python testing framework doesn't support receiving structs yet
+# The python testing framework doesn't support receiving structs yet (as of cairo 0.4.2)
 @view
 func __get_profile_cid_low{
         bitwise_ptr : BitwiseBuiltin*, pedersen_ptr : HashBuiltin*, range_check_ptr,
