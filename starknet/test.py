@@ -112,8 +112,15 @@ async def submit_with_notarization(
         ],
     )
 
-    (profile_id,) = await ctx.nym.get_profile_id_by_eth_address(eth_address).call()
+    (profile_id,) = (
+        await ctx.nym.get_profile_id_by_eth_address(eth_address).call()
+    ).result
     return profile_id
+
+
+async def get_is_person(ctx, address):
+    (is_person,) = (await ctx.nym.get_is_person(address=address).call()).result
+    return is_person
 
 
 @pytest.mark.asyncio
@@ -128,13 +135,19 @@ async def test_submit_with_notarization(ctx):
     )
 
     # ensure result is in contract storage
-    assert await ctx.nym.__get_profile_cid_low(profile_id).call() == (profile_cid_low,)
+    assert (await ctx.nym.__get_profile_cid_low(profile_id).call()).result == (
+        profile_cid_low,
+    )
 
     # applying a second time should result in an error, because the
     # profile already exists
     with pytest.raises(StarkException) as e_info:
-        await submit_with_notarization(
+        execution_result = await submit_with_notarization(
             ctx, profile_cid_low, profile_cid_high, eth_address, address
+        )
+        print(
+            "FAILED EXECUTION RESULT !!!!!!!! ********* !!!!!!!!!! ******** !!!!!!!!!!********* !!!!!!!",
+            execution_result,
         )
     # XXX: it would be nice if we could explicitly check that an assert failed
     assert e_info.value.code == StarknetErrorCode.TRANSACTION_FAILED
@@ -146,9 +159,9 @@ async def test_challenge_and_adjudication(ctx):
     address = 321
 
     async def get_challenger_balance():
-        (balance,) = await ctx.erc20.balance_of(
-            ctx.challenger_account.contract_address
-        ).call()
+        (balance,) = (
+            await ctx.erc20.balance_of(ctx.challenger_account.contract_address).call()
+        ).result
         return balance
 
     profile_id = await submit_with_notarization(
@@ -161,7 +174,7 @@ async def test_challenge_and_adjudication(ctx):
 
     # TODO: confirm status
     # TODO: confirm get_is_person result
-    assert await ctx.nym.get_is_person(address=address).call() == (1,)
+    assert await get_is_person(ctx, address) == 1
     initial_balance = await get_challenger_balance()
 
     await challenger.send_transaction(
@@ -183,7 +196,7 @@ async def test_challenge_and_adjudication(ctx):
 
     # TODO: confirm status
     assert await get_challenger_balance() == initial_balance - CHALLENGE_DEPOSIT_SIZE
-    assert await ctx.nym.get_is_person(address=address).call() == (0,)
+    assert await get_is_person(ctx, address) == 0
 
     await adjudicator.send_transaction(
         ctx.adjudicator_account,
@@ -197,6 +210,6 @@ async def test_challenge_and_adjudication(ctx):
 
     # TODO: confirm status
     assert await get_challenger_balance() == initial_balance - CHALLENGE_DEPOSIT_SIZE
-    assert await ctx.nym.get_is_person(address=address).call() == (1,)
+    assert await get_is_person(ctx, address) == 1
 
     # TODO: test scenario where final adjudication says the profile is invalid
