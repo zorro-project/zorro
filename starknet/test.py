@@ -2,7 +2,6 @@ import asyncio
 import pytest
 import os
 from types import SimpleNamespace
-import time
 
 from starkware.starkware_utils.error_handling import StarkException
 from starkware.starknet.definitions.error_codes import StarknetErrorCode
@@ -98,38 +97,34 @@ async def ctx():
     )
 
 
-async def submit_via_notary(
-    ctx, applicant_eth_address, profile_cid_low, profile_cid_high, address
+async def submit_with_notarization(
+    ctx, profile_cid_low, profile_cid_high, eth_address, address
 ):
-    created_timestamp = int(time.time())
     await notary.send_transaction(
         ctx.notary_account,
         ctx.nym.contract_address,
-        "submit_via_notary",
+        "submit_with_notarization",
         [
-            applicant_eth_address,
             profile_cid_low,
             profile_cid_high,
+            eth_address,
             address,
-            created_timestamp,
         ],
     )
 
-    (profile_id,) = await ctx.nym.get_profile_id_by_eth_address(
-        applicant_eth_address
-    ).call()
+    (profile_id,) = await ctx.nym.get_profile_id_by_eth_address(eth_address).call()
     return profile_id
 
 
 @pytest.mark.asyncio
-async def test_submit_via_notary(ctx):
-    applicant_eth_address = 0x1234
+async def test_submit_with_notarization(ctx):
+    eth_address = 0x1234
     address = 123
     profile_cid_low = 1234567
     profile_cid_high = 453430
 
-    profile_id = await submit_via_notary(
-        ctx, applicant_eth_address, profile_cid_low, profile_cid_high, address
+    profile_id = await submit_with_notarization(
+        ctx, profile_cid_low, profile_cid_high, eth_address, address
     )
 
     # ensure result is in contract storage
@@ -138,8 +133,8 @@ async def test_submit_via_notary(ctx):
     # applying a second time should result in an error, because the
     # profile already exists
     with pytest.raises(StarkException) as e_info:
-        await submit_via_notary(
-            ctx, applicant_eth_address, profile_cid_low, profile_cid_high, address
+        await submit_with_notarization(
+            ctx, profile_cid_low, profile_cid_high, eth_address, address
         )
     # XXX: it would be nice if we could explicitly check that an assert failed
     assert e_info.value.code == StarknetErrorCode.TRANSACTION_FAILED
@@ -156,8 +151,12 @@ async def test_challenge_and_adjudication(ctx):
         ).call()
         return balance
 
-    profile_id = await submit_via_notary(
-        ctx, eth_address, profile_cid_low=1, profile_cid_high=2, address=address
+    profile_id = await submit_with_notarization(
+        ctx,
+        profile_cid_low=1,
+        profile_cid_high=2,
+        eth_address=eth_address,
+        address=address,
     )
 
     # TODO: confirm status
