@@ -10,73 +10,22 @@ from starkware.starknet.common.syscalls import get_caller_address
 from starkware.starknet.common.storage import Storage
 
 from OpenZepplin.IERC20 import IERC20
-from lib.cid import Cid, assert_cid_is_zero, assert_cid_is_not_zero
+
+from types.cid import Cid, assert_cid_is_zero, assert_cid_is_not_zero
+from types.profile import (
+    Profile, ProfileStatusEnum, _get_is_profile_notarized, _get_did_profile_receive_deposit,
+    _get_does_profile_have_unreturned_deposit)
 
 #
-# Definitions
+# Constants
 #
 
 const CHALLENGE_DEPOSIT_SIZE = 25  # This constant is also in test.py
 const CHALLENGE_REWARD_SIZE = 25  # This constant is also in test.py
 const SUBMISSION_DEPOSIT_SIZE = 25
+const TIMESTAMP = 0  # replace this with a dynamic standin for the syscall
 
-# If you add a member to `Profile`, remember to update all Profile constructor calls
-struct Profile:
-    member cid : Cid
-    member address : felt  # starknet address
-    member eth_address : felt
-    member created_timestamp : felt
-    member status : felt  # one of ProfileStatusEnum
-    member challenge_evidence_cid : Cid
-    member challenger_address : felt
-end
-
-# Abusing a struct as an enum
-struct ProfileStatusEnum:
-    member submitted_via_notary : felt
-    member submitted_via_deposit : felt
-    member challenged : felt
-    member deemed_valid : felt
-    member deemed_invalid : felt
-    member appealed_to_kleros : felt
-    member kleros_deemed_valid : felt
-    member kleros_deemed_invalid : felt
-end
-
-#
-# Profile status transition chart
-#
-
-#
-#           |                                  |
-#           v                                  v
-#    submitted_via_notary            submitted_via_deposit
-#           |                                  |
-#           \__________________________________/
-#                            |
-#                            v
-#                        challenged <-----------------------\
-#                            |                              |
-#                    _______/ \_______                      |
-#                   /                 \                     |
-#                  v                   v                    |
-#             deemed_valid        deemed_invalid            |
-#                  |                   |                    |
-#                  \___________________/                    |
-#                            |                              |
-#                            v                              |
-#                    appealed_to_kleros                     |
-#                            |                              |
-#                    _______/ \_______                      |
-#                   /                 \                     |
-#                  v                   v                    |
-#        kleros_deemed_valid   kleros_deemed_invalid        |
-#                  |                   |                    |
-#                  \___________________/                    |
-#                            |                              |
-#                            |                              |
-#                            \------------------------------/
-#
+const INITIAL_CHALLENGE_PERIOD = 9 * 24 * 60 * 60  # 9 days in seconds. TODO: come up with a better name
 
 #
 # Storage vars
@@ -92,6 +41,19 @@ end
 func _self_address() -> (res : felt):
 end
 
+# Stores the address of the ERC20 token that we touch
+@storage_var
+func _token_address() -> (res : felt):
+end
+
+# Internal accounting: record how much of our balance is due to challenge
+# deposits, submission deposits, etc so we don't accidentally give out people's
+# deposits as rewards. (It should be possible for the shared security pool to
+# be drained w/o revoking people's deposits.)
+@storage_var
+func _reserved_balance() -> (res : felt):
+end
+
 # TODO: in actuality, we want to maintain a list of valid notaries
 @storage_var
 func _notary_address() -> (res : felt):
@@ -99,19 +61,6 @@ end
 
 @storage_var
 func _adjudicator_address() -> (res : felt):
-end
-
-# Stores the address of the ERC20 token that we touch
-@storage_var
-func _token_address() -> (res : felt):
-end
-
-# Internal accounting: record how much of our balance is due to challenge
-# deposits, so we don't accidentally give out people's deposits as rewards.
-# (It should be possible for the shared security pool to be drained w/o revoking
-# challengers' deposits.)
-@storage_var
-func _challenge_deposit_balance() -> (res : felt):
 end
 
 @storage_var
@@ -129,13 +78,13 @@ end
 # internal index mapping from starknet address to `profile_id`
 # necessary for `get_is_person`
 @storage_var
-func _map_from_address_to_profile_id(address : felt) -> (profile_id : felt):
+func _map_address_to_profile_id(address : felt) -> (profile_id : felt):
 end
 
 # internal index mapping from eth address to `profile_id`
 # necessary for checking that an eth address isn't already in use while submitting
 @storage_var
-func _map_from_eth_address_to_profile_id(eth_address : felt) -> (profile_id : felt):
+func _map_eth_address_to_profile_id(eth_address : felt) -> (profile_id : felt):
 end
 
 #
@@ -157,25 +106,57 @@ func initialize{storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check
 end
 
 @external
-func submit_via_notary{
+func submit_with_notarization{
         bitwise_ptr : BitwiseBuiltin*, storage_ptr : Storage*, pedersen_ptr : HashBuiltin*,
         range_check_ptr, syscall_ptr : felt*}(
-        eth_address : felt, profile_cid : Cid, address : felt, created_timestamp : felt) -> (
-        profile_id : felt):
+        profile_cid : Cid, eth_address : felt, address : felt):
     assert_initialized()
     assert_caller_is_notary()
+    let (notary_address) = get_caller_address()
 
-    # There's no way to tell the difference between uninitialized memory, and
-    # something that was stored to be zero.
-    # Avoiding overloading the meaning of 0x0:
+    let (profile_id) = _submit(
+        profile_cid=profile_cid,
+        eth_address=eth_address,
+        address=address,
+        notary_address=notary_address,
+        depositor_address=0)
+    return ()
+end
+
+@external
+func submit_with_deposit{
+        bitwise_ptr : BitwiseBuiltin*, storage_ptr : Storage*, pedersen_ptr : HashBuiltin*,
+        range_check_ptr, syscall_ptr : felt*}(
+        profile_cid : Cid, eth_address : felt, address : felt, creation_timestamp : felt):
+    alloc_locals
+    assert_initialized()
+
+    let (local caller_address) = get_caller_address()
+    _receive_deposit(caller_address, SUBMISSION_DEPOSIT_SIZE)
+
+    let (profile_id) = _submit(
+        profile_cid=profile_cid,
+        eth_address=eth_address,
+        address=address,
+        notary_address=0,
+        depositor_address=caller_address)
+    return ()
+end
+
+func _submit{
+        bitwise_ptr : BitwiseBuiltin*, storage_ptr : Storage*, pedersen_ptr : HashBuiltin*,
+        range_check_ptr, syscall_ptr : felt*}(
+        profile_cid : Cid, eth_address : felt, address : felt, notary_address : felt,
+        depositor_address : felt) -> (profile_id : felt):
+    assert_cid_is_not_zero(profile_cid)
     assert_not_zero(eth_address)
     assert_not_zero(address)
-    assert_cid_is_not_zero(profile_cid)
-
     assert_eth_address_is_unused(eth_address)
     assert_address_is_unused(address)
 
-    let (profile_id) = _generate_next_profile_id()
+    let (num_profiles) = _num_profiles.read()
+    let profile_id = num_profiles + 1
+    _num_profiles.write(profile_id)
 
     # XXX: The ethereum address should sign the cid, and we should verify that
     # signature here. Otherwise, someone could claim someone else's eth address,
@@ -191,43 +172,60 @@ func submit_via_notary{
         cid=profile_cid,
         address=address,
         eth_address=eth_address,
-        created_timestamp=created_timestamp,
-        status=ProfileStatusEnum.submitted_via_notary,
+        status=ProfileStatusEnum.submitted,
+        notary_address=notary_address,
+        depositor_address=depositor_address,
+        creation_timestamp=TIMESTAMP,
+        challenger_address=0,
         challenge_evidence_cid=Cid(0, 0),
-        challenger_address=0)
+        challenge_creation_timestamp=0,
+        appellant_addres=0)
 
     _profiles.write(profile_id, profile)
-    _map_from_address_to_profile_id.write(address, profile_id)
-    _map_from_eth_address_to_profile_id.write(eth_address, profile_id)
+    _map_address_to_profile_id.write(address, profile_id)
+    _map_eth_address_to_profile_id.write(eth_address, profile_id)
 
     return (profile_id)
 end
 
 @external
-func submit_via_deposit{
+func notarize{
         bitwise_ptr : BitwiseBuiltin*, storage_ptr : Storage*, pedersen_ptr : HashBuiltin*,
-        range_check_ptr, syscall_ptr : felt*}() -> (profile_id : felt):
-    # XXX: implement
-    # XXX: should increment deposit reserve
-    return (0)
-end
+        range_check_ptr, syscall_ptr : felt*}(profile_id : felt):
+    alloc_locals
+    assert_initialized()
+    assert_caller_is_notary()
+    let (local caller_address) = get_caller_address()
+    let (local profile : Profile) = get_profile(profile_id)
 
-func _generate_next_profile_id{
-        bitwise_ptr : BitwiseBuiltin*, storage_ptr : Storage*, pedersen_ptr : HashBuiltin*,
-        range_check_ptr, syscall_ptr : felt*}() -> (res : felt):
-    let (num_profiles) = _num_profiles.read()
-    let next_profile_id = num_profiles + 1
-    _num_profiles.write(next_profile_id)
+    # Only profiles in the submitted state can be notarized
+    assert profile.status = ProfileStatusEnum.submitted
 
-    return (next_profile_id)
-end
+    # Ensure not already notarized
+    let (is_profile_notarized) = _get_is_profile_notarized(profile)
+    assert is_profile_notarized = 0
 
-@external
-func reclaim_submission_deposit{
-        bitwise_ptr : BitwiseBuiltin*, storage_ptr : Storage*, pedersen_ptr : HashBuiltin*,
-        range_check_ptr, syscall_ptr : felt*}():
-    # XXX: implement
-    # if enough time has passed...
+    # Invariant check: a profile is either submitted with a deposit or with notarization
+    # Therefore, if it's not notarized yet, it must have a deposit:
+    let (did_profile_receive_deposit) = _get_did_profile_receive_deposit(profile)
+    assert did_profile_receive_deposit = 1
+
+    _return_deposit(profile.depositor_address, CHALLENGE_DEPOSIT_SIZE)
+
+    # Update profile.notary_address
+    let new_profile = Profile(
+        cid=profile.cid,
+        address=profile.address,
+        eth_address=profile.eth_address,
+        status=profile.status,
+        notary_address=caller_address,
+        depositor_address=profile.depositor_address,
+        creation_timestamp=profile.creation_timestamp,
+        challenger_address=profile.challenger_address,
+        challenge_evidence_cid=profile.challenge_evidence_cid,
+        challenge_creation_timestamp=profile.challenge_creation_timestamp,
+        appellant_address=profile.appellant_address)
+    _profiles.write(profile_id, new_profile)
     return ()
 end
 
@@ -236,36 +234,29 @@ func challenge{
         bitwise_ptr : BitwiseBuiltin*, storage_ptr : Storage*, pedersen_ptr : HashBuiltin*,
         range_check_ptr, syscall_ptr : felt*}(profile_id : felt, evidence_cid : Cid):
     alloc_locals
+    assert_initialized()
 
     let (local profile) = get_profile(profile_id)
-    let (local self_address) = _self_address.read()
-    let (local token_address) = _token_address.read()
-    let (local challenger_address) = get_caller_address()
+    let (local caller_address) = get_caller_address()
 
-    # don't let people challenge a profile which is already awaiting adjudication
-    # XXX: to make this safer when code volves in the future, specific allow
-    # list of the statuses that can be challenged.  namely:
-    # submitted_via_notary, submitted_via_bounty, ...
-    assert_not_equal(profile.status, ProfileStatusEnum.challenged)
+    # A profile can be challegned iff its status is one of 'submitted' or 'kleros_deemed_valid'.
+    assert (profile.status - ProfileStatusEnum.submitted) * (profile.status - ProfileStatusEnum.kleros_deemed_valid) = 0
 
     let new_profile = Profile(
         cid=profile.cid,
         address=profile.address,
         eth_address=profile.eth_address,
-        created_timestamp=profile.created_timestamp,
         status=ProfileStatusEnum.challenged,
+        notary_address=profile.notary_address,
+        depositor_address=profile.depositor_address,
+        creation_timestamp=profile.creation_timestamp,
+        challenger_address=caller_address,
         challenge_evidence_cid=evidence_cid,
-        challenger_address=challenger_address)
+        challenge_creation_timestamp=TIMESTAMP,
+        appellant_address=profile.appellant_address)
     _profiles.write(profile_id, new_profile)
 
-    # Require the challenger to pay a deposit
-    let (challenge_deposit_balance) = _challenge_deposit_balance.read()
-    _challenge_deposit_balance.write(challenge_deposit_balance + CHALLENGE_DEPOSIT_SIZE)
-    IERC20.transfer_from(
-        contract_address=token_address,
-        sender=challenger_address,
-        recipient=self_address,
-        amount=CHALLENGE_DEPOSIT_SIZE)
+    _receive_deposit(caller_address, CHALLENGE_DEPOSIT_SIZE)
 
     return ()
 end
@@ -275,44 +266,63 @@ func adjudicate{
         bitwise_ptr : BitwiseBuiltin*, storage_ptr : Storage*, pedersen_ptr : HashBuiltin*,
         range_check_ptr, syscall_ptr : felt*}(profile_id : felt, is_valid : felt):
     alloc_locals
+    assert_initialized()
     assert_caller_is_adjudicator()
 
     let (local profile) = get_profile(profile_id)
 
     # Can only adjudicate a profile that was challenged
+    # XXX: move to a specific list of statuses from which a profile can be challenged
     assert profile.status = ProfileStatusEnum.challenged
 
-    # ensure is_valid is exactly `0` or `1`
-    assert ((is_valid - 1) * is_valid) = 0
-    let new_status = (is_valid * ProfileStatusEnum.deemed_valid) + (is_valid - 1) * (-ProfileStatusEnum.deemed_invalid)
+    # XXX: maybe we should notarize the profile if it isn't already notarized.
+    # could do this by implementing a _notarize() function.
+    # (this would have the effect of returning the submission deposit.
+    # apparently we just adjudicated that the profile was valid... so that
+    # should double as notarization!)
+
+    assert ((is_valid - 1) * is_valid) = 0  # ensure is_valid is exactly `0` or `1`
+    let new_status = (is_valid * ProfileStatusEnum.adjudicator_deemed_valid) + (is_valid - 1) * (-ProfileStatusEnum.adjudicator_deemed_invalid)
     let new_profile = Profile(
         cid=profile.cid,
         address=profile.address,
         eth_address=profile.eth_address,
-        created_timestamp=profile.created_timestamp,
         status=new_status,
+        notary_address=profile.notary_address,
+        depositor_address=profile.depositor_address,
+        creation_timestamp=profile.creation_timestamp,
+        challenger_address=profile.challenger_address,
         challenge_evidence_cid=profile.challenge_evidence_cid,
-        challenger_address=profile.challenger_address)
+        challenge_creation_timestamp=profile.challenge_creation_timestamp,
+        appellant_address=profile.appellant_address)
     _profiles.write(profile_id, new_profile)
 
     if is_valid == 0:
-        # The challenger was correct
-        let (amount_available_for_challenge_rewards) = get_amount_available_for_challenge_rewards()
+        # The challenger was correct: the profile was not valid
 
-        local bitwise_ptr : BitwiseBuiltin* = bitwise_ptr
-        local storage_ptr : Storage* = storage_ptr
-        local pedersen_ptr : HashBuiltin* = pedersen_ptr
-        local range_check_ptr = range_check_ptr
-        local syscall_ptr : felt* = syscall_ptr
-        let (local has_funds_for_reward) = is_le(
-            CHALLENGE_REWARD_SIZE, amount_available_for_challenge_rewards)
+        # Swallow the submissinon deposit, if we still can
+        let (does_profile_have_unreturned_deposit) = _get_does_profile_have_unreturned_deposit(
+            profile)
 
-        let (token_address) = _token_address.read()
-        let reward_amount = has_funds_for_reward * CHALLENGE_REWARD_SIZE
-        IERC20.transfer(
-            contract_address=token_address,
-            recipient=profile.challenger_address,
-            amount=(CHALLENGE_DEPOSIT_SIZE + reward_amount))
+        if does_profile_have_unreturned_deposit == 1:
+            _swallow_deposit(SUBMISSION_DEPOSIT_SIZE)
+            tempvar bitwise_ptr = bitwise_ptr
+            tempvar range_check_ptr = range_check_ptr
+            tempvar storage_ptr = storage_ptr
+            tempvar pedersen_ptr = pedersen_ptr
+            tempvar syscall_ptr = syscall_ptr
+        else:
+            tempvar bitwise_ptr = bitwise_ptr
+            tempvar range_check_ptr = range_check_ptr
+            tempvar storage_ptr = storage_ptr
+            tempvar pedersen_ptr = pedersen_ptr
+            tempvar syscall_ptr = syscall_ptr
+        end
+
+        # Handling these two payments separately isn't the most gas-efficient,
+        # but it makes our contract logic clearer
+        _return_deposit(profile.challenger_address, CHALLENGE_DEPOSIT_SIZE)
+        _give_reward(profile.challenger_address, CHALLENGE_REWARD_SIZE)
 
         tempvar bitwise_ptr = bitwise_ptr
         tempvar range_check_ptr = range_check_ptr
@@ -320,6 +330,9 @@ func adjudicate{
         tempvar pedersen_ptr = pedersen_ptr
         tempvar syscall_ptr = syscall_ptr
     else:
+        # The challenger was incorrect. Keep their deposit.
+        _swallow_deposit(CHALLENGE_DEPOSIT_SIZE)
+
         tempvar bitwise_ptr = bitwise_ptr
         tempvar range_check_ptr = range_check_ptr
         tempvar storage_ptr = storage_ptr
@@ -327,17 +340,11 @@ func adjudicate{
         tempvar syscall_ptr = syscall_ptr
     end
 
-    # If the challenger won, they got their deposit back. If the challenger lost,
-    # their deposit was eaten by the protocol (and de-facto added to the shared
-    # security pool.) Either way, we don't need to reserve the deposit anymore.
-    let (challenge_deposit_balance) = _challenge_deposit_balance.read()
-    _challenge_deposit_balance.write(challenge_deposit_balance - CHALLENGE_DEPOSIT_SIZE)
-
     return ()
 end
 
 #
-# Accessors
+# Profile-related accessors
 #
 
 @view
@@ -361,7 +368,7 @@ end
 func get_profile_id_by_eth_address{
         bitwise_ptr : BitwiseBuiltin*, storage_ptr : Storage*, pedersen_ptr : HashBuiltin*,
         range_check_ptr, syscall_ptr : felt*}(eth_address : felt) -> (profile_id : felt):
-    let (profile_id) = _map_from_eth_address_to_profile_id.read(eth_address)
+    let (profile_id) = _map_eth_address_to_profile_id.read(eth_address)
     assert_not_zero(profile_id)
     return (profile_id)
 end
@@ -371,38 +378,160 @@ func get_is_person{
         bitwise_ptr : BitwiseBuiltin*, storage_ptr : Storage*, pedersen_ptr : HashBuiltin*,
         range_check_ptr, syscall_ptr : felt*}(address) -> (is_person : felt):
     alloc_locals
-    let (profile_id) = _map_from_address_to_profile_id.read(address)
+    let (profile_id) = _map_address_to_profile_id.read(address)
     let (profile) = get_profile(profile_id)
 
-    # Statuses conidered registered: submitted_via_notary, deemed_valid
-    # Statuses considered unregistered: challenged, deemed_invalid
-    let val = (profile.status - ProfileStatusEnum.submitted_via_notary) * (profile.status - ProfileStatusEnum.deemed_valid)
-    if val == 0:
-        return (is_person=1)
-    else:
+    # Considered registered:
+    # - submitted with notarization
+    # - submitted with deposit, AND profile_age > $waiting_period days
+    # - challenged AND challenge started more than $waiting_period days after profile was submitted (XXX: not implemented) (XXX: what happens if $waiting_period changes?)
+    #   -> could do a state update on challenge, to set a flag for whether challenge occurred after initial period
+    # - adjudicator_deemed_valid
+    # - kleros_deemed_valid
+
+    # Conidered unregistered:
+    # Everything else
+
+    if profile.status == ProfileStatusEnum.submitted:
+        local bitwise_ptr : BitwiseBuiltin* = bitwise_ptr
+        local storage_ptr : Storage* = storage_ptr
+        local pedersen_ptr : HashBuiltin* = pedersen_ptr
+        local range_check_ptr = range_check_ptr
+        local syscall_ptr : felt* = syscall_ptr
+
+        let (is_profile_notarized) = _get_is_profile_notarized(profile)
+        if is_profile_notarized == 1:
+            return (is_person=1)
+        end
+
+        let (did_profile_receive_deposit) = _get_did_profile_receive_deposit(profile)
+        if did_profile_receive_deposit == 1:
+            # If the deposit has been hanging out without anyone challenging
+            # it for a number of days, we optimistically assume the profile is
+            # valid.
+            let (is_person) = is_le(
+                profile.creation_timestamp + INITIAL_CHALLENGE_PERIOD, TIMESTAMP)
+            return (is_person)
+        end
+
+        # profile was not notarized and isn't old enough to allow for optimistic
+        # approval
         return (is_person=0)
     end
+
+    if profile.status == ProfileStatusEnum.challenged:
+        # XXX: implement me properly:
+        # true or not depending on when challenge happened (within 3 days of profile creation?)
+        return (is_person=0)
+    end
+
+    # TOOD: could merge these into a single `if` by using (x - y) * (x - z) == 0 trick
+    if profile.status == ProfileStatusEnum.adjudicator_deemed_valid:
+        return (is_person=1)
+    end
+
+    if profile.status == ProfileStatusEnum.kleros_deemed_valid:
+        return (is_person=1)
+    end
+
+    return (is_person=0)
 end
 
+#
+# Treasury
+#
+
+# XXX: find out if it works to use @view fns in included files
 @view
 func get_amount_available_for_challenge_rewards{
         bitwise_ptr : BitwiseBuiltin*, storage_ptr : Storage*, pedersen_ptr : HashBuiltin*,
         range_check_ptr, syscall_ptr : felt*}() -> (res : felt):
     let (token_address) = _token_address.read()
     let (self_address) = _self_address.read()
-    let (challenge_deposit_balance) = _challenge_deposit_balance.read()
+    let (reserved_balance) = _reserved_balance.read()
 
     # Any funds that aren't challenge deposit reserves are for the security reward pool
     let (total_funds) = IERC20.balance_of(contract_address=token_address, user=self_address)
+    return (total_funds - reserved_balance)
+end
 
-    return (total_funds - challenge_deposit_balance)
+func _receive_deposit{
+        bitwise_ptr : BitwiseBuiltin*, storage_ptr : Storage*, pedersen_ptr : HashBuiltin*,
+        range_check_ptr, syscall_ptr : felt*}(from_address, amount):
+    let (token_address) = _token_address.read()
+    let (self_address) = _self_address.read()
+
+    let (reserved_balance) = _reserved_balance.read()
+    _reserved_balance.write(reserved_balance + amount)
+
+    IERC20.transfer_from(
+        contract_address=token_address, sender=from_address, recipient=self_address, amount=amount)
+
+    return ()
+end
+
+func _return_deposit{
+        bitwise_ptr : BitwiseBuiltin*, storage_ptr : Storage*, pedersen_ptr : HashBuiltin*,
+        range_check_ptr, syscall_ptr : felt*}(to_address, amount):
+    let (token_address) = _token_address.read()
+    let (reserved_balance) = _reserved_balance.read()
+    _reserved_balance.write(reserved_balance - amount)
+    IERC20.transfer(contract_address=token_address, recipient=to_address, amount=amount)
+
+    return ()
+end
+
+func _swallow_deposit{
+        bitwise_ptr : BitwiseBuiltin*, storage_ptr : Storage*, pedersen_ptr : HashBuiltin*,
+        range_check_ptr, syscall_ptr : felt*}(amount : felt):
+    # Reduce reserved balance by the amount of the deposit that we're swallowing.
+    # This has the effect of freeing up the tokens to be used for challenge rewards.
+    let (reserved_balance) = _reserved_balance.read()
+    _reserved_balance.write(reserved_balance - amount)
+
+    return ()
+end
+
+func _give_reward{
+        bitwise_ptr : BitwiseBuiltin*, storage_ptr : Storage*, pedersen_ptr : HashBuiltin*,
+        range_check_ptr, syscall_ptr : felt*}(address, amount : felt):
+    alloc_locals
+
+    # Determine if we have funds
+    let (amount_available_for_challenge_rewards) = get_amount_available_for_challenge_rewards()
+
+    local bitwise_ptr : BitwiseBuiltin* = bitwise_ptr
+    local storage_ptr : Storage* = storage_ptr
+    local pedersen_ptr : HashBuiltin* = pedersen_ptr
+    local range_check_ptr = range_check_ptr
+    local syscall_ptr : felt* = syscall_ptr
+
+    let (has_funds_for_reward) = is_le(amount, amount_available_for_challenge_rewards)
+
+    if has_funds_for_reward != 0:
+        let (token_address) = _token_address.read()
+        IERC20.transfer(contract_address=token_address, recipient=amount, amount=amount)
+
+        tempvar bitwise_ptr = bitwise_ptr
+        tempvar range_check_ptr = range_check_ptr
+        tempvar storage_ptr = storage_ptr
+        tempvar pedersen_ptr = pedersen_ptr
+        tempvar syscall_ptr = syscall_ptr
+    else:
+        tempvar bitwise_ptr = bitwise_ptr
+        tempvar range_check_ptr = range_check_ptr
+        tempvar storage_ptr = storage_ptr
+        tempvar pedersen_ptr = pedersen_ptr
+        tempvar syscall_ptr = syscall_ptr
+    end
+
+    return ()
 end
 
 #
 # Guards
 #
 
-@view
 func assert_initialized{
         bitwise_ptr : BitwiseBuiltin*, storage_ptr : Storage*, pedersen_ptr : HashBuiltin*,
         range_check_ptr, syscall_ptr : felt*}():
@@ -411,7 +540,6 @@ func assert_initialized{
     return ()
 end
 
-@view
 func assert_caller_is_notary{
         bitwise_ptr : BitwiseBuiltin*, storage_ptr : Storage*, pedersen_ptr : HashBuiltin*,
         range_check_ptr, syscall_ptr : felt*}():
@@ -421,7 +549,6 @@ func assert_caller_is_notary{
     return ()
 end
 
-@view
 func assert_caller_is_adjudicator{
         bitwise_ptr : BitwiseBuiltin*, storage_ptr : Storage*, pedersen_ptr : HashBuiltin*,
         range_check_ptr, syscall_ptr : felt*}():
@@ -435,7 +562,7 @@ end
 func assert_eth_address_is_unused{
         bitwise_ptr : BitwiseBuiltin*, storage_ptr : Storage*, pedersen_ptr : HashBuiltin*,
         range_check_ptr, syscall_ptr : felt*}(eth_address : felt):
-    let (profile_id) = _map_from_eth_address_to_profile_id.read(eth_address)
+    let (profile_id) = _map_eth_address_to_profile_id.read(eth_address)
     assert profile_id = 0
     return ()
 end
@@ -444,7 +571,7 @@ end
 func assert_address_is_unused{
         bitwise_ptr : BitwiseBuiltin*, storage_ptr : Storage*, pedersen_ptr : HashBuiltin*,
         range_check_ptr, syscall_ptr : felt*}(address : felt):
-    let (profile_id) = _map_from_address_to_profile_id.read(address)
+    let (profile_id) = _map_address_to_profile_id.read(address)
     assert profile_id = 0
     return ()
 end
@@ -462,7 +589,7 @@ end
 @view
 func __get_profile_cid_low{
         bitwise_ptr : BitwiseBuiltin*, storage_ptr : Storage*, pedersen_ptr : HashBuiltin*,
-        range_check_ptr, syscall_ptr : felt*}(eth_address : felt) -> (res : felt):
-    let (profile) = get_profile(eth_address)
+        range_check_ptr, syscall_ptr : felt*}(profile_id : felt) -> (res : felt):
+    let (profile) = get_profile(profile_id)
     return (profile.cid.low)
 end
