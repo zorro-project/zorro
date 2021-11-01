@@ -1,8 +1,10 @@
 import { extendTheme } from '@chakra-ui/react'
+import RLink from 'src/components/RLink'
 
 const theme = extendTheme({
   components: {
     Link: {
+      as: RLink, // TODO: not sure if this is actually working
       variants: {
         // you can name it whatever you want
         primary: ({ colorScheme = 'blue' }) => ({

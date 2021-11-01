@@ -12,12 +12,12 @@ import { Form, useForm } from '@redwoodjs/forms'
 import { useMutation } from '@redwoodjs/web'
 import React from 'react'
 import { Card } from 'src/components/Card'
-import { Find_Unsubmitted_Profile } from 'types/graphql'
+import { FindUnsubmittedProfileQuery } from 'types/graphql'
 import ProfileStatus from './ProfileStatus'
 
 const PendingApprovalView = (props: {
   onEdit: () => void
-  unsubmittedProfile: Find_Unsubmitted_Profile['unsubmittedProfile']
+  unsubmittedProfile: FindUnsubmittedProfileQuery['unsubmittedProfile']
 }) => {
   const methods = useForm<{ email: string }>({
     defaultValues: {

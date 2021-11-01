@@ -10,12 +10,12 @@ import {
   useColorModeValue,
   useDisclosure,
 } from '@chakra-ui/react'
-import { routes, useMatch } from '@redwoodjs/router'
-import { useQuery } from '@redwoodjs/web'
+import { Link, routes, useMatch } from '@redwoodjs/router'
 import { useEthers } from '@usedapp/core'
 import { BsGrid, BsPersonBadge, BsPersonPlus } from 'react-icons/bs'
 import ConnectButton from 'src/components/ConnectButton/ConnectButton'
-import { AppLayoutQuery } from 'types/graphql'
+import RLink from 'src/components/RLink'
+import UserContext from '../UserContext'
 import Logo from './Logo'
 
 type NavItem = {
@@ -28,20 +28,7 @@ export default function AppLayout({ children }) {
   const { isOpen, onToggle } = useDisclosure()
   const ethers = useEthers()
 
-  const { data, loading } = useQuery<AppLayoutQuery>(
-    gql`
-      query AppLayoutQuery($account: ID!) {
-        unsubmittedProfile(ethAddress: $account) {
-          id
-        }
-
-        cachedProfile(ethAddress: $account) {
-          ethAddress
-        }
-      }
-    `,
-    { variables: { account: ethers.account }, fetchPolicy: 'cache-and-network' }
-  )
+  const user = React.useContext(UserContext)
 
   const navItems: Array<NavItem> = [
     {
@@ -51,19 +38,19 @@ export default function AppLayout({ children }) {
     },
   ]
 
-  if (data?.cachedProfile) {
+  if (user.cachedProfile) {
     navItems.push({
       label: 'My Profile',
       href: routes.profile({ id: ethers.account }),
       icon: BsPersonBadge,
     })
-  } else if (data?.unsubmittedProfile) {
+  } else if (user.unsubmittedProfile) {
     navItems.push({
       label: 'Complete Profile',
       href: routes.createProfile(),
       icon: BsPersonPlus,
     })
-  } else if (data) {
+  } else if (user) {
     navItems.push({
       label: 'Create Profile',
       href: routes.createProfile(),
@@ -122,7 +109,7 @@ const DesktopNavItem = (props: NavItem) => {
 
   return (
     <HStack
-      as="a"
+      as={RLink}
       href={href}
       aria-current={active ? 'page' : undefined}
       spacing="2"

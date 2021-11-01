@@ -9,6 +9,7 @@ import { FaCalendarCheck, FaCheck, FaGavel } from 'react-icons/fa'
 import Icon, { IconProps } from '@chakra-ui/icon'
 import { routes } from '@redwoodjs/router'
 import { STATUS_CONFIGS } from '../ProfilePage/types'
+import RLink from 'src/components/RLink'
 
 const ProfileCard = ({
   profile,
@@ -38,7 +39,7 @@ const ProfileCard = ({
 
   return (
     <Box
-      as="a"
+      as={RLink}
       href={routes.profile({ id: profile.ethAddress })}
       display="flex"
       shadow="md"
