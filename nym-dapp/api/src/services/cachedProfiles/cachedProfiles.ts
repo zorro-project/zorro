@@ -33,5 +33,5 @@ export const cachedProfiles = async ({
   }
 }
 
-export const cachedProfile = async ({ id }): Promise<CachedProfile> =>
-  await db.cachedProfile.findFirst({ where: { ethAddress: id } })
+export const cachedProfile = async ({ ethAddress }): Promise<CachedProfile> =>
+  await db.cachedProfile.findFirst({ where: { ethAddress } })

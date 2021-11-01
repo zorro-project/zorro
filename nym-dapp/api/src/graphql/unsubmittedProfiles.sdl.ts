@@ -14,7 +14,7 @@ export const schema = gql`
   type Query {
     unsubmittedProfiles(pendingReview: Boolean): [UnsubmittedProfile!]!
       @skipAuth
-    unsubmittedProfile(ethAddress: String!): UnsubmittedProfile @skipAuth
+    unsubmittedProfile(ethAddress: ID!): UnsubmittedProfile @skipAuth
   }
 
   input CreateUnsubmittedProfileInput {

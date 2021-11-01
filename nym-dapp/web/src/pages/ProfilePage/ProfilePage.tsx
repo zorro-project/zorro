@@ -20,15 +20,15 @@ import dayjs from 'dayjs'
 import React from 'react'
 import { FaCalendarPlus } from 'react-icons/fa'
 import { Card } from 'src/components/Card'
-import Identicon from 'src/components/ConnectButton/Identicon'
+import Identicon from 'src/components/Identicon'
 import { PhotoBox, VideoBox } from 'src/components/SquareBox'
-import { Profile_Page } from 'types/graphql'
+import { ProfilePageQuery } from 'types/graphql'
 import NotFoundPage from '../NotFoundPage/NotFoundPage'
 import { STATUS_CONFIGS } from './types'
 
 const QUERY = gql`
-  query PROFILE_PAGE($id: ID!) {
-    cachedProfile(id: $id) {
+  query ProfilePageQuery($id: ID!) {
+    cachedProfile(ethAddress: $id) {
       nymId
       ethAddress
       photoCID
@@ -39,7 +39,11 @@ const QUERY = gql`
   }
 `
 
-const Profile = ({ profile }: { profile: Profile_Page['cachedProfile'] }) => {
+const Profile = ({
+  profile,
+}: {
+  profile: ProfilePageQuery['cachedProfile']
+}) => {
   const { ethAddress, photoCID, videoCID, status } = profile
 
   const statusConfig = STATUS_CONFIGS[status]
@@ -125,7 +129,7 @@ const Profile = ({ profile }: { profile: Profile_Page['cachedProfile'] }) => {
   )
 }
 
-const Success = ({ cachedProfile }: CellSuccessProps<Profile_Page>) =>
+const Success = ({ cachedProfile }: CellSuccessProps<ProfilePageQuery>) =>
   cachedProfile ? <Profile profile={cachedProfile} /> : <NotFoundPage />
 
 const ProfilePageCell = createCell({ QUERY, Success })

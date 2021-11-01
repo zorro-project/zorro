@@ -7,7 +7,7 @@ import {
 } from '@chakra-ui/react'
 import { useEthers } from '@usedapp/core'
 import AccountModal from './AccountModal'
-import Identicon from './Identicon'
+import Identicon from 'src/components/Identicon'
 
 // Adapted from https://dev.to/jacobedawson/build-a-web3-dapp-in-react-login-with-metamask-4chp
 
@@ -44,7 +44,7 @@ export default function ConnectButton(props: ButtonProps) {
     <Button
       onClick={signIn}
       // eslint-disable-next-line react/no-children-prop
-      children="Sign In"
+      children="Connect Wallet"
       {...props}
     />
   )

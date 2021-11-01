@@ -26,7 +26,7 @@ const PendingApprovalView = (props: {
   })
 
   const [saveEmail] = useMutation(gql`
-    mutation UNSUBMITTED_PROFILE_SET_EMAIL(
+    mutation UnsubmittedProfileSetEmailMutation(
       $ethAddress: String!
       $email: String!
     ) {

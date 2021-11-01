@@ -1,9 +1,11 @@
 export const dataUrlToBlob = async (dataUrl: string) =>
   await (await fetch(dataUrl)).blob()
 
-export const dataFieldToUrl: (
-  value: string | Blob | undefined
-) => string | undefined = (value) => {
+export type DataFieldType = string | Blob | undefined
+
+export const dataFieldToUrl: (value: DataFieldType) => string | undefined = (
+  value
+) => {
   if (value == null) return undefined
   if (value instanceof Blob) {
     return URL.createObjectURL(value)
@@ -15,7 +17,7 @@ export const dataFieldToUrl: (
   return `https://${value}.ipfs.infura-ipfs.io`
 }
 
-export const useDataFieldUrl = (value: string | Blob | undefined) =>
+export const useDataFieldUrl = (value: DataFieldType) =>
   React.useMemo(() => dataFieldToUrl(value), [value])
 
 export type ArrayElement<ArrayType extends readonly unknown[]> =

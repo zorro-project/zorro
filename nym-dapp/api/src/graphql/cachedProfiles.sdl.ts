@@ -38,6 +38,6 @@ export const schema = gql`
     cachedProfiles(first: Int!, cursor: ID = 0): CachedProfileConnection
       @skipAuth
 
-    cachedProfile(id: ID!): CachedProfile @skipAuth
+    cachedProfile(ethAddress: ID!): CachedProfile @skipAuth
   }
 `

@@ -10,18 +10,19 @@ import ReactPlayer from 'react-player'
 import { PhotoBox, VideoBox } from 'src/components/SquareBox'
 import { ArrayElement, dataFieldToUrl } from 'src/lib/util'
 import {
+  ApproveProfileMutation,
   MutationAddNotaryFeedbackArgs,
-  Unsubmitted_Profiles_Page,
+  UnsubmittedProfilesPageQuery,
 } from 'types/graphql'
 
 const UnsubmittedProfile: React.FC<{
-  profile: ArrayElement<Unsubmitted_Profiles_Page['unsubmittedProfiles']>
+  profile: ArrayElement<UnsubmittedProfilesPageQuery['unsubmittedProfiles']>
 }> = ({ profile }) => {
   const [reviewed, setReviewed] = React.useState(false)
   const feedbackRef = React.useRef<typeof Textarea>()
 
   const [giveFeedback] = useMutation<MutationAddNotaryFeedbackArgs>(gql`
-    mutation ADD_NOTARY_FEEDBACK($profileId: Int!, $feedback: String!) {
+    mutation AddNotaryFeedback($profileId: Int!, $feedback: String!) {
       addNotaryFeedback(profileId: $profileId, feedback: $feedback)
     }
   `)
@@ -34,8 +35,8 @@ const UnsubmittedProfile: React.FC<{
     setReviewed(true)
   }
 
-  const [approve] = useMutation(gql`
-    mutation APPROVE_PROFILE($profileId: Int!) {
+  const [approve] = useMutation<ApproveProfileMutation>(gql`
+    mutation ApproveProfileMutation($profileId: Int!) {
       approveProfile(profileId: $profileId)
     }
   `)

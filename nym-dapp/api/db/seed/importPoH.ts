@@ -6,7 +6,7 @@ import * as path from 'path'
 import * as rwc from 'random-weighted-choice'
 
 const query = gql`
-  query indexQuery($skip: Int = 0, $first: Int = 1000) {
+  query PoHIndexQuery($skip: Int = 0, $first: Int = 1000) {
     submissions(
       orderBy: creationTime
       orderDirection: desc

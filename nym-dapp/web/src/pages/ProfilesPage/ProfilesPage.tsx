@@ -4,11 +4,11 @@ import React from 'react'
 import AutoSizer from 'react-virtualized-auto-sizer'
 import { FixedSizeGrid } from 'react-window'
 import InfiniteLoader from 'react-window-infinite-loader'
-import { Cached_Profiles } from 'types/graphql'
+import { CachedProfilesQuery } from 'types/graphql'
 import ProfileCard from './ProfileCard'
 
 const QUERY = gql`
-  query CACHED_PROFILES($cursor: ID) {
+  query CachedProfilesQuery($cursor: ID) {
     cachedProfiles(first: 20, cursor: $cursor) {
       id
       edges {
@@ -32,7 +32,7 @@ const QUERY = gql`
 const MIN_CARD_SIZE = 200
 
 const ProfilesPage = () => {
-  const { data, loading, fetchMore } = useQuery<Cached_Profiles>(QUERY, {
+  const { data, loading, fetchMore } = useQuery<CachedProfilesQuery>(QUERY, {
     notifyOnNetworkStatusChange: true,
     variables: { cursor: null },
   })
@@ -45,7 +45,10 @@ const ProfilesPage = () => {
         variables: {
           cursor: data?.cachedProfiles?.pageInfo?.endCursor || null,
         },
-        updateQuery: (previousResult, { fetchMoreResult }): Cached_Profiles => {
+        updateQuery: (
+          previousResult,
+          { fetchMoreResult }
+        ): CachedProfilesQuery => {
           const newEdges = fetchMoreResult.cachedProfiles.edges
           const pageInfo = fetchMoreResult.cachedProfiles.pageInfo
 

@@ -14,7 +14,7 @@ import {
 } from '@chakra-ui/react'
 import { ExternalLinkIcon, CopyIcon } from '@chakra-ui/icons'
 import { useEthers } from '@usedapp/core'
-import Identicon from './Identicon'
+import Identicon from 'src/components/Identicon'
 
 type Props = {
   isOpen: any

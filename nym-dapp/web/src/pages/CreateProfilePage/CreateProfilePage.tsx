@@ -144,7 +144,7 @@ const Success = ({
 
 const SignUpCell = createCell<CellProps>({
   QUERY: gql`
-    query FIND_UNSUBMITTED_PROFILE($account: String!) {
+    query FIND_UNSUBMITTED_PROFILE($account: ID!) {
       unsubmittedProfile(ethAddress: $account) {
         photoCID
         videoCID
