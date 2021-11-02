@@ -8,10 +8,12 @@ import {
 import { useEthers } from '@usedapp/core'
 import AccountModal from './AccountModal'
 import Identicon from 'src/components/Identicon'
+import UserContext from 'src/layouts/UserContext'
 
 // Adapted from https://dev.to/jacobedawson/build-a-web3-dapp-in-react-login-with-metamask-4chp
 
 export default function ConnectButton(props: ButtonProps) {
+  const user = React.useContext(UserContext)
   const ethers = useEthers()
   const modalControl = useDisclosure()
 
@@ -19,7 +21,7 @@ export default function ConnectButton(props: ButtonProps) {
     ethers.activateBrowserWallet()
   }
 
-  return ethers.account ? (
+  return user.ethAddress ? (
     <>
       <Stack>
         <AccountModal
@@ -29,13 +31,13 @@ export default function ConnectButton(props: ButtonProps) {
         <Button variant="outline" onClick={modalControl.onOpen}>
           <Stack direction="row" alignItems="center">
             <Text fontWeight="bold">
-              {ethers.account.slice(0, 6)}...
-              {ethers.account.slice(
-                ethers.account.length - 4,
-                ethers.account.length
+              {user.ethAddress.slice(0, 6)}...
+              {user.ethAddress.slice(
+                user.ethAddress.length - 4,
+                user.ethAddress.length
               )}
             </Text>
-            <Identicon account={ethers.account} />
+            <Identicon account={user.ethAddress} />
           </Stack>
         </Button>
       </Stack>

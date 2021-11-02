@@ -1,9 +1,9 @@
 import type { CachedProfile } from '@prisma/client'
-import * as fs from 'fs'
+import fs from 'fs'
 import { gql, request } from 'graphql-request'
 import fetch from 'node-fetch'
-import * as path from 'path'
-import * as rwc from 'random-weighted-choice'
+import path from 'path'
+import rwc from 'random-weighted-choice'
 
 const query = gql`
   query PoHIndexQuery($skip: Int = 0, $first: Int = 1000) {
@@ -51,11 +51,9 @@ export default async function importPoH(): Promise<Partial<CachedProfile>[]> {
         await fetch(`https://ipfs.kleros.io/ipfs/${regCID}/registration.json`)
       ).json()
       const fileCID = regJSON.fileURI.split('/')[2]
-      console.log({ fileCID })
       const fileJSON = await (
         await fetch(`https://ipfs.kleros.io/ipfs/${fileCID}/file.json`)
       ).json()
-      console.log({ fileJSON })
 
       const status = rwc([
         { id: 'submitted_via_notary', weight: 10 },
@@ -75,12 +73,9 @@ export default async function importPoH(): Promise<Partial<CachedProfile>[]> {
     }
   }
 
-  return (
-    fs
-      .readFileSync(CACHE_FILE, 'utf8')
-      .split('\n')
-      .filter((line) => line.length > 0)
-      // @ts-ignore
-      .map((line) => console.log(line) || JSON.parse(line))
-  )
+  return fs
+    .readFileSync(CACHE_FILE, 'utf8')
+    .split('\n')
+    .filter((line) => line.length > 0)
+    .map((line) => JSON.parse(line))
 }

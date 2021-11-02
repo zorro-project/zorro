@@ -15,8 +15,6 @@ export function UserContextProvider({
 }: {
   children: React.ReactNode
 }) {
-  const [ethAddress, setEthAddress] = React.useState<string | undefined>()
-
   const ethers = useEthers()
 
   const [queryUser, { data }] = useLazyQuery<
@@ -35,24 +33,17 @@ export function UserContextProvider({
         }
       }
     `,
-    { variables: { ethAddress }, fetchPolicy: 'cache-and-network' }
+    { variables: { ethAddress: ethers.account } }
   )
 
   React.useEffect(() => {
-    console.log('ethers reload', ethers.account)
     if (ethers.account) {
-      setEthAddress(ethers.account)
       queryUser({ variables: { ethAddress: ethers.account } })
     }
   }, [ethers.account])
 
-  // React.useEffect(() => {}
-  //   if (loading) return;
-
-  // ), [data, loading])
-
   const context: UserContextType = {
-    ethAddress,
+    ethAddress: ethers.account,
     unsubmittedProfile: data?.unsubmittedProfile,
     cachedProfile: data?.cachedProfile,
   }
