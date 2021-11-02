@@ -1,22 +1,19 @@
 import { Button, ButtonGroup } from '@chakra-ui/button'
-import { ExternalLinkIcon } from '@chakra-ui/icons'
-import { Image } from '@chakra-ui/image'
-import { Box, Heading, Text, Stack, Link } from '@chakra-ui/layout'
-import { Table, Thead, Tr, Th, Td } from '@chakra-ui/table'
+import { Link, Stack, Text } from '@chakra-ui/layout'
+import { Td, Tr } from '@chakra-ui/table'
 import { Textarea } from '@chakra-ui/textarea'
-import { routes } from '@redwoodjs/router'
-import { MetaTags, useMutation, useQuery } from '@redwoodjs/web'
-import ReactPlayer from 'react-player'
+import { useMutation } from '@redwoodjs/web'
 import { PhotoBox, VideoBox } from 'src/components/SquareBox'
-import { ArrayElement, dataFieldToUrl } from 'src/lib/util'
+import { ArrayElement } from 'src/lib/util'
 import {
   ApproveProfileMutation,
+  ApproveProfileMutationVariables,
   MutationAddNotaryFeedbackArgs,
-  UnsubmittedProfilesPageQuery,
+  UnsubmittedProfilesQuery,
 } from 'types/graphql'
 
 const UnsubmittedProfile: React.FC<{
-  profile: ArrayElement<UnsubmittedProfilesPageQuery['unsubmittedProfiles']>
+  profile: ArrayElement<UnsubmittedProfilesQuery['unsubmittedProfiles']>
 }> = ({ profile }) => {
   const [reviewed, setReviewed] = React.useState(false)
   const feedbackRef = React.useRef<typeof Textarea>()
@@ -35,14 +32,16 @@ const UnsubmittedProfile: React.FC<{
     setReviewed(true)
   }
 
-  const [approve] = useMutation<ApproveProfileMutation>(gql`
+  const [approve] = useMutation<
+    ApproveProfileMutation,
+    ApproveProfileMutationVariables
+  >(gql`
     mutation ApproveProfileMutation($profileId: Int!) {
       approveProfile(profileId: $profileId)
     }
   `)
   const onApprove = async () => {
-    console.log('approving')
-    // await approve()
+    await approve({ variables: { profileId: profile.id } })
     setReviewed(true)
   }
 

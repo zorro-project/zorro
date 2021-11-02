@@ -5,9 +5,17 @@
   "dependencies": {
     "@redwoodjs/api": "^0.38.0",
     "@redwoodjs/graphql-server": "^0.38.0",
-    "ethers": "^5.5.1"
+    "email-templates": "^8.0.8",
+    "ethers": "^5.5.1",
+    "jstransformer-markdown-it": "^2.1.0",
+    "lodash": "^4.17.21",
+    "nodemailer": "^6.7.0",
+    "pug": "^3.0.2",
+    "twilio": "^3.70.0"
   },
   "devDependencies": {
+    "@types/email-templates": "^8.0.4",
+    "@types/nodemailer": "^6.4.4",
     "graphql": "^15.6.1",
     "graphql-request": "^3.6.1",
     "random-weighted-choice": "^0.1.4"
