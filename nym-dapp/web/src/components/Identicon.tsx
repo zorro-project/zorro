@@ -16,7 +16,7 @@ const Identicon = ({ account, size = 16, ...props }: Props) => {
         Jazzicon(size, parseInt(account.slice(2, 10), size))
       )
     }
-  }, [ref])
+  }, [ref, account, size])
 
   return <Box pt="1" {...props} ref={ref as any} />
 }

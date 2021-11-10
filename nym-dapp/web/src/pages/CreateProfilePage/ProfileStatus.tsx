@@ -5,10 +5,10 @@ import {
   AlertDescription,
 } from '@chakra-ui/alert'
 import { Box, Text } from '@chakra-ui/layout'
-import { Find_Unsubmitted_Profile } from 'types/graphql'
+import { FindUnsubmittedProfileQuery } from 'types/graphql'
 
 const ProfileStatus: React.FC<{
-  profile: Find_Unsubmitted_Profile['unsubmittedProfile'] | null
+  profile: FindUnsubmittedProfileQuery['unsubmittedProfile'] | null
 }> = ({ profile }) => {
   if (!profile) return null
 

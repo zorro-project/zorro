@@ -1,9 +1,17 @@
 import type { Prisma } from '@prisma/client'
 import { ResolverArgs } from '@redwoodjs/graphql-server'
 import { db } from 'src/lib/db'
+import { sendMessage } from 'src/lib/twilio'
+import { sendNotaryApproved, sendNotaryFeedback } from 'src/mailers/mailers'
+
+// Just hard-code these for now. Will get fancier later.
+const NOTARIES = [
+  '+18016131318', // Kyle
+  '+16175958777', // Ted
+]
 
 export const unsubmittedProfiles = ({ pendingReview }) => {
-  const whereClause = {}
+  const whereClause: Prisma.UnsubmittedProfileWhereInput = {}
   if (pendingReview) whereClause.unaddressedFeedbackId = null
   return db.unsubmittedProfile.findMany({
     where: whereClause,
@@ -19,12 +27,24 @@ export const unsubmittedProfile = async ({
   return record ? { ...record, hasEmail: !!record.email } : null
 }
 
-export const updateUnsubmittedProfile = ({ ethAddress, input }) => {
-  return db.unsubmittedProfile.upsert({
+export const updateUnsubmittedProfile = async ({ ethAddress, input }) => {
+  const profile = await db.unsubmittedProfile.upsert({
     create: { ...input, ethAddress },
     update: { ...input, unaddressedFeedbackId: null },
     where: { ethAddress },
   })
+
+  const pendingCount = (await unsubmittedProfiles({ pendingReview: true }))
+    .length
+
+  if (pendingCount > 0) {
+    await sendMessage(
+      NOTARIES,
+      `${pendingCount} Nym profiles awaiting review. http://localhost:8910/unsubmitted-profiles`
+    )
+  }
+
+  return profile
 }
 
 export const unsubmittedProfileSetEmail = ({ ethAddress, email }) =>
@@ -53,17 +73,36 @@ export const addNotaryFeedback = async ({ profileId, feedback }) => {
   const notaryFeedback = await db.notaryFeedback.create({
     data: { unsubmittedProfileId: profileId, feedback },
   })
-  console.log({ notaryFeedback })
+
   await db.unsubmittedProfile.update({
     where: { id: profileId },
     data: { unaddressedFeedbackId: notaryFeedback.id },
   })
+
+  const profile = await db.unsubmittedProfile.findUnique({
+    where: { id: profileId },
+    include: { UnaddressedFeedback: true },
+  })
+
+  if (profile.email) {
+    await sendNotaryFeedback(
+      profile.email,
+      profile.UnaddressedFeedback.feedback
+    )
+  }
+
   return true
 }
 
-export const approveProfile = ({ ethAddress }) => {
+export const approveProfile = async ({ profileId }) => {
+  const profile = await db.unsubmittedProfile.findUnique({
+    where: { id: profileId },
+  })
   // TODO: actually submit the profile on-chain!
+  // await db.unsubmittedProfile.delete({ where: { id: profileId } })
 
-  db.unsubmittedProfile.delete({ where: ethAddress })
+  if (profile.email) {
+    await sendNotaryApproved(profile.email, profile.ethAddress)
+  }
   return true
 }

@@ -5,12 +5,12 @@ import { useFormContext } from 'react-hook-form'
 import { Card } from 'src/components/Card'
 import PhotoField from 'src/pages/CreateProfilePage/PhotoField'
 import VideoField from 'src/pages/CreateProfilePage/VideoField'
-import { Find_Unsubmitted_Profile } from 'types/graphql'
+import { FindUnsubmittedProfileQuery } from 'types/graphql'
 import ProfileStatus from './ProfileStatus'
 
 const EditView = (props: {
   onContinue: () => void
-  unsubmittedProfile: Find_Unsubmitted_Profile['unsubmittedProfile']
+  unsubmittedProfile: FindUnsubmittedProfileQuery['unsubmittedProfile']
 }) => {
   const { formState } = useFormContext()
 

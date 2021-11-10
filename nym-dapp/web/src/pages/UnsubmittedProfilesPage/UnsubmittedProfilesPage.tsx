@@ -3,12 +3,12 @@ import { Table, Thead, Tr, Th, Tbody } from '@chakra-ui/react'
 import { Link, routes } from '@redwoodjs/router'
 import { MetaTags, useQuery } from '@redwoodjs/web'
 import { Card } from 'src/components/Card'
-import { Unsubmitted_Profiles_Page } from 'types/graphql'
+import { UnsubmittedProfilesQuery } from 'types/graphql'
 import UnsubmittedProfile from './UnsubmittedProfile'
 
 const UnsubmittedProfilesPage = () => {
-  const { data } = useQuery<Unsubmitted_Profiles_Page>(gql`
-    query UNSUBMITTED_PROFILES_PAGE {
+  const { data } = useQuery<UnsubmittedProfilesQuery>(gql`
+    query UnsubmittedProfilesQuery {
       unsubmittedProfiles(pendingReview: true) {
         id
         photoCID

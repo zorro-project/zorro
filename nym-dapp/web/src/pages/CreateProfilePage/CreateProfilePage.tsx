@@ -12,21 +12,21 @@ import { SubmitHandler, useForm } from 'react-hook-form'
 import ipfsClient from 'src/lib/ipfs'
 import EditView from 'src/pages/CreateProfilePage/EditView'
 import {
-  Find_Unsubmitted_Profile,
-  Find_Unsubmitted_ProfileVariables,
-  Update_Unsubmitted_Profile,
+  FindUnsubmittedProfileQuery,
+  FindUnsubmittedProfileQueryVariables,
+  UpdateUnsubmittedProfileMutation,
 } from 'types/graphql'
 import PendingApprovalView from './PendingApprovalView'
 import PreSubmitView from './PreSubmitView'
 import { SignupFieldValues } from './types'
 
-type CellProps = Find_Unsubmitted_ProfileVariables
+type CellProps = FindUnsubmittedProfileQueryVariables
 
 const Success = ({
   account,
   unsubmittedProfile,
   refetch,
-}: CellProps & CellSuccessProps<Find_Unsubmitted_Profile>) => {
+}: CellProps & CellSuccessProps<FindUnsubmittedProfileQuery>) => {
   const methods = useForm<SignupFieldValues>({
     mode: 'onChange',
     defaultValues: {
@@ -39,8 +39,8 @@ const Success = ({
   >(unsubmittedProfile ? 'PendingApproval' : 'Edit')
   const [submitProgress, setSubmitProgress] = React.useState(0)
 
-  const [updateMutation] = useMutation<Update_Unsubmitted_Profile>(gql`
-    mutation UPDATE_UNSUBMITTED_PROFILE(
+  const [updateMutation] = useMutation<UpdateUnsubmittedProfileMutation>(gql`
+    mutation UpdateUnsubmittedProfileMutation(
       $ethAddress: String!
       $input: UpdateUnsubmittedProfileInput!
     ) {
@@ -144,7 +144,7 @@ const Success = ({
 
 const SignUpCell = createCell<CellProps>({
   QUERY: gql`
-    query FIND_UNSUBMITTED_PROFILE($account: String!) {
+    query FindUnsubmittedProfileQuery($account: ID!) {
       unsubmittedProfile(ethAddress: $account) {
         photoCID
         videoCID

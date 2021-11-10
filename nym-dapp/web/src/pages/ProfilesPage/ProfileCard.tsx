@@ -3,12 +3,13 @@ import { ArrayElement, useDataFieldUrl } from 'src/lib/util'
 import { Box, Text, Stack } from '@chakra-ui/layout'
 import { Skeleton } from '@chakra-ui/skeleton'
 import { Image } from '@chakra-ui/image'
-import Identicon from 'src/components/ConnectButton/Identicon'
+import Identicon from 'src/components/Identicon'
 import dayjs from 'dayjs'
 import { FaCalendarCheck, FaCheck, FaGavel } from 'react-icons/fa'
 import Icon, { IconProps } from '@chakra-ui/icon'
 import { routes } from '@redwoodjs/router'
 import { STATUS_CONFIGS } from '../ProfilePage/types'
+import RLink from 'src/components/RLink'
 
 const ProfileCard = ({
   profile,
@@ -38,7 +39,7 @@ const ProfileCard = ({
 
   return (
     <Box
-      as="a"
+      as={RLink}
       href={routes.profile({ id: profile.ethAddress })}
       display="flex"
       shadow="md"
