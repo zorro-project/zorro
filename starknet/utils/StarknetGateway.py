@@ -49,10 +49,8 @@ def readfile(path):
 async def deploy(path):
     gateway_client = get_gateway_client()
 
-    address = fields.ContractAddressField.get_random_value()
-
     contract_definition = ContractDefinition.loads(readfile(path))
-    tx = Deploy(contract_address=address, contract_definition=contract_definition)
+    tx = Deploy(contract_definition=contract_definition)
 
     gateway_response = await gateway_client.add_transaction(tx=tx)
 
