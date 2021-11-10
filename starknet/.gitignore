@@ -3,3 +3,5 @@
 __pycache__
 .venv/
 todos.md
+logic.md
+node_modules/

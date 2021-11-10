@@ -1,0 +1,11 @@
+{
+  "name": "Nym",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "starknet": "ssh://git@github.com:RoboTeddy/starknet.js.git#5db78ea87a0e6357a764cee385d16c63b03e8651"
+  }
+}
