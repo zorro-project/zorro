@@ -100,6 +100,14 @@ struct Profile:
     member last_recorded_status : felt  # one of ProfileStatusEnum
 end
 
+# Abusing a struct as an enum
+struct ProfileEventEnum:
+    member submitted : felt
+    member challenged : felt
+    member adjudicated : felt
+    member appealed : felt
+    member super_adjudicated : felt
+end
 
 # Abusing a struct as an enum
 struct ProfileStatusEnum:
@@ -289,166 +297,92 @@ end
 # automatically follows the gray lines on this chart, recursively:
 # https://lucid.app/lucidchart/3f5d0cad-572d-4674-9365-f9252c294868/edit?page=0_0&invitationId=inv_27689cb9-7be5-4f88-b76a-a0ef273ac183#
 
-# TODO: check all the time math *very carefully*.
 func get_profile_status(profile_id) -> (status: felt, is_confirmed: felt):
     let last_recorded_status = profile.last_recorded_status
 
     if last_recorded_status == ProfileStatusEnum.submitted:
-        return (status=ProfileStatusEnum.submitted, is_confirmed=profile.is_notarized)
-    end
-
-    if last_recorded_status == ProfileStatusEnum.challenged:
-        let time_passed = now - profile.challenge_timestamp
-
-        # Potentially auto-advance to `not_appealed` status
-        if time_passed > (ADJUDICATION_TIME_WINDOW + APPEAL_TIME_WINDOW):
-            # In the absence of further adjudication, presume the challenger was correct
-            return (status=ProfileStatusEnum.appeal_opportunity_expired, is_confirmed=0)
-        end
-
-        # Potentially auto-advance to `not_adjudicated` status
-        if time_passed > ADJUDICATION_TIME_WINDOW:
-            # In the absence of further adjudication, presume the challenger was correct
-            return (status=ProfileStatusEnum.adjudication_opportunity_expired, is_confirmed=0)
-        end
-
-        # We presume innocent anyone who was challenged after the initial challenge window, in order to prevent griefing.
-        let is_presumed_innocent = (profile.challenge_timestamp - profile.submitted_timestamp) > PROVISIONAL_TIME_WINDOW
-        return (ProfileStatusEnum.challenged, is_confirmed=is_presumed_innocent)
-    end
-
-    if last_recorded_status == ProfileStatusEnum.adjudicated:
-        let time_passed = now - profile.adjudication_timestamp
-
-        # Potentially auto-advance to `not_appealed` status
-        if time_passed > APPEAL_TIME_WINDOW:
-            # XXX: this would make it necessary to zero out previous adjudication decision in event of a rechallenge! otherwise adjudication confirm from prev challenge could stick around
-            return (status=ProfileStatusEnum.appeal_opportunity_expired, is_confirmed=profile.was_confirmed_via_adjudication)
-        end
-
-        return (status=ProfileStatusEnum.adjudicated, is_confirmed=profile.was_confirmed_via_adjudication)
-    end
-
-    if last_recorded_status == ProfileStatusEnum.appealed:
-        let time_passed = now - profile.appeal_timestamp
-
-        # Potentially auto-advance to `super_adjudication_opportunity_expired`
-        if time_passed > SUPER_ADJUDICATION_TIME_WINDOW:
-            # There's now a serious disagreement about whether or not someone is confirmed... let's start to play it safe by assuming not.
-            # XXX: Is this the right call, or should we use `is_presumed_innnocent` here to prevent griefing still?
-            return (status=ProfileStatusEnum.super_adjudication_opportunity_expired, is_confirmed=0)
-        end
-
-        # XXX: how do we want to treat is_confirmed here?
-        return (status=ProfileStatusEnum.appealed, is_confirmed=0)
-    end
-
-    if last_explicit_status == ProfileStatusEnum.super_adjudicated:
-        return (status=ProfileStatusEnum.super_adjudicated, is_confirmed=profile.was_confirmed_via_super_adjudication)
-    end
-end
-
-
-
-
-# TODO: check all the time math *very carefully*.
-func get_profile_status(profile_id) -> (status: felt, is_confirmed: felt):
-    let last_recorded_status = profile.last_recorded_status
-
-    if last_recorded_status == ProfileStatusEnum.submitted:
-        let (status, is_confirmed) = get_status_for_submitted_profile(profile_id, profile)
+        let (status, is_confirmed) = get_profile_status__submitted(profile_id, profile)
         return (status, is_confirmed)
     end
 
     if last_recorded_status == ProfileStatusEnum.challenged:
-        let time_passed = now - profile.challenge_timestamp
-
-        # Potentially auto-advance to `not_appealed` status
-        if time_passed > (ADJUDICATION_TIME_WINDOW + APPEAL_TIME_WINDOW):
-            # In the absence of further adjudication, presume the challenger was correct
-            return (status=ProfileStatusEnum.appeal_opportunity_expired, is_confirmed=0)
-        end
-
-        # Potentially auto-advance to `not_adjudicated` status
-        if time_passed > ADJUDICATION_TIME_WINDOW:
-            # In the absence of further adjudication, presume the challenger was correct
-            return (status=ProfileStatusEnum.adjudication_opportunity_expired, is_confirmed=0)
-        end
-
-        # We presume innocent anyone who was challenged after the initial challenge window, in order to prevent griefing.
-        let is_presumed_innocent = (profile.challenge_timestamp - profile.submitted_timestamp) > PROVISIONAL_TIME_WINDOW
-        return (ProfileStatusEnum.challenged, is_confirmed=is_presumed_innocent)
+        let (status, is_confirmed) = get_profile_status__challenged(profile_id, profile)
+        return (status, is_confirmed)
     end
 
     if last_recorded_status == ProfileStatusEnum.adjudicated:
-        let time_passed = now - profile.adjudication_timestamp
-
-        # Potentially auto-advance to `not_appealed` status
-        if time_passed > APPEAL_TIME_WINDOW:
-            # XXX: this would make it necessary to zero out previous adjudication decision in event of a rechallenge! otherwise adjudication confirm from prev challenge could stick around
-            return (status=ProfileStatusEnum.appeal_opportunity_expired, is_confirmed=profile.was_confirmed_via_adjudication)
-        end
-
-        return (status=ProfileStatusEnum.adjudicated, is_confirmed=profile.was_confirmed_via_adjudication)
+        let (status, is_confirmed) = get_profile_status__adjudicated(profile_id, profile)
+        return (status, is_confirmed)
     end
 
     if last_recorded_status == ProfileStatusEnum.appealed:
-        let time_passed = now - profile.appeal_timestamp
-
-        # Potentially auto-advance to `super_adjudication_opportunity_expired`
-        if time_passed > SUPER_ADJUDICATION_TIME_WINDOW:
-            # There's now a serious disagreement about whether or not someone is confirmed... let's start to play it safe by assuming not.
-            # XXX: Is this the right call, or should we use `is_presumed_innnocent` here to prevent griefing still?
-            return (status=ProfileStatusEnum.super_adjudication_opportunity_expired, is_confirmed=0)
-        end
-
-        # XXX: how do we want to treat is_confirmed here?
-        return (status=ProfileStatusEnum.appealed, is_confirmed=0)
+        let (status, is_confirmed) = get_profile_status__appealed(profile_id, profile)
+        return (status, is_confirmed)
     end
 
     if last_explicit_status == ProfileStatusEnum.super_adjudicated:
-        return (status=ProfileStatusEnum.super_adjudicated, is_confirmed=profile.was_confirmed_via_super_adjudication)
+        let (status, is_confirmed) = get_profile_status__super_adjudicated(profile_id, profile)
+        return (status, is_confirmed)
     end
 end
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-func get_status_for_submitted_profile(profile_id : felt, profile : Profile):
+# XXX: check time math / logic of get_profile_status_* very carefully
+func get_profile_status__submitted(profile_id : felt, profile : Profile) -> (status : felt, is_confirmed : felt):
+    return (status=ProfileStatusEnum.submitted, is_confirmed=profile.is_notarized)
 end
 
-func get_status_for_challenged_profile(profile_id : felt, profile : Profile):
+func get_profile_status__challenged(profile_id : felt, profile : Profile):
+    let time_passed = now - profile.challenge_timestamp
+
+    # Potentially auto-advance to the `appeal_opportunity_expired` status
+    if time_passed > (ADJUDICATION_TIME_WINDOW + APPEAL_TIME_WINDOW):
+        # In the absence of further adjudication, presume the challenger was correct
+        return (status=ProfileStatusEnum.appeal_opportunity_expired, is_confirmed=0)
+    end
+
+    # Potentially auto-advance to the `adjudication_opportunity_expired` status
+    if time_passed > ADJUDICATION_TIME_WINDOW:
+        # In the absence of further adjudication, presume the challenger was correct
+        return (status=ProfileStatusEnum.adjudication_opportunity_expired, is_confirmed=0)
+    end
+
+    # We presume innocent anyone who was challenged after the initial challenge window, in order to prevent griefing.
+    let is_provisional = get_is_profile_provisional(profile)
+    let is_confirmed = not(is_provisional)
+    return (ProfileStatusEnum.challenged, is_confirmed)
 end
 
-func get_status_for_adjudicated_profile(profile_id : felt, profile : Profile):
+func get_profile_status__adjudicated(profile_id : felt, profile : Profile):
+    let time_passed = now - profile.adjudication_timestamp
+
+    # Potentially auto-advance to the `appeal_opportunity_expired` status
+    if time_passed > APPEAL_TIME_WINDOW:
+        # XXX: this would make it necessary to zero out previous adjudication decision in event of a rechallenge! otherwise adjudication confirm from prev challenge could stick around
+        return (status=ProfileStatusEnum.appeal_opportunity_expired, is_confirmed=profile.was_confirmed_via_adjudication)
+    end
+
+    return (status=ProfileStatusEnum.adjudicated, is_confirmed=profile.was_confirmed_via_adjudication)
 end
 
-func get_status_for_appealed_profile(profile_id : felt, profile : Profile):
+func get_profile_status__appealed(profile_id : felt, profile : Profile):
+    let time_passed = now - profile.appeal_timestamp
+
+    # Potentially auto-advance to the `super_adjudication_opportunity_expired` status
+    if time_passed > SUPER_ADJUDICATION_TIME_WINDOW:
+        # There's now a serious disagreement about whether or not someone is confirmed... let's start to play it safe by assuming not.
+        # XXX: Is this the right call, or should we use `is_presumed_innnocent` here to prevent griefing still?
+        return (status=ProfileStatusEnum.super_adjudication_opportunity_expired, is_confirmed=0)
+    end
+
+    # XXX: how do we want to treat is_confirmed here?
+    return (status=ProfileStatusEnum.appealed, is_confirmed=0)
 end
 
-func get_status_for_super_adjudicated_profile(profile_id : felt profile : Profile):
+func get_profile_status__super_adjudicated(profile_id : felt profile : Profile):
+    return (status=ProfileStatusEnum.super_adjudicated, is_confirmed=profile.was_confirmed_via_super_adjudication)
 end
 
-
-let status_function_lookup = ProfileStatusEnum(
-    submitted=get_label_address(get_status_for_submitted_profile),
-    challenged=get_label_address(get_status_for_challenged_profile),
-    adjudicated=get_label_address(get_status_for_adjudicated_profile),
-    appealed=get_label_address(get_status_for_appealed_profile),
-    super_adjudicated=get_label_address(get_status_for_super_adjudicated_profile)
-)
-
-invoke(status_function_lookup[profile.status], profile_id, profile)
 
 
 
