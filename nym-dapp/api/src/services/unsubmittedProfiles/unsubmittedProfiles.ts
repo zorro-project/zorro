@@ -2,7 +2,8 @@ import type { Prisma } from '@prisma/client'
 import { ResolverArgs } from '@redwoodjs/graphql-server'
 import { db } from 'src/lib/db'
 import { sendMessage } from 'src/lib/twilio'
-import { sendNotaryApproved, sendNotaryFeedback } from 'src/mailers/mailers'
+import sendNotaryApproved from 'src/mailers/sendNotaryApproved'
+import sendNotaryFeedback from 'src/mailers/sendNotaryFeedback'
 
 // Just hard-code these for now. Will get fancier later.
 const NOTARIES = [

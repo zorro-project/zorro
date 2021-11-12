@@ -9,7 +9,8 @@
     "pflannery.vscode-versionlens",
     "editorconfig.editorconfig",
     "prisma.prisma",
-    "graphql.vscode-graphql"
+    "graphql.vscode-graphql",
+    "Tobermory.es6-string-html"
   ],
   "unwantedRecommendations": []
 }

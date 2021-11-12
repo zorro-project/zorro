@@ -1,4 +1,5 @@
-import { sendNotaryApproved, sendNotaryFeedback } from './mailers'
+import sendNotaryApproved from './sendNotaryApproved'
+import sendNotaryFeedback from './sendNotaryFeedback'
 
 describe('mailers', () => {
   test.skip('sendNotaryApproved', async () => {
