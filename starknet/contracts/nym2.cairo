@@ -89,19 +89,16 @@ end
 #
 
 struct Profile:
-    member digest : felt # cidv1 multihash `<hash function output>` for profile pic/video/etc
+    member cid : felt # cidv1 for profile pic/video/etc
     member address : felt # starknet address
     member submitter_address : felt
     member submission_timestamp : felt
     member is_notarized : felt
-    #member last_challenge_event : felt # one of ChallengeEventEnum
-    #member last_challenge_event_timestamp : felt
 end
 
 
-# XXX: this is mis-implemented
-func get_is_profile_provisional(profile) -> (res: felt):
-    return (now - profile.submission_timestamp) < PROVISIONAL_TIME_WINDOW
+func get_is_profile_provisional(profile, now) -> (res: felt):
+    return is_le(now - profile.submission_timestamp, PROVISIONAL_TIME_WINDOW)
 end
 
 #
@@ -115,14 +112,14 @@ struct ChallengeStorageEnum:
     # Set in same tx that shifts `last_event` to `challenged`:
     member challenge_timestamp : felt # nonzero iff there was a challenge
     member challenger_address : felt
-    member challenge_evidence_digest : felt
+    member challenge_evidence_cid : felt
 
     # Optionally set while `last_event` is `challenged`:
-    member profile_owner_evidence_digest : felt
+    member profile_owner_evidence_cid : felt
 
     # Set in same tx that shifts `last_event` to `adjudicated`:
     member adjudication_timestamp : felt # nonzero iff there was an adjudication
-    member adjudicator_evidence_digest : felt
+    member adjudicator_evidence_cid : felt
     member did_adjudicator_confirm_profile : felt
 
     # Set in the same tx that shifts `last_event` to `appealed`
@@ -213,8 +210,8 @@ end
 
 @external
 func submit{bitwise_ptr : BitwiseBuiltin*, pedersen_ptr : HashBuiltin*, range_check_ptr,
-        syscall_ptr : felt*}(digest : felt, address : felt) -> (profile_id : felt):
-    assert_not_zero(profile_digest)
+        syscall_ptr : felt*}(cid : felt, address : felt) -> (profile_id : felt):
+    assert_not_zero(profile_cid)
     assert_not_zero(address)
     assert_is_unused_address(address)
 
@@ -229,12 +226,11 @@ func submit{bitwise_ptr : BitwiseBuiltin*, pedersen_ptr : HashBuiltin*, range_ch
     _num_profiles.write(profile_id)
 
     let profile = Profile(
-        digest=digest,
+        cid=cid,
         address=address,
         submitter_address=caller_address,
         submission_timestamp=now,
         is_notarized=is_caller_the_notary,
-        #last_challenge_event=ChallengeEventEnum.awaiting_challenge,
     )
 
     _profiles.write(profile_id, profile)
@@ -270,7 +266,6 @@ func notarize{
         submitter_address=profile.submitter_address,
         submission_timestamp=profile.submission_timestamp,
         is_notarized=1,
-        #last_challenge_event=profile.last_challenge_event
     )
     _profiles.write(profile_id, new_profile)
 
@@ -279,7 +274,7 @@ end
 
 
 func challenge{        bitwise_ptr : BitwiseBuiltin*, pedersen_ptr : HashBuiltin*, range_check_ptr,
-        syscall_ptr : felt*}(profile_id : felt, evidence_digest : felt):
+        syscall_ptr : felt*}(profile_id : felt, evidence_cid : felt):
 
     # Only challenge profiles that exist
     assert_profile_exists(profile_id)
@@ -298,9 +293,10 @@ func challenge{        bitwise_ptr : BitwiseBuiltin*, pedersen_ptr : HashBuiltin
     # Only allow challenging of profiles that are confirmed or are still provisional
     # (In particular, don't allow challenging of profiles that are already invalid.)
     let (is_profile_confirmed) = get_is_profile_confirmed(profile_id)
-    let (is_profile_provisional) = get_is_profile_provisional(profile)
+    let (is_profile_provisional) = get_is_profile_provisional(profile, now)
     assert (is_profile_confirmed - 1) * (is_profile_provisional - 1) = 0
 
+    # Take a deposit from the challenger
     _receive_deposit(caller_address, CHALLENGE_DEPOSIT_SIZE)
 
     # If this profile was previously challenged, then clear out the old challenge information
@@ -310,7 +306,7 @@ func challenge{        bitwise_ptr : BitwiseBuiltin*, pedersen_ptr : HashBuiltin
 
     _challenges.write(profile_id, ChallengeStorageEnum.last_event, ChallengeEventEnum.challenged)
     _challenges.write(profile_id, ChallengeStorageEnum.challenger_address, caller_address)
-    _challenges.write(profile_id, ChallengeStorageEnum.challenge_evidence_digest, evidence_digest)
+    _challenges.write(profile_id, ChallengeStorageEnum.challenge_evidence_cid, evidence_cid)
     _challenges.write(profile_id, ChallengeStorageEnum.challenge_timestamp, now)
 
     return ()
@@ -320,19 +316,19 @@ end
 # Allows a profile owner to directly submit evidence on their own behalf
 # Useful if the profile owner thinks that the adjudicator won't do a good job of defending their profile
 # XXX: document limitation — there's nothing to prevent the adjudicator from adjudicating immediately to prevent evidence from being submitted by the profile owner. Maybe for now the appeal MetaEvidence policy can help handle this abusive case.
-func submit_evidence{}(profile_id : felt, evidence_digest : felt):
+func submit_evidence{}(profile_id : felt, evidence_cid : felt):
     let profile_id = _get_caller_profile_id()
     let (challenge_status) = get_challenge_status(profile_id)
 
     # Can only submit evidence while challenge status is `challenged` (i.e. before adjudication)
     assert challenge_status = ChallengeStatusEnum.challenged
 
-    _challenges.write(profile_id, ChallengeStorageEnum.profile_owner_evidence_digest, evidence_digest)
+    _challenges.write(profile_id, ChallengeStorageEnum.profile_owner_evidence_cid, evidence_cid)
     return ()
 end
 
 
-func adjudicate{}(profile_id : felt, evidence_digest : felt, should_confirm_profile : felt):
+func adjudicate{}(profile_id : felt, evidence_cid : felt, should_confirm_profile : felt):
     assert_caller_is_adjudicator()
     assert_profile_exists(profile_id)
     assert_is_boolean(should_confirm_profile)
@@ -344,7 +340,7 @@ func adjudicate{}(profile_id : felt, evidence_digest : felt, should_confirm_prof
     let (now) = _timestamp.read()
     _challenges.write(profile_id, ChallengeStorageEnum.last_event, ChallengeEventEnum.adjudicated)
     _challenges.write(profile_id, ChallengeStorageEnum.adjudication_timestamp, now)
-    _challenges.write(profile_id, ChallengeStorageEnum.adjudicator_evidence_digest, evidence_digest)
+    _challenges.write(profile_id, ChallengeStorageEnum.adjudicator_evidence_cid, evidence_cid)
     _challenges.write(profile_id, ChallengeStorageEnum.did_adjudicator_confirm_profile, should_confirm_profile)
 
     return ()
@@ -399,12 +395,18 @@ func maybe_settle(profile_id : felt):
         let (is_profile_confirmed) = get_is_profile_confirmed(profile_id)
 
         if is_profile_confirmed == 1:
+            # The submitter was right: return their deposit
+            _return_deposit(profile.submitter_address, SUBMISSION_DEPOSIT_SIZE)
+
             # The challenger was wrong: take their deposit
             _swallow_deposit(CHALLENGE_DEPOSIT_SIZE)
         else:
-            # The challenger was right: return their deposit and pay them!
+            # The submitter was wrong: take their deposit
+            _swallow_deposit(SUBMISSION_DEPOSIT_SIZE)
+
+            # The challenger was right: return their deposit and reward them
             _return_deposit(profile.challenger_address, CHALLENGE_DEPOSIT_SIZE)
-            _give_reward(profile.challenger_address, CHALLENGE_REWARD_SIZE)
+            _give_reward(profile.challenger_address, SUBMISSION_DEPOSIT_SIZE)
         end
 
         _challenges.write(profile_id, ChallengeStorageEnum.last_event, ChallengeEventEnum.settled)
@@ -440,12 +442,12 @@ func get_challenge_status(profile_id,  now) -> (status: felt):
         let time_passed = now - challenge_timestamp
 
         # Potentially auto-advance all the way to `appeal_opportunity_expired`
-        if time_passed > (ADJUDICATION_TIME_WINDOW + APPEAL_TIME_WINDOW):
+        if is_le(ADJUDICATION_TIME_WINDOW + APPEAL_TIME_WINDOW, time_passed):
             return (ChallengeStatusEnum.appeal_opportunity_expired)
         end
 
         # Potentially auto-advance to `adjudication_opportunity_expired`
-        if time_passed > ADJUDICATION_TIME_WINDOW:
+        if is_le(ADJUDICATION_TIME_WINDOW, time_passed):
             return (ChallengeStatusEnum.adjudication_opportunity_expired)
         end
 
@@ -462,7 +464,7 @@ func get_challenge_status(profile_id,  now) -> (status: felt):
         let time_passed = now - adjudication_timestamp
 
         # Potentially auto-advance to `appeal_opportunity_expired`
-        if time_passed > APPEAL_TIME_WINDOW:
+        if is_le(APPEAL_TIME_WINDOW, time_passed):
             return (ChallengeStatusEnum.appeal_opportunity_expired)
         end
 
@@ -479,7 +481,7 @@ func get_challenge_status(profile_id,  now) -> (status: felt):
         let time_passed = now - appeal_timestamp
 
         # Potentially auto-advance to `super_adjudication_opportunity_expired`
-        if time_passed > SUPER_ADJUDICATION_TIME_WINDOW:
+        if is_le(SUPER_ADJUDICATION_TIME_WINDOW, time_passed):
             return (ChallengeStatusEnum.super_adjudication_opportunity_expired)
         end
 
@@ -509,13 +511,14 @@ func get_is_profile_confirmed(profile_id):
     let (challenge_status) = get_challenge_status(profile_id)
 
     #
-    # {not_challenged}
+    # Status is `not_challenged`
     #
 
     if challenge_status == ChallengeStatusEnum.not_challenged:
         # confirmed if notarized OR survived provisional period without being challenged
         let (profile) = get_profile(profile_id)
-        let (is_provisional) = get_is_profile_provisional(profile)
+        let (now) = _timestamp.read()
+        let (is_provisional) = get_is_profile_provisional(profile, now)
 
         # is_notarized || !is_provisional
         if (profile.is_notarized - 1) * is_provisional == 0:
@@ -526,7 +529,7 @@ func get_is_profile_confirmed(profile_id):
     end
 
     #
-    # All other statuses, e.g. {challenged, adjudicated, ...}
+    # All other statuses, e.g. `challenged`, `adjudicated`, ...
     #
 
     # Logic:
@@ -545,12 +548,18 @@ func get_is_profile_confirmed(profile_id):
     end
 
     let (challenge_timestamp) = _challenges.read(profile_id, ChallengeStorageEnum.challenge_timestamp)
-    let is_presumed_innocent = (challenge_timestamp - profile.submission_timestamp) > PROVISIONAL_TIME_WINDOW
+    let is_presumed_innocent = is_le(PROVISIONAL_TIME_WINDOW, challenge_timestamp - profile.submission_timestamp)
 
     # XXX: consider a case where the adjudicator and the super adjudicator both time out...
     # Super edge case, but maybe we should side with the challenger in that case?
 
     return (is_presumed_innocent)
+end
+
+@external
+func get_profile(profile_id):
+    let (profile) = _profiles.read(profile_id)
+    profile.
 end
 
 #
@@ -648,8 +657,10 @@ func assert_address_is_unused{
 end
 
 @view
-func assert_profile_exists{}(profile_id):
-    # XXX stub
+func assert_profile_exists{}(profile_id : felt):
+    # Getting a profile asserts its existence
+    let (_ : felt) = get_profile(profile_id)
+    return ()
 end
 
 func assert_is_boolean{}(x : felt):
