@@ -70,6 +70,14 @@ end
 func _num_profiles() -> (res : felt):
 end
 
+# Internal accounting: record how much of our balance is due to challenge
+# deposits, submission deposits, etc so we don't accidentally give out people's
+# deposits as rewards. (It should be possible for the shared security pool to
+# be drained w/o revoking people's deposits.)
+@storage_var
+func _reserved_balance() -> (res : felt):
+end
+
 @storage_var
 func _profiles(profile_id : felt) -> (res : Profile):
 end
@@ -95,15 +103,12 @@ struct Profile:
     member is_notarized : felt
 end
 
-func get_is_profile_provisional(profile, now) -> (res : felt):
-    return is_le(now - profile.submission_timestamp, PROVISIONAL_TIME_WINDOW)
-end
-
 #
-# Challenge types
+# Challenge types & helpers
 #
 
 # Abusing a struct as an enum
+# This struct just offers named indices
 struct ChallengeStorageEnum:
     member last_event : felt  # one of ChallengeEventEnum
 
@@ -192,19 +197,61 @@ func _inner_reset_challenge(profile_id : felt, i : felt):
 end
 
 #
-# External functions
+# Contract administration mutators
 #
 
 @constructor
 func constructor{
         bitwise_ptr : BitwiseBuiltin*, pedersen_ptr : HashBuiltin*, range_check_ptr,
         syscall_ptr : felt*}(
-        admin_address, notary_address : felt, adjudicator_address : felt, token_address : felt):
+        admin_address : felt, notary_address : felt, adjudicator_address : felt,
+        super_adjudicator_address : felt, token_address : felt):
     _admin_address.write(admin_address)
     _notary_address.write(notary_address)
     _adjudicator_address.write(adjudicator_address)
+    _super_adjudicator_address.write(super_adjudicator_address)
     _token_address.write(token_address)
 end
+
+@external
+func update_admin_address{
+        bitwise_ptr : BitwiseBuiltin*, pedersen_ptr : HashBuiltin*, range_check_ptr,
+        syscall_ptr : felt*}(new_address : felt):
+    assert_is_caller_admin()
+    _admin_address.write(new_address)
+    return ()
+end
+
+@external
+func update_notary_address{
+        bitwise_ptr : BitwiseBuiltin*, pedersen_ptr : HashBuiltin*, range_check_ptr,
+        syscall_ptr : felt*}(new_address : felt):
+    assert_is_caller_admin()
+    _notary_address.write(new_address)
+    return ()
+end
+
+@external
+func update_adjudicator_address{
+        bitwise_ptr : BitwiseBuiltin*, pedersen_ptr : HashBuiltin*, range_check_ptr,
+        syscall_ptr : felt*}(new_address : felt):
+    assert_is_caller_admin()
+    _adjudicator_address.write(new_address)
+    return ()
+end
+
+@external
+func update_super_adjudicator_address{
+        bitwise_ptr : BitwiseBuiltin*, pedersen_ptr : HashBuiltin*, range_check_ptr,
+        syscall_ptr : felt*}(new_address : felt):
+    assert_is_caller_admin()
+    _super_adjudicator_address.write(new_address)
+    return ()
+end
+
+#
+# Profile/challenge mutators
+#
 
 @external
 func submit{
@@ -321,7 +368,7 @@ func submit_evidence{}(profile_id : felt, evidence_cid : felt):
 end
 
 func adjudicate{}(profile_id : felt, evidence_cid : felt, should_confirm_profile : felt):
-    assert_caller_is_adjudicator()
+    assert_is_caller_adjudicator()
     assert_profile_exists(profile_id)
     assert_is_boolean(should_confirm_profile)
 
@@ -380,7 +427,7 @@ end
 @external
 func maybe_settle(profile_id : felt):
     # A profile can be challegned iff its status is one of the following
-    # See: https://lucid.app/lucidchart/df9f25d3-d9b0-4d0a-99d1-b1eac42eff3b/edit?from_docslist=true
+    # See: https://lucid.app/lucidchart/df9f25d3-d9b0-4d0a-99d1-b1eac42eff3b/edit?viewport_loc=-1482%2C-119%2C4778%2C2436%2C0_0&invitationId=inv_56861740-601a-4a1e-8d61-58c60906253d
     let res = (status - ChallengeStatusEnum.appeal_opportunity_expired) *
         (status - ChallengeStatusEnum.super_adjudicated) *
         (status - ChallengeStatusEnum.super_adjudication_opportunity_expired)
@@ -411,11 +458,12 @@ func maybe_settle(profile_id : felt):
 end
 
 #
-# Profile/challenge status accessors
+# Accessors
 #
 
 # automatically follows the gray lines on this chart, recursively:
-# https://lucid.app/lucidchart/3f5d0cad-572d-4674-9365-f9252c294868/edit?page=0_0&invitationId=inv_27689cb9-7be5-4f88-b76a-a0ef273ac183#
+# https://lucid.app/lucidchart/df9f25d3-d9b0-4d0a-99d1-b1eac42eff3b/edit?viewport_loc=-1482%2C-119%2C4778%2C2436%2C0_0&invitationId=inv_56861740-601a-4a1e-8d61-58c60906253d
+@external
 func get_challenge_status(profile_id, now) -> (status : felt):
     let (last_challenge_event) = _challenges.read(profile_id, ChallengeStorageEnum.last_event)
 
@@ -544,6 +592,7 @@ func get_is_profile_confirmed(profile_id):
         return _challenges.read(profile_id, ChallengeStorageEnum.did_adjudicator_confirm_profile)
     end
 
+    let (profile) = get_profile(profile_id)
     let (challenge_timestamp) = _challenges.read(
         profile_id, ChallengeStorageEnum.challenge_timestamp)
     let is_presumed_innocent = is_le(
@@ -560,6 +609,11 @@ func get_profile(profile_id) -> (res : Profile):
     let (profile) = _profiles.read(profile_id)
     assert is_not_zero(profile.cid) = 1
     return (profile)
+end
+
+@external
+func get_is_profile_provisional(profile, now) -> (res : felt):
+    return is_le(now - profile.submission_timestamp, PROVISIONAL_TIME_WINDOW)
 end
 
 #
@@ -624,12 +678,12 @@ func get_is_caller_notary{
 end
 
 func assert_is_caller_notary():
-    let is_notary = get_is_caller_notary()
+    let (is_notary) = get_is_caller_notary()
     assert is_notary = 1
     return ()
 end
 
-func assert_caller_is_adjudicator{
+func assert_is_caller_adjudicator{
         bitwise_ptr : BitwiseBuiltin*, pedersen_ptr : HashBuiltin*, range_check_ptr,
         syscall_ptr : felt*}():
     let (adjudicator_address) = _adjudicator_address.read()
@@ -638,12 +692,19 @@ func assert_caller_is_adjudicator{
     return ()
 end
 
-func assert_caller_is_super_adjudicator{
+func assert_is_caller_super_adjudicator{
         bitwise_ptr : BitwiseBuiltin*, pedersen_ptr : HashBuiltin*, range_check_ptr,
         syscall_ptr : felt*}():
     let (adjudicator_address) = _super_adjudicator_address.read()
     let (caller_address) = get_caller_address()
     assert caller_address = super_adjudicator_address
+    return ()
+end
+
+func assert_is_caller_admin():
+    let (caller_address) = get_caller_address()
+    let admin_address = _admin_address.read()
+    assert get_is_equal(admin_address, caller_address) = 1
     return ()
 end
 
@@ -657,13 +718,13 @@ func assert_address_is_unused{
 end
 
 @view
-func assert_profile_exists{}(profile_id : felt):
+func assert_profile_exists(profile_id : felt):
     # Getting a profile asserts its existence
     let (_ : felt) = get_profile(profile_id)
     return ()
 end
 
-func assert_is_boolean{}(x : felt):
+func assert_is_boolean(x : felt):
     # x == 0 || x == 1
     assert ((x - 1) * x) = 0
 end
