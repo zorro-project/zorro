@@ -1,7 +1,6 @@
-*_compiled.json
-*_abi.json
 __pycache__
 .venv/
 todos.md
 logic.md
 node_modules/
+starknet-artifacts/
