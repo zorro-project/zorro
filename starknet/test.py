@@ -14,22 +14,17 @@ from starkware.crypto.signature.signature import (
 
 from utils.OpenZepplin.Signer import Signer
 
+admin = Signer(83745982347)
 adjudicator = Signer(7891011)
 notary = Signer(12345)
 challenger = Signer(888333444555)
 
-
-CHALLENGE_DEPOSIT_SIZE = 25  # This constant is also in Nym.cairo
-CHALLENGE_REWARD_SIZE = 25  # This constant is also in Nym.cairo
+SUBMISSION_DEPOSIT_SIZE = 25  # This constant is also in nym.cairo
+CHALLENGE_DEPOSIT_SIZE = 25  # This constant is also in nym.cairo
 
 # Note: could use a factory clone method to speed up tests, like this:
 # https://github.com/fracek/starknet-pythonic-template/blob/main/tests/starknet/test_counter.py
 # Or maybe could avoid compilation time by caching compiled json
-
-
-@pytest.fixture(scope="module")
-def event_loop():
-    return asyncio.new_event_loop()
 
 
 def get_contract_path(path):
@@ -37,8 +32,11 @@ def get_contract_path(path):
 
 
 async def deploy_and_initialize_account(starknet, signer):
-    account = await starknet.deploy(get_contract_path("OpenZepplin/Account.cairo"))
-    await account.initialize(signer.public_key, account.contract_address).invoke()
+    account = await starknet.deploy(
+        source=get_contract_path("OpenZepplin/Account.cairo"),
+        constructor_calldata=[signer.public_key],
+    )
+    await account.initialize(account.contract_address).invoke()
     return account
 
 
@@ -64,21 +62,33 @@ async def create_erc20(starknet):
 
 
 @pytest.fixture(scope="module")
+def event_loop():
+    return asyncio.new_event_loop()
+
+
+@pytest.fixture(scope="module")
 async def ctx():
     starknet = await Starknet.empty()
 
+    admin_account = await deploy_and_initialize_account(starknet, admin)
     notary_account = await deploy_and_initialize_account(starknet, notary)
     adjudicator_account = await deploy_and_initialize_account(starknet, adjudicator)
+
     challenger_account = await deploy_and_initialize_account(starknet, challenger)
+
+    super_adjudicator_address = 0
 
     (erc20, give_tokens) = await create_erc20(starknet)
 
-    nym = await starknet.deploy(get_contract_path("Nym.cairo"))
-    await nym.initialize(
-        notary_address=notary_account.contract_address,
-        adjudicator_address=adjudicator_account.contract_address,
-        self_address=nym.contract_address,
-        token_address=erc20.contract_address,
+    nym = await starknet.deploy(
+        source=get_contract_path("nym.cairo"),
+        constructor_calldata=[
+            admin_account.contract_address,
+            notary_account.contract_address,
+            adjudicator_account.contract_address,
+            super_adjudicator_address,
+            erc20.contract_address,
+        ],
     ).invoke()
 
     # Give 50 tokens to the eventual challenger so they can afford to challenge
@@ -92,63 +102,53 @@ async def ctx():
         notary_account=notary_account,
         adjudicator_account=adjudicator_account,
         challenger_account=challenger_account,
+        super_adjudicator_address=super_adjudicator_address,
         nym=nym,
         erc20=erc20,
     )
 
 
-async def submit_with_notarization(
-    ctx, profile_cid_low, profile_cid_high, eth_address, address
-):
+async def submit(ctx, cid, address):
+    print(ctx)
     await notary.send_transaction(
         ctx.notary_account,
         ctx.nym.contract_address,
-        "submit_with_notarization",
+        "submit",
         [
-            profile_cid_low,
-            profile_cid_high,
-            eth_address,
+            cid,
             address,
         ],
     )
 
-    (profile_id,) = (
-        await ctx.nym.get_profile_id_by_eth_address(eth_address).call()
-    ).result
+    (profile_id,) = (await ctx.nym.get_profile_by_address(address).call()).result
     return profile_id
 
 
-async def get_is_person(ctx, address):
-    (is_person,) = (await ctx.nym.get_is_person(address=address).call()).result
+async def get_is_address_confirmed(ctx, address):
+    (is_person,) = (
+        await ctx.nym.get_is_address_confirmed(address=address).call()
+    ).result
     return is_person
 
 
 @pytest.mark.asyncio
-async def test_submit_with_notarization(ctx):
-    eth_address = 0x1234
+async def test_submit(ctx):
     address = 123
-    profile_cid_low = 1234567
-    profile_cid_high = 453430
-
-    profile_id = await submit_with_notarization(
-        ctx, profile_cid_low, profile_cid_high, eth_address, address
-    )
+    cid = 1234567
+    profile_id = await submit(ctx, cid, address)
 
     # ensure result is in contract storage
-    assert (await ctx.nym.__get_profile_cid_low(profile_id).call()).result == (
-        profile_cid_low,
-    )
+    assert (await ctx.nym.__get_profile_cid_low(profile_id).call()).result == (cid,)
 
     # applying a second time should result in an error, because the
     # profile already exists
     with pytest.raises(StarkException) as e_info:
-        await submit_with_notarization(
-            ctx, profile_cid_low, profile_cid_high, eth_address, address
-        )
+        await submit(ctx, cid, address)
     # XXX: it would be nice if we could explicitly check that an assert failed
     assert e_info.value.code == StarknetErrorCode.TRANSACTION_FAILED
 
 
+"""
 @pytest.mark.asyncio
 async def test_challenge_and_adjudication(ctx):
     eth_address = 0x234324
@@ -209,3 +209,4 @@ async def test_challenge_and_adjudication(ctx):
     assert await get_is_person(ctx, address) == 1
 
     # TODO: test scenario where final adjudication says the profile is invalid
+"""

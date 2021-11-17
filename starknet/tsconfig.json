@@ -1,0 +1,13 @@
+// todo: look at https://github.com/Shard-Labs/starknet-hardhat-example/blob/devnet/tsconfig.json
+{
+  "compilerOptions": {
+    "target": "es2020",
+    "module": "commonjs",
+    "strict": true,
+    "esModuleInterop": true,
+    "outDir": "dist"
+  },
+  "include": ["./test"],
+  "files": ["./hardhat.config.ts"],
+  "exclude": ["node_modules"]
+}

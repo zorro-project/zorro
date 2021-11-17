@@ -1,13 +1,21 @@
-require("@shardlabs/starknet-hardhat-plugin");
+import "@shardlabs/starknet-hardhat-plugin";
 
 module.exports = {
   solidity: "0.8.4",
   cairo: {
     version: "0.5.2",
   },
+  paths: {
+    artifacts: "./artifacts",
+    cache: "./cache",
+    sources: "./contracts",
+    tests: "./test",
+    starknetSources: "./contracts",
+    starknetArtifacts: "./starknet-artifacts",
+  },
   networks: {
     localnet: {
-      url: "http://starknet-devnet:5000",
+      url: "http://localhost:5000",
     },
   },
   mocha: {
