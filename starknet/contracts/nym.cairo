@@ -81,7 +81,7 @@ func _adjudicator_address() -> (res : felt):
 end
 
 @storage_var
-func _super_adjudicator_address() -> (res : felt):
+func _super_adjudicator_l1_address() -> (res : felt):
 end
 
 # Admin has limited privileges: they can only modify the notary and adjudicator addresses
@@ -111,7 +111,7 @@ func _profiles(profile_id : felt) -> (res : Profile):
 end
 
 @storage_var
-func _challenges(profile_id : felt, index : felt) -> (res : felt):
+func _challenges(profile_id : felt, challenge_storage_index : felt) -> (res : felt):
 end
 
 # Map from starknet address to `profile_id`
@@ -225,11 +225,11 @@ end
 @constructor
 func constructor{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
         admin_address : felt, notary_address : felt, adjudicator_address : felt,
-        super_adjudicator_address : felt, token_address : felt, mirror_address : felt):
+        super_adjudicator_l1_address : felt, token_address : felt, mirror_address : felt):
     _admin_address.write(admin_address)
     _notary_address.write(notary_address)
     _adjudicator_address.write(adjudicator_address)
-    _super_adjudicator_address.write(super_adjudicator_address)
+    _super_adjudicator_l1_address.write(super_adjudicator_l1_address)
     _token_address.write(token_address)
 
     let (self_address) = IMirror.get_my_address(contract_address=mirror_address)
@@ -267,10 +267,10 @@ func update_adjudicator_address{pedersen_ptr : HashBuiltin*, range_check_ptr, sy
 end
 
 @external
-func update_super_adjudicator_address{
+func update_super_adjudicator_l1_address{
         pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(new_address : felt):
     assert_is_caller_admin()
-    _super_adjudicator_address.write(new_address)
+    _super_adjudicator_l1_address.write(new_address)
     return ()
 end
 
@@ -358,9 +358,12 @@ func challenge{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*
 
     # Only allow challenging of profiles that are confirmed or are still provisional
     # (In particular, don't allow challenging of profiles that are already invalid.)
+    # XXX: verify this logic
     let (is_profile_confirmed) = get_is_profile_confirmed(profile_id)
     let (profile) = get_profile(profile_id)
     let (is_profile_provisional) = get_is_profile_provisional(profile)
+
+    # is_profile_confirmed || is_profile_provisional
     assert (is_profile_confirmed - 1) * (is_profile_provisional - 1) = 0
 
     # Take a deposit from the challenger
@@ -426,8 +429,8 @@ end
 @l1_handler
 func appeal{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
         from_address : felt, profile_id : felt):
-    let (super_adjudicator_address) = _super_adjudicator_address.read()
-    assert from_address = super_adjudicator_address
+    let (super_adjudicator_l1_address) = _super_adjudicator_l1_address.read()
+    assert from_address = super_adjudicator_l1_address
 
     # Only appeal things that are `adjudicated` or `adjudication_opportunity_expired`
     let (challenge_status) = get_challenge_status(profile_id)
@@ -443,8 +446,8 @@ end
 @l1_handler
 func super_adjudicate{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
         from_address : felt, profile_id : felt, should_confirm_profile : felt):
-    let (super_adjudicator_address) = _super_adjudicator_address.read()
-    assert from_address = super_adjudicator_address
+    let (super_adjudicator_l1_address) = _super_adjudicator_l1_address.read()
+    assert from_address = super_adjudicator_l1_address
 
     assert_is_boolean(should_confirm_profile)
 
@@ -466,6 +469,7 @@ func super_adjudicate{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr 
 end
 
 # XXX: need to handle case where submitter's deposit was vs. wasn't already returned
+# XXX: verify logic
 @external
 func maybe_settle{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
         profile_id : felt):
@@ -484,9 +488,6 @@ func maybe_settle{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : fe
         let (profile) = get_profile(profile_id)
 
         if is_profile_confirmed == 1:
-            # The submitter was right: return their deposit
-            _return_deposit(profile.submitter_address, SUBMISSION_DEPOSIT_SIZE)
-
             # The challenger was wrong: take their deposit
             _swallow_deposit(CHALLENGE_DEPOSIT_SIZE)
         else:
@@ -824,14 +825,6 @@ func assert_is_caller_adjudicator{
     let (adjudicator_address) = _adjudicator_address.read()
     let (caller_address) = get_caller_address()
     assert caller_address = adjudicator_address
-    return ()
-end
-
-func assert_is_caller_super_adjudicator{
-        pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}():
-    let (super_adjudicator_address) = _super_adjudicator_address.read()
-    let (caller_address) = get_caller_address()
-    assert caller_address = super_adjudicator_address
     return ()
 end
 
