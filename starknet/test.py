@@ -43,22 +43,32 @@ async def deploy_and_initialize_account(starknet, signer):
 async def create_erc20(starknet):
     minter = Signer(897654321)
     minter_account = await deploy_and_initialize_account(starknet, minter)
-    erc20 = await starknet.deploy(get_contract_path("OpenZepplin/ERC20.cairo"))
-    # Initializing the ERC20 contract mints 1000 tokens to the sender of the
-    # initialization transaction (in this case, `treasurer`.)
-    await minter.send_transaction(
-        minter_account, erc20.contract_address, "initialize", []
+    print("minter account", minter_account)
+    erc20 = await starknet.deploy(
+        source=get_contract_path("OpenZepplin/ERC20.cairo"),
+        constructor_calldata=[minter_account.contract_address],
     )
+
+    def uint(a):
+        return (a, 0)
 
     async def give_tokens(recipient, amount):
         return await minter.send_transaction(
             minter_account,
             erc20.contract_address,
             "transfer",
-            [recipient, amount],
+            [recipient, *uint(amount)],
         )
 
-    return (erc20, give_tokens)
+    async def approve(approver, approver_account, spender_address, amount):
+        return await approver.send_transaction(
+            approver_account,
+            erc20.contract_address,
+            "approve",
+            [spender_address, *uint(amount)],
+        )
+
+    return (erc20, give_tokens, approve)
 
 
 @pytest.fixture(scope="module")
@@ -70,15 +80,16 @@ def event_loop():
 async def ctx():
     starknet = await Starknet.empty()
 
+    mirror = await starknet.deploy(source=get_contract_path("mirror.cairo"))
+
     admin_account = await deploy_and_initialize_account(starknet, admin)
     notary_account = await deploy_and_initialize_account(starknet, notary)
     adjudicator_account = await deploy_and_initialize_account(starknet, adjudicator)
-
     challenger_account = await deploy_and_initialize_account(starknet, challenger)
 
     super_adjudicator_address = 0
 
-    (erc20, give_tokens) = await create_erc20(starknet)
+    (erc20, give_tokens, approve) = await create_erc20(starknet)
 
     nym = await starknet.deploy(
         source=get_contract_path("nym.cairo"),
@@ -88,14 +99,21 @@ async def ctx():
             adjudicator_account.contract_address,
             super_adjudicator_address,
             erc20.contract_address,
+            mirror.contract_address,
         ],
-    ).invoke()
+    )
+
+    # Give tokens to the notary so they can submit profiles
+    await give_tokens(notary_account.contract_address, SUBMISSION_DEPOSIT_SIZE * 2)
 
     # Give 50 tokens to the eventual challenger so they can afford to challenge
-    await give_tokens(challenger_account.contract_address, 50)
+    await give_tokens(challenger_account.contract_address, CHALLENGE_DEPOSIT_SIZE * 2)
 
-    # Give 950 tokens to the nym contract (its shared security pool)
-    await give_tokens(nym.contract_address, 950)
+    # Give remaining tokens to the nym contract (its shared security pool)
+    await give_tokens(
+        nym.contract_address,
+        1000 - SUBMISSION_DEPOSIT_SIZE * 2 - CHALLENGE_DEPOSIT_SIZE * 2,
+    )
 
     return SimpleNamespace(
         starknet=starknet,
@@ -105,11 +123,23 @@ async def ctx():
         super_adjudicator_address=super_adjudicator_address,
         nym=nym,
         erc20=erc20,
+        erc20_operations=SimpleNamespace(approve=approve),
     )
 
 
 async def submit(ctx, cid, address):
     print(ctx)
+
+    # await notary.send_transaction(
+    #     ctx.notary_account,
+    #     ctx.erc20.contract_address,
+    #     "approve",
+    #     [ctx.nym.contract_address, *uint(SUBMISSION_DEPOSIT_SIZE)],
+    # )
+    await ctx.erc20_operations.approve(
+        notary, ctx.notary_account, ctx.nym.contract_address, SUBMISSION_DEPOSIT_SIZE
+    )
+
     await notary.send_transaction(
         ctx.notary_account,
         ctx.nym.contract_address,
@@ -120,8 +150,11 @@ async def submit(ctx, cid, address):
         ],
     )
 
-    (profile_id,) = (await ctx.nym.get_profile_by_address(address).call()).result
-    return profile_id
+    (profile_id, profile) = (
+        await ctx.nym.get_profile_by_address(address).call()
+    ).result
+
+    return (profile_id, profile)
 
 
 async def get_is_address_confirmed(ctx, address):
@@ -132,20 +165,24 @@ async def get_is_address_confirmed(ctx, address):
 
 
 @pytest.mark.asyncio
-async def test_submit(ctx):
+async def test_notary_submit(ctx):
     address = 123
     cid = 1234567
-    profile_id = await submit(ctx, cid, address)
+    (profile_id, profile) = await submit(ctx, cid, address)
+
+    assert profile.cid == cid
+    assert profile.address == address
+    assert profile.is_notarized == 1
 
     # ensure result is in contract storage
-    assert (await ctx.nym.__get_profile_cid_low(profile_id).call()).result == (cid,)
+    # assert (await ctx.nym.__get_profile_cid(profile_id).call()).result == (cid,)
 
-    # applying a second time should result in an error, because the
-    # profile already exists
-    with pytest.raises(StarkException) as e_info:
-        await submit(ctx, cid, address)
-    # XXX: it would be nice if we could explicitly check that an assert failed
-    assert e_info.value.code == StarknetErrorCode.TRANSACTION_FAILED
+    # # applying a second time should result in an error, because the
+    # # profile already exists
+    # with pytest.raises(StarkException) as e_info:
+    #     await submit(ctx, cid, address)
+    # # XXX: it would be nice if we could explicitly check that an assert failed
+    # assert e_info.value.code == StarknetErrorCode.TRANSACTION_FAILED
 
 
 """

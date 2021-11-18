@@ -7,6 +7,7 @@ from starkware.cairo.common.cairo_builtins import HashBuiltin, BitwiseBuiltin
 from starkware.cairo.common.hash import hash2
 from starkware.cairo.common.registers import get_fp_and_pc
 from starkware.cairo.common.signature import verify_ecdsa_signature
+from starkware.cairo.common.uint256 import Uint256
 from starkware.starknet.common.syscalls import get_caller_address
 
 from OpenZepplin.IERC20 import IERC20
@@ -683,13 +684,14 @@ func get_is_profile_confirmed{pedersen_ptr : HashBuiltin*, range_check_ptr, sysc
     return (is_presumed_innocent)
 end
 
-# @external
-# func get_is_address_confirmed{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
-#         address : felt):
-#     let (profile_id) = _map_address_to_profile_id.read(address)
-#     assert_not_zero(profile_id)
-#     return get_is_profile_confirmed(profile_id)
-# end
+@external
+func get_is_address_confirmed{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
+        address : felt) -> (res : felt):
+    let (profile_id) = _map_address_to_profile_id.read(address)
+    assert_not_zero(profile_id)
+    let (res) = get_is_profile_confirmed(profile_id)
+    return (res)
+end
 
 @external
 func get_profile{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
@@ -701,14 +703,15 @@ end
 
 @external
 func get_profile_by_address{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
-        address : felt) -> (res : Profile):
+        address : felt) -> (profile_id : felt, profile : Profile):
     let (profile_id) = _map_address_to_profile_id.read(address)
     assert_not_zero(profile_id)
     let (profile) = _profiles.read(profile_id)
     assert_not_zero(profile.cid)
-    return (profile)
+    return (profile_id, profile)
 end
 
+# TODO: rename the provisional concept to be more concrete, e.g. is in provisional time window
 @external
 func get_is_profile_provisional{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
         profile : Profile) -> (res : felt):
@@ -727,8 +730,8 @@ func get_amount_available_for_challenge_rewards{
     let (reserved_balance) = _reserved_balance.read()
 
     # Any funds that aren't challenge deposit reserves are for the security reward pool
-    let (total_funds) = IERC20.balance_of(contract_address=token_address, user=self_address)
-    return (total_funds - reserved_balance)
+    let (total_funds) = IERC20.balance_of(contract_address=token_address, account=self_address)
+    return (total_funds.low - reserved_balance)
 end
 
 #
@@ -744,7 +747,10 @@ func _receive_deposit{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr 
     _reserved_balance.write(reserved_balance + amount)
 
     IERC20.transfer_from(
-        contract_address=token_address, sender=from_address, recipient=self_address, amount=amount)
+        contract_address=token_address,
+        sender=from_address,
+        recipient=self_address,
+        amount=Uint256(amount, 0))
 
     return ()
 end
@@ -754,7 +760,7 @@ func _return_deposit{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr :
     let (token_address) = _token_address.read()
     let (reserved_balance) = _reserved_balance.read()
     _reserved_balance.write(reserved_balance - amount)
-    IERC20.transfer(contract_address=token_address, recipient=to_address, amount=amount)
+    IERC20.transfer(contract_address=token_address, recipient=to_address, amount=Uint256(amount, 0))
 
     return ()
 end
@@ -784,7 +790,7 @@ func _give_reward{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : fe
 
     if has_funds_for_reward != 0:
         let (token_address) = _token_address.read()
-        IERC20.transfer(contract_address=token_address, recipient=amount, amount=amount)
+        IERC20.transfer(contract_address=token_address, recipient=amount, amount=Uint256(amount, 0))
 
         tempvar range_check_ptr = range_check_ptr
         tempvar pedersen_ptr = pedersen_ptr

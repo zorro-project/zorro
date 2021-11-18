@@ -4,8 +4,9 @@
   "main": "index.js",
   "scripts": {
     "starknet-devnet": "poetry run starknet-devnet",
-    "compile": "hardhat starknet-compile",
-    "compile:nym": "hardhat starknet-compile contracts/nym.cairo",
+    "compile:nym": "(cd contracts && poetry run starknet-compile nym.cairo)",
+    "hardhat:compile": "hardhat starknet-compile",
+    "hardhat:compile:nym": "hardhat starknet-compile contracts/nym.cairo",
     "test": "(cd contracts && poetry run pytest -s ../test.py)"
   },
   "license": "MIT",
