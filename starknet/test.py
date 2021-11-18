@@ -1,3 +1,7 @@
+# Using Starkware's testing library directly in python because:
+# 1. It doesn't break during cairo updates
+# 2. It has `copy()` which will be important for running tests efficiently
+
 import asyncio
 import pytest
 import os
@@ -87,7 +91,7 @@ async def ctx():
     adjudicator_account = await deploy_and_initialize_account(starknet, adjudicator)
     challenger_account = await deploy_and_initialize_account(starknet, challenger)
 
-    super_adjudicator_address = 0
+    super_adjudicator_l1_address = 0
 
     (erc20, give_tokens, approve) = await create_erc20(starknet)
 
@@ -97,7 +101,7 @@ async def ctx():
             admin_account.contract_address,
             notary_account.contract_address,
             adjudicator_account.contract_address,
-            super_adjudicator_address,
+            super_adjudicator_l1_address,
             erc20.contract_address,
             mirror.contract_address,
         ],
