@@ -1,3 +1,7 @@
+# Using Starkware's testing library directly in python because:
+# 1. It doesn't break during cairo updates
+# 2. It has `copy()` which will be important for running tests efficiently
+
 import asyncio
 import pytest
 import os
@@ -14,22 +18,17 @@ from starkware.crypto.signature.signature import (
 
 from utils.OpenZepplin.Signer import Signer
 
+admin = Signer(83745982347)
 adjudicator = Signer(7891011)
 notary = Signer(12345)
 challenger = Signer(888333444555)
 
-
-CHALLENGE_DEPOSIT_SIZE = 25  # This constant is also in Nym.cairo
-CHALLENGE_REWARD_SIZE = 25  # This constant is also in Nym.cairo
+SUBMISSION_DEPOSIT_SIZE = 25  # This constant is also in nym.cairo
+CHALLENGE_DEPOSIT_SIZE = 25  # This constant is also in nym.cairo
 
 # Note: could use a factory clone method to speed up tests, like this:
 # https://github.com/fracek/starknet-pythonic-template/blob/main/tests/starknet/test_counter.py
 # Or maybe could avoid compilation time by caching compiled json
-
-
-@pytest.fixture(scope="module")
-def event_loop():
-    return asyncio.new_event_loop()
 
 
 def get_contract_path(path):
@@ -37,118 +36,151 @@ def get_contract_path(path):
 
 
 async def deploy_and_initialize_account(starknet, signer):
-    account = await starknet.deploy(get_contract_path("OpenZepplin/Account.cairo"))
-    await account.initialize(signer.public_key, account.contract_address).invoke()
+    account = await starknet.deploy(
+        source=get_contract_path("OpenZepplin/Account.cairo"),
+        constructor_calldata=[signer.public_key],
+    )
+    await account.initialize(account.contract_address).invoke()
     return account
 
 
 async def create_erc20(starknet):
     minter = Signer(897654321)
     minter_account = await deploy_and_initialize_account(starknet, minter)
-    erc20 = await starknet.deploy(get_contract_path("OpenZepplin/ERC20.cairo"))
-    # Initializing the ERC20 contract mints 1000 tokens to the sender of the
-    # initialization transaction (in this case, `treasurer`.)
-    await minter.send_transaction(
-        minter_account, erc20.contract_address, "initialize", []
+    print("minter account", minter_account)
+    erc20 = await starknet.deploy(
+        source=get_contract_path("OpenZepplin/ERC20.cairo"),
+        constructor_calldata=[minter_account.contract_address],
     )
+
+    def uint(a):
+        return (a, 0)
 
     async def give_tokens(recipient, amount):
         return await minter.send_transaction(
             minter_account,
             erc20.contract_address,
             "transfer",
-            [recipient, amount],
+            [recipient, *uint(amount)],
         )
 
-    return (erc20, give_tokens)
+    async def approve(approver, approver_account, spender_address, amount):
+        return await approver.send_transaction(
+            approver_account,
+            erc20.contract_address,
+            "approve",
+            [spender_address, *uint(amount)],
+        )
+
+    return (erc20, give_tokens, approve)
+
+
+@pytest.fixture(scope="module")
+def event_loop():
+    return asyncio.new_event_loop()
 
 
 @pytest.fixture(scope="module")
 async def ctx():
     starknet = await Starknet.empty()
 
+    mirror = await starknet.deploy(source=get_contract_path("mirror.cairo"))
+
+    admin_account = await deploy_and_initialize_account(starknet, admin)
     notary_account = await deploy_and_initialize_account(starknet, notary)
     adjudicator_account = await deploy_and_initialize_account(starknet, adjudicator)
     challenger_account = await deploy_and_initialize_account(starknet, challenger)
 
-    (erc20, give_tokens) = await create_erc20(starknet)
+    super_adjudicator_l1_address = 0
 
-    nym = await starknet.deploy(get_contract_path("Nym.cairo"))
-    await nym.initialize(
-        notary_address=notary_account.contract_address,
-        adjudicator_address=adjudicator_account.contract_address,
-        self_address=nym.contract_address,
-        token_address=erc20.contract_address,
-    ).invoke()
+    (erc20, give_tokens, approve) = await create_erc20(starknet)
+
+    nym = await starknet.deploy(
+        source=get_contract_path("nym.cairo"),
+        constructor_calldata=[
+            admin_account.contract_address,
+            notary_account.contract_address,
+            adjudicator_account.contract_address,
+            super_adjudicator_l1_address,
+            erc20.contract_address,
+            mirror.contract_address,
+        ],
+    )
+
+    # Give tokens to the notary so they can submit profiles
+    await give_tokens(notary_account.contract_address, SUBMISSION_DEPOSIT_SIZE * 2)
 
     # Give 50 tokens to the eventual challenger so they can afford to challenge
-    await give_tokens(challenger_account.contract_address, 50)
+    await give_tokens(challenger_account.contract_address, CHALLENGE_DEPOSIT_SIZE * 2)
 
-    # Give 950 tokens to the nym contract (its shared security pool)
-    await give_tokens(nym.contract_address, 950)
+    # Give remaining tokens to the nym contract (its shared security pool)
+    await give_tokens(
+        nym.contract_address,
+        1000 - SUBMISSION_DEPOSIT_SIZE * 2 - CHALLENGE_DEPOSIT_SIZE * 2,
+    )
 
     return SimpleNamespace(
         starknet=starknet,
         notary_account=notary_account,
         adjudicator_account=adjudicator_account,
         challenger_account=challenger_account,
+        super_adjudicator_address=super_adjudicator_address,
         nym=nym,
         erc20=erc20,
+        erc20_operations=SimpleNamespace(approve=approve),
     )
 
 
-async def submit_with_notarization(
-    ctx, profile_cid_low, profile_cid_high, eth_address, address
-):
+async def submit(ctx, cid, address):
+    print(ctx)
+
+    await ctx.erc20_operations.approve(
+        notary, ctx.notary_account, ctx.nym.contract_address, SUBMISSION_DEPOSIT_SIZE
+    )
+
     await notary.send_transaction(
         ctx.notary_account,
         ctx.nym.contract_address,
-        "submit_with_notarization",
+        "submit",
         [
-            profile_cid_low,
-            profile_cid_high,
-            eth_address,
+            cid,
             address,
         ],
     )
 
-    (profile_id,) = (
-        await ctx.nym.get_profile_id_by_eth_address(eth_address).call()
+    (profile_id, profile) = (
+        await ctx.nym.get_profile_by_address(address).call()
     ).result
-    return profile_id
+
+    return (profile_id, profile)
 
 
-async def get_is_person(ctx, address):
-    (is_person,) = (await ctx.nym.get_is_person(address=address).call()).result
+async def get_is_address_confirmed(ctx, address):
+    (is_person,) = (
+        await ctx.nym.get_is_address_confirmed(address=address).call()
+    ).result
     return is_person
 
 
 @pytest.mark.asyncio
-async def test_submit_with_notarization(ctx):
-    eth_address = 0x1234
+async def test_notary_submit(ctx):
     address = 123
-    profile_cid_low = 1234567
-    profile_cid_high = 453430
+    cid = 1234567
+    (profile_id, profile) = await submit(ctx, cid, address)
 
-    profile_id = await submit_with_notarization(
-        ctx, profile_cid_low, profile_cid_high, eth_address, address
-    )
-
-    # ensure result is in contract storage
-    assert (await ctx.nym.__get_profile_cid_low(profile_id).call()).result == (
-        profile_cid_low,
-    )
+    assert profile.cid == cid
+    assert profile.address == address
+    assert profile.is_notarized == 1
 
     # applying a second time should result in an error, because the
     # profile already exists
     with pytest.raises(StarkException) as e_info:
-        await submit_with_notarization(
-            ctx, profile_cid_low, profile_cid_high, eth_address, address
-        )
+        await submit(ctx, cid, address)
     # XXX: it would be nice if we could explicitly check that an assert failed
     assert e_info.value.code == StarknetErrorCode.TRANSACTION_FAILED
 
 
+"""
 @pytest.mark.asyncio
 async def test_challenge_and_adjudication(ctx):
     eth_address = 0x234324
@@ -209,3 +241,4 @@ async def test_challenge_and_adjudication(ctx):
     assert await get_is_person(ctx, address) == 1
 
     # TODO: test scenario where final adjudication says the profile is invalid
+"""

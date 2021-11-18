@@ -1,6 +1,15 @@
+.env
+
 __pycache__
+.pytest_cache
 .venv/
+node_modules/
+
 todos.md
 logic.md
-node_modules/
+
+# Hardhat
+cache/
+artifacts/
 starknet-artifacts/
+deployments/localhost

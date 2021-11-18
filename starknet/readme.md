@@ -8,11 +8,11 @@ brew install asdf
 brew install gmp
 
 # Install the `poetry` dependency manager for Python
-pip install --user poetry
-poetry self update
+pip install poetry
+asdf reshim python
 
 # Set up the virtual env and install project dependencies
-poetry install
+env "CFLAGS=-I/opt/homebrew/include" poetry install
 
 # Make sure the virtual environment was correctly installed within the working directory
 ls .venv
