@@ -130,12 +130,6 @@ async def ctx():
 async def submit(ctx, cid, address):
     print(ctx)
 
-    # await notary.send_transaction(
-    #     ctx.notary_account,
-    #     ctx.erc20.contract_address,
-    #     "approve",
-    #     [ctx.nym.contract_address, *uint(SUBMISSION_DEPOSIT_SIZE)],
-    # )
     await ctx.erc20_operations.approve(
         notary, ctx.notary_account, ctx.nym.contract_address, SUBMISSION_DEPOSIT_SIZE
     )
@@ -174,15 +168,12 @@ async def test_notary_submit(ctx):
     assert profile.address == address
     assert profile.is_notarized == 1
 
-    # ensure result is in contract storage
-    # assert (await ctx.nym.__get_profile_cid(profile_id).call()).result == (cid,)
-
-    # # applying a second time should result in an error, because the
-    # # profile already exists
-    # with pytest.raises(StarkException) as e_info:
-    #     await submit(ctx, cid, address)
-    # # XXX: it would be nice if we could explicitly check that an assert failed
-    # assert e_info.value.code == StarknetErrorCode.TRANSACTION_FAILED
+    # applying a second time should result in an error, because the
+    # profile already exists
+    with pytest.raises(StarkException) as e_info:
+        await submit(ctx, cid, address)
+    # XXX: it would be nice if we could explicitly check that an assert failed
+    assert e_info.value.code == StarknetErrorCode.TRANSACTION_FAILED
 
 
 """
