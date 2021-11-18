@@ -56,8 +56,8 @@ const Success = ({
       const reportProgress = (bytes: number) =>
         setSubmitProgress(
           (100 * bytes) /
-            (data.photoCID instanceof Blob ? data.photoCID.size : 0) +
-            (data.videoCID instanceof Blob ? data.videoCID.size : 0)
+            ((data.photoCID instanceof Blob ? data.photoCID.size : 0) +
+              (data.videoCID instanceof Blob ? data.videoCID.size : 0))
         )
 
       const photoCID =

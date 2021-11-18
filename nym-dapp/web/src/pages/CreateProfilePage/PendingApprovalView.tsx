@@ -1,13 +1,7 @@
 import { Button, ButtonGroup } from '@chakra-ui/button'
 import { FormControl, FormHelperText, FormLabel } from '@chakra-ui/form-control'
-import { Box, Heading, Stack } from '@chakra-ui/layout'
-import {
-  Alert,
-  AlertDescription,
-  AlertIcon,
-  AlertTitle,
-  Input,
-} from '@chakra-ui/react'
+import { Heading, Stack } from '@chakra-ui/layout'
+import { Input } from '@chakra-ui/react'
 import { Form, useForm } from '@redwoodjs/forms'
 import { useMutation } from '@redwoodjs/web'
 import React from 'react'
@@ -71,7 +65,7 @@ const PendingApprovalView = (props: {
             mt="6"
             disabled={!methods.formState.dirtyFields.email}
           >
-            Save
+            {methods.formState.isSubmitted ? 'Saved' : 'Save'}
           </Button>
         </Card>
       </Stack>

@@ -118,6 +118,7 @@ const VideoModal = (props: {
                   <Webcam
                     videoConstraints={{ facingMode: 'user' }}
                     audio
+                    muted
                     ref={webcamRef}
                   />
                 </Box>

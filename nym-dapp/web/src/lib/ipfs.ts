@@ -27,6 +27,9 @@ export async function createProfileObject(
   })
 
   const block = await ipfsClient.block.get(object.cid)
+
+  // The CID v1 adds 4 bytes of overhead to the hash size, so we need to
+  // limit our hash to 27 bytes to fit within the 31-byte Cairo felt size.
   const newBlock = await ipfsClient.block.put(block, { mhlen: 27 })
 
   console.log(newBlock.bytes.length)

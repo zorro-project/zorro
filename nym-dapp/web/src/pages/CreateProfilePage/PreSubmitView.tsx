@@ -1,3 +1,4 @@
+import { Button, ButtonGroup } from '@chakra-ui/button'
 import { FormControl } from '@chakra-ui/form-control'
 import {
   Box,
@@ -8,17 +9,14 @@ import {
   StackDivider,
   Text,
 } from '@chakra-ui/layout'
-import React from 'react'
-import { useEthers } from '@usedapp/core'
-import { useFormContext } from 'react-hook-form'
-import ReactPlayer from 'react-player'
-import Identicon from 'src/components/Identicon'
-import { dataFieldToUrl } from 'src/lib/util'
-import { Card } from 'src/components/Card'
-import { SignupFieldValues } from 'src/pages/CreateProfilePage/types'
 import { CircularProgress } from '@chakra-ui/progress'
-import { Image } from '@chakra-ui/image'
-import { ButtonGroup, Button } from '@chakra-ui/button'
+import { useEthers } from '@usedapp/core'
+import React from 'react'
+import { useFormContext } from 'react-hook-form'
+import { Card } from 'src/components/Card'
+import Identicon from 'src/components/Identicon'
+import { PhotoBox, VideoBox } from 'src/components/SquareBox'
+import { SignupFieldValues } from 'src/pages/CreateProfilePage/types'
 
 const PreSubmitView = (props: {
   submitProgress: number
@@ -26,8 +24,6 @@ const PreSubmitView = (props: {
 }) => {
   const { account } = useEthers()
   const { watch, formState } = useFormContext<SignupFieldValues>()
-  const photoUrl = dataFieldToUrl(watch('photoCID'))
-  const videoUrl = dataFieldToUrl(watch('videoCID'))
 
   return (
     <Stack spacing="6">
@@ -69,7 +65,7 @@ const PreSubmitView = (props: {
                 </ListItem>
               </OrderedList>
             </FormControl>
-            <Image src={photoUrl} width="36" borderRadius="lg" shadow="lg" />
+            <PhotoBox photo={watch('photoCID')} width="36" shadow="lg" />
           </Stack>
           <Stack
             direction={{ base: 'column', md: 'row' }}
@@ -89,16 +85,12 @@ const PreSubmitView = (props: {
                 </ListItem>
               </OrderedList>
             </FormControl>
-            {videoUrl && (
-              <Box overflow="hidden" width="36" borderRadius="lg" shadow="lg">
-                <ReactPlayer
-                  url={videoUrl}
-                  controls
-                  width="100%"
-                  height="auto"
-                />
-              </Box>
-            )}
+            <VideoBox
+              video={watch('videoCID')}
+              width="36"
+              borderRadius="lg"
+              shadow="lg"
+            />
           </Stack>
         </Stack>
       </Card>
