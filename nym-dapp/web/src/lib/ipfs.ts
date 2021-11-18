@@ -1,4 +1,5 @@
 import { create, CID } from 'ipfs-http-client'
+import { assert } from './util'
 
 const auth =
   'Basic ' +
@@ -21,8 +22,18 @@ type ProfileObject = {
 export async function createProfileObject(
   components: ProfileObject
 ): Promise<CID> {
-  const block = await ipfsClient.add(JSON.stringify(components))
-  return block.cid.toV1()
+  const object = await ipfsClient.add(JSON.stringify(components), {
+    pin: false,
+  })
+
+  const block = await ipfsClient.block.get(object.cid)
+  const newBlock = await ipfsClient.block.put(block, { mhlen: 27 })
+
+  console.log(newBlock.bytes.length)
+  assert(newBlock.bytes.length === 31, 'Error: CIDs on Cairo must be 31 bytes')
+  await ipfsClient.pin.add(newBlock)
+
+  return newBlock.toV1()
 }
 
 export default ipfsClient

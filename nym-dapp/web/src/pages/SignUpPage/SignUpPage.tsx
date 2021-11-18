@@ -4,6 +4,9 @@ import { Redirect, routes } from '@redwoodjs/router'
 import { MetaTags } from '@redwoodjs/web'
 import { useEthers } from '@usedapp/core'
 import ConnectButton from 'src/components/ConnectButton/ConnectButton'
+import ipfsClient from 'src/lib/ipfs'
+
+window.ipfsClient = ipfsClient
 
 const SignUpPage = () => {
   const { account } = useEthers()
