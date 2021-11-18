@@ -5,6 +5,7 @@ from starkware.cairo.common.math import assert_not_zero, assert_not_equal
 from starkware.cairo.common.math_cmp import is_le
 from starkware.cairo.common.cairo_builtins import HashBuiltin, BitwiseBuiltin
 from starkware.cairo.common.hash import hash2
+from starkware.cairo.common.registers import get_fp_and_pc
 from starkware.cairo.common.signature import verify_ecdsa_signature
 from starkware.starknet.common.syscalls import get_caller_address
 
@@ -636,7 +637,7 @@ func get_is_profile_confirmed{pedersen_ptr : HashBuiltin*, range_check_ptr, sysc
 
     if challenge_status == ChallengeStatusEnum.not_challenged:
         # confirmed if notarized OR survived provisional period without being challenged
-        let (profile) = get_profile(profile_id)
+        let (local profile : Profile) = get_profile(profile_id)
         let (is_provisional) = get_is_profile_provisional(profile)
 
         # is_notarized || !is_provisional
@@ -658,19 +659,22 @@ func get_is_profile_confirmed{pedersen_ptr : HashBuiltin*, range_check_ptr, sysc
 
     let (did_super_adjudication_occur) = _get_did_super_adjudication_occur(profile_id)
     if did_super_adjudication_occur == 1:
-        return _challenges.read(
+        let (res) = _challenges.read(
             profile_id, ChallengeStorageEnum.did_super_adjudicator_confirm_profile)
+        return (res)
     end
 
     let (did_adjudication_occur) = _get_did_adjudication_occur(profile_id)
     if did_adjudication_occur == 1:
-        return _challenges.read(profile_id, ChallengeStorageEnum.did_adjudicator_confirm_profile)
+        let (res) = _challenges.read(
+            profile_id, ChallengeStorageEnum.did_adjudicator_confirm_profile)
+        return (res)
     end
 
     let (profile) = get_profile(profile_id)
     let (challenge_timestamp) = _challenges.read(
         profile_id, ChallengeStorageEnum.challenge_timestamp)
-    let is_presumed_innocent = is_le(
+    let (is_presumed_innocent) = is_le(
         PROVISIONAL_TIME_WINDOW, challenge_timestamp - profile.submission_timestamp)
 
     # XXX: consider a case where the adjudicator and the super adjudicator both time out...
@@ -679,13 +683,13 @@ func get_is_profile_confirmed{pedersen_ptr : HashBuiltin*, range_check_ptr, sysc
     return (is_presumed_innocent)
 end
 
-@external
-func get_is_address_confirmed{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
-        address : felt):
-    let (profile_id) = _map_address_to_profile_id.read(address)
-    assert_not_zero(profile_id)
-    return get_is_profile_confirmed(profile_id)
-end
+# @external
+# func get_is_address_confirmed{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
+#         address : felt):
+#     let (profile_id) = _map_address_to_profile_id.read(address)
+#     assert_not_zero(profile_id)
+#     return get_is_profile_confirmed(profile_id)
+# end
 
 @external
 func get_profile{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
@@ -708,8 +712,11 @@ end
 @external
 func get_is_profile_provisional{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
         profile : Profile) -> (res : felt):
+    alloc_locals
+    local pedersen_ptr : HashBuiltin* = pedersen_ptr
     let (now) = _timestamp.read()
-    return is_le(now - profile.submission_timestamp, PROVISIONAL_TIME_WINDOW)
+    let (res) = is_le(now - profile.submission_timestamp, PROVISIONAL_TIME_WINDOW)
+    return (res)
 end
 
 @view
@@ -769,7 +776,6 @@ func _give_reward{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : fe
     # Determine if we have funds
     let (amount_available_for_challenge_rewards) = get_amount_available_for_challenge_rewards()
 
-    local bitwise_ptr : BitwiseBuiltin* = bitwise_ptr
     local pedersen_ptr : HashBuiltin* = pedersen_ptr
     local range_check_ptr = range_check_ptr
     local syscall_ptr : felt* = syscall_ptr
@@ -780,12 +786,10 @@ func _give_reward{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : fe
         let (token_address) = _token_address.read()
         IERC20.transfer(contract_address=token_address, recipient=amount, amount=amount)
 
-        tempvar bitwise_ptr = bitwise_ptr
         tempvar range_check_ptr = range_check_ptr
         tempvar pedersen_ptr = pedersen_ptr
         tempvar syscall_ptr = syscall_ptr
     else:
-        tempvar bitwise_ptr = bitwise_ptr
         tempvar range_check_ptr = range_check_ptr
         tempvar pedersen_ptr = pedersen_ptr
         tempvar syscall_ptr = syscall_ptr
@@ -809,9 +813,9 @@ end
 func get_is_caller_notary{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}() -> (
         res : felt):
     let (caller_address) = get_caller_address()
-    let notary_address = _notary_address.read()
+    let (notary_address) = _notary_address.read()
     let (is_notary) = get_is_equal(notary_address, caller_address)
-    return (res=is_notary)
+    return (is_notary)
 end
 
 func assert_is_caller_notary{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}():
@@ -830,8 +834,9 @@ end
 
 func assert_is_caller_admin{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}():
     let (caller_address) = get_caller_address()
-    let admin_address = _admin_address.read()
-    assert get_is_equal(admin_address, caller_address) = 1
+    let (admin_address) = _admin_address.read()
+    let (res) = get_is_equal(admin_address, caller_address)
+    assert res = 1
     return ()
 end
 
@@ -854,6 +859,7 @@ end
 func assert_is_boolean{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(x : felt):
     # x == 0 || x == 1
     assert ((x - 1) * x) = 0
+    return ()
 end
 
 func get_is_equal{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
