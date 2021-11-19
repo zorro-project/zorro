@@ -45,18 +45,19 @@ async function main(): Promise<void> {
     "erc20"
   );
 
-  console.log("Transferring some funds to the notary");
-  await callFrom(erc20, "transfer", [getAddressString(notary), 500, 0], minter);
-
-  console.log("Transferring some funds to the challenger");
-  await callFrom(
+  const transferPromise = callFrom(
     erc20,
     "transfer",
-    [getAddressString(challenger), 100, 0],
+    [getAddressString(notary), "500", "0"],
     minter
   );
-
-  const nym = await deploy(
+  const transferPromise2 = callFrom(
+    erc20,
+    "transfer",
+    [getAddressString(challenger), "100", "0"],
+    minter
+  );
+  const nymDeployPromise = deploy(
     hre,
     "nym",
     2,
@@ -70,6 +71,8 @@ async function main(): Promise<void> {
     },
     "nym"
   );
+
+  await Promise.all([transferPromise, transferPromise2, nymDeployPromise]);
 }
 
 async function deploy(

@@ -11,8 +11,7 @@ fastecdsa = "^2.2.1"
 sympy = "^1.9"
 pytest = "^6.2.5"
 pytest-asyncio = "^0.16.0"
-cairo-lang = "^0.5.0"
-starknet-devnet = "^0.1.5"
+cairo-lang = "0.6.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2.5"

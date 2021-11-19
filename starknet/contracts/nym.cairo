@@ -521,9 +521,16 @@ end
 # Accessors
 #
 
+@view
+func get_num_profiles{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}() -> (
+        res : felt):
+    let (num_profiles) = _num_profiles.read()
+    return (num_profiles)
+end
+
 # automatically follows the gray lines on this chart, recursively:
 # https://lucid.app/lucidchart/df9f25d3-d9b0-4d0a-99d1-b1eac42eff3b/edit?viewport_loc=-1482%2C-119%2C4778%2C2436%2C0_0&invitationId=inv_56861740-601a-4a1e-8d61-58c60906253d
-@external
+@view
 func get_challenge_status{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
         profile_id) -> (status : felt):
     alloc_locals
@@ -626,7 +633,7 @@ func get_challenge_status{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_
     return (0)
 end
 
-@external
+@view
 func get_is_profile_confirmed{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
         profile_id : felt) -> (res : felt):
     alloc_locals
@@ -684,7 +691,7 @@ func get_is_profile_confirmed{pedersen_ptr : HashBuiltin*, range_check_ptr, sysc
     return (is_presumed_innocent)
 end
 
-@external
+@view
 func get_is_address_confirmed{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
         address : felt) -> (res : felt):
     let (profile_id) = _map_address_to_profile_id.read(address)
@@ -693,7 +700,7 @@ func get_is_address_confirmed{pedersen_ptr : HashBuiltin*, range_check_ptr, sysc
     return (res)
 end
 
-@external
+@view
 func get_profile{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
         profile_id : felt) -> (res : Profile):
     let (profile) = _profiles.read(profile_id)
@@ -701,7 +708,7 @@ func get_profile{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : fel
     return (profile)
 end
 
-@external
+@view
 func get_profile_by_address{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
         address : felt) -> (profile_id : felt, profile : Profile):
     let (profile_id) = _map_address_to_profile_id.read(address)
@@ -712,7 +719,7 @@ func get_profile_by_address{pedersen_ptr : HashBuiltin*, range_check_ptr, syscal
 end
 
 # TODO: rename the provisional concept to be more concrete, e.g. is in provisional time window
-@external
+@view
 func get_is_profile_provisional{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
         profile : Profile) -> (res : felt):
     alloc_locals

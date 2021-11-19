@@ -37,6 +37,7 @@
     "react-webcam": "^6.0.0",
     "react-window": "^1.8.6",
     "react-window-infinite-loader": "^1.0.7",
+    "starknet": "^2.0.1",
     "use-file-picker": "^1.4.0"
   },
   "devDependencies": {

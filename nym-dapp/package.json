@@ -8,7 +8,8 @@
     ]
   },
   "scripts": {
-    "db:reset": "rm -rf api/db/migrations/ && yarn rw prisma migrate dev --name init_db && yarn rw prisma db seed --preview-feature"
+    "db:reset": "rm -rf api/db/migrations/ && yarn rw prisma migrate dev --name init_db && yarn rw prisma db seed --preview-feature",
+    "dev": "rw dev"
   },
   "devDependencies": {
     "@redwoodjs/core": "^0.38.0"

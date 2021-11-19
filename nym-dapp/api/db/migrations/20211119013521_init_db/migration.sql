@@ -9,7 +9,7 @@ CREATE TABLE "NotaryFeedback" (
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
-    PRIMARY KEY ("id")
+    CONSTRAINT "NotaryFeedback_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -23,7 +23,7 @@ CREATE TABLE "UnsubmittedProfile" (
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
-    PRIMARY KEY ("id")
+    CONSTRAINT "UnsubmittedProfile_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -37,20 +37,20 @@ CREATE TABLE "CachedProfile" (
     "videoCID" TEXT,
     "address" TEXT,
 
-    PRIMARY KEY ("nymId")
+    CONSTRAINT "CachedProfile_pkey" PRIMARY KEY ("nymId")
 );
 
 -- CreateIndex
-CREATE INDEX "NotaryFeedback.unsubmittedProfileId_index" ON "NotaryFeedback"("unsubmittedProfileId");
+CREATE INDEX "NotaryFeedback_unsubmittedProfileId_idx" ON "NotaryFeedback"("unsubmittedProfileId");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "UnsubmittedProfile.ethAddress_unique" ON "UnsubmittedProfile"("ethAddress");
+CREATE UNIQUE INDEX "UnsubmittedProfile_ethAddress_key" ON "UnsubmittedProfile"("ethAddress");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "CachedProfile.ethAddress_unique" ON "CachedProfile"("ethAddress");
+CREATE UNIQUE INDEX "CachedProfile_ethAddress_key" ON "CachedProfile"("ethAddress");
 
 -- AddForeignKey
-ALTER TABLE "NotaryFeedback" ADD FOREIGN KEY ("unsubmittedProfileId") REFERENCES "UnsubmittedProfile"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "NotaryFeedback" ADD CONSTRAINT "NotaryFeedback_unsubmittedProfileId_fkey" FOREIGN KEY ("unsubmittedProfileId") REFERENCES "UnsubmittedProfile"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "UnsubmittedProfile" ADD FOREIGN KEY ("unaddressedFeedbackId") REFERENCES "NotaryFeedback"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "UnsubmittedProfile" ADD CONSTRAINT "UnsubmittedProfile_unaddressedFeedbackId_fkey" FOREIGN KEY ("unaddressedFeedbackId") REFERENCES "NotaryFeedback"("id") ON DELETE SET NULL ON UPDATE CASCADE;
