@@ -862,6 +862,22 @@ func assert_profile_exists{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall
     return ()
 end
 
+@view
+func get_token_address{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}() -> (
+        token_address : felt):
+    return _token_address.read()
+end
+
+@view
+func get_submission_deposit_size() -> (res : felt):
+    return (SUBMISSION_DEPOSIT_SIZE)
+end
+
+@view
+func get_challenge_deposit_size() -> (res : felt):
+    return (CHALLENGE_DEPOSIT_SIZE)
+end
+
 func assert_is_boolean{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(x : felt):
     # x == 0 || x == 1
     assert ((x - 1) * x) = 0
