@@ -25,7 +25,7 @@ const ChallengePanel = ({
 
   return (
     <AccordionItem>
-      <ProfileAccButton text="Challenge Profile" />
+      <ProfileAccButton text="Challenge" />
       <AccordionPanel px="0">
         <Text>
           If you believe this profile is invalid, you have the option to{' '}

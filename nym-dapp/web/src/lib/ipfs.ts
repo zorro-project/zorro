@@ -38,6 +38,6 @@ type ProfileObject = {
 
 export const createProfileObject = async (
   components: ProfileObject
-): Promise<CID> => cairoCompatibleAdd(components)
+): Promise<CID> => cairoCompatibleAdd(JSON.stringify(components))
 
 export default ipfsClient

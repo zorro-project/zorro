@@ -23,6 +23,9 @@ export default function AccountModal({ isOpen, onClose }: Props) {
   const { account, deactivate } = useEthers()
 
   function handleDeactivateAccount() {
+    // Deactivate is kinda broken right now unfortunately. After refreshing the
+    // page the user is still signed in (!)
+    // https://github.com/EthWorks/useDApp/issues/273
     deactivate()
     onClose()
   }
