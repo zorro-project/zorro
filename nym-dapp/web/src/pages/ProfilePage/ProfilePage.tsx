@@ -1,19 +1,12 @@
+import { Accordion, AccordionItem, AccordionPanel } from '@chakra-ui/accordion'
 import {
   Breadcrumb,
   BreadcrumbItem,
   BreadcrumbLink,
 } from '@chakra-ui/breadcrumb'
-import { Button, ButtonGroup } from '@chakra-ui/button'
 import Icon from '@chakra-ui/icon'
 import { ExternalLinkIcon } from '@chakra-ui/icons'
-import {
-  Box,
-  Heading,
-  Link,
-  Stack,
-  StackDivider,
-  Text,
-} from '@chakra-ui/layout'
+import { Box, Divider, Heading, Link, Stack, Text } from '@chakra-ui/layout'
 import { routes } from '@redwoodjs/router'
 import { CellSuccessProps, createCell, MetaTags } from '@redwoodjs/web'
 import dayjs from 'dayjs'
@@ -24,6 +17,8 @@ import Identicon from 'src/components/Identicon'
 import { PhotoBox, VideoBox } from 'src/components/SquareBox'
 import { ProfilePageQuery } from 'types/graphql'
 import NotFoundPage from '../NotFoundPage/NotFoundPage'
+import ChallengePanel from './ChallengePanel'
+import ProfileAccButton from './ProfileAccButton'
 import { STATUS_CONFIGS } from './types'
 
 const QUERY = gql`
@@ -64,7 +59,7 @@ const Profile = ({
 
       <Stack maxW="2xl" mx="auto" my="8">
         <Card>
-          <Stack divider={<StackDivider />} spacing="6">
+          <Stack spacing="6">
             <Box>
               <Stack direction="row" align="center">
                 <Identicon size={40} account={ethAddress} />
@@ -91,6 +86,7 @@ const Profile = ({
                 </Stack>
               </Stack>
             </Box>
+            <Divider />
             <Stack direction={{ base: 'column', md: 'row' }} spacing="4">
               <Box flex="1">
                 <Heading size="md">Photo</Heading>
@@ -101,27 +97,23 @@ const Profile = ({
                 <VideoBox video={videoCID} />
               </Box>
             </Stack>
-            <Box>
-              {' '}
-              <Heading size="md" pb="2">
-                Actions
-              </Heading>
-              <ButtonGroup>
-                <Button colorScheme="red">Challenge</Button>
-              </ButtonGroup>
-            </Box>{' '}
-            <Stack>
-              <Heading size="md">Events</Heading>
-              <Stack direction="row" alignItems="center">
-                <Icon as={FaCalendarPlus} />
-                <Text>
-                  <strong>Created</strong>{' '}
-                  {dayjs(profile.createdTimestamp).format(
-                    'MMM D, YYYY H:mm:ssZ'
-                  )}
-                </Text>
-              </Stack>
-            </Stack>
+            <Accordion allowToggle allowMultiple>
+              <AccordionItem>
+                <ProfileAccButton text="History" />
+                <AccordionPanel>
+                  <Stack direction="row" alignItems="center">
+                    <Icon as={FaCalendarPlus} />
+                    <Text>
+                      <strong>Created</strong>{' '}
+                      {dayjs(profile.createdTimestamp).format(
+                        'MMM D, YYYY H:mm:ssZ'
+                      )}
+                    </Text>
+                  </Stack>
+                </AccordionPanel>
+              </AccordionItem>
+              <ChallengePanel profile={profile} />
+            </Accordion>
           </Stack>
         </Card>
       </Stack>
