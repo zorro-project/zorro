@@ -7,7 +7,8 @@
     "compile": "hardhat starknet-compile",
     "compile:nym": "hardhat starknet-compile contracts/nym.cairo",
     "fast-compile:nym": "(cd contracts && poetry run starknet-compile nym.cairo)",
-    "deploy": "hardhat run ./scripts/deploy.ts --network goerli",
+    "deploy:goerli": "hardhat run ./scripts/deploy.ts --network goerli",
+    "deploy:localhost": "hardhat run ./scripts/deploy.ts --network localhost",
     "test": "(cd contracts && poetry run pytest -s ../test.py)",
     "generate-insecure-keypair": "ts-node scripts/generate-insecure-keypair.ts"
   },
