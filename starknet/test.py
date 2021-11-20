@@ -47,7 +47,6 @@ async def deploy_and_initialize_account(starknet, signer):
 async def create_erc20(starknet):
     minter = Signer(897654321)
     minter_account = await deploy_and_initialize_account(starknet, minter)
-    print("minter account", minter_account)
     erc20 = await starknet.deploy(
         source=get_contract_path("OpenZepplin/ERC20.cairo"),
         constructor_calldata=[minter_account.contract_address],
@@ -124,7 +123,7 @@ async def ctx():
         notary_account=notary_account,
         adjudicator_account=adjudicator_account,
         challenger_account=challenger_account,
-        super_adjudicator_address=super_adjudicator_address,
+        super_adjudicator_l1_address=super_adjudicator_l1_address,
         nym=nym,
         erc20=erc20,
         erc20_operations=SimpleNamespace(approve=approve),

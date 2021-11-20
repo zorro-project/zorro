@@ -128,44 +128,32 @@ end
 # Abusing a struct as an enum
 # This struct just offers named indices
 struct ChallengeStorageEnum:
-    member last_event : felt  # one of ChallengeEventEnum
+    member last_recorded_status : felt  # one of ChallengeStatusEnum
 
-    # Set in same tx that shifts `last_event` to `challenged`:
+    # Set in same tx that shifts `last_recorded_status` to `challenged`:
     member challenge_timestamp : felt  # nonzero iff there was a challenge
     member challenger_address : felt
     member challenge_evidence_cid : felt
 
-    # Optionally set while `last_event` is `challenged`:
+    # Optionally set while `last_recorded_status` is `challenged`:
     member profile_owner_evidence_cid : felt
 
-    # Set in same tx that shifts `last_event` to `adjudicated`:
+    # Set in same tx that shifts `last_recorded_status` to `adjudicated`:
     member adjudication_timestamp : felt  # nonzero iff there was an adjudication
     member adjudicator_evidence_cid : felt
     member did_adjudicator_confirm_profile : felt
 
-    # Set in the same tx that shifts `last_event` to `appealed`
+    # Set in the same tx that shifts `last_recorded_status` to `appealed`
     member appeal_timestamp : felt  # nonzero iff there was an appeal
 
-    # Set in same tx that shifts `last_event` to `super_adjudicated`:
+    # Set in same tx that shifts `last_recorded_status` to `super_adjudicated`:
     member super_adjudication_timestamp : felt  # nonzero iff there was a super adjudication
     member did_super_adjudicator_confirm_profile : felt
 end
 
 # Abusing a struct as an enum
-struct ChallengeEventEnum:
-    member not_challenged : felt  # intentionally has an index of `0` (unset memory); thus challenge storage that has never been set will denote not_challenged
-    member challenged : felt
-    member adjudicated : felt
-    member appealed : felt
-    member super_adjudicated : felt
-    member settled : felt
-end
-
-# Abusing a struct as an enum
-# ChallengeStatusEnum includes states that can be reached purely by the passage of time.
-# challenge_status = f(challenge_event, challenge_event_timestamp, now)
 struct ChallengeStatusEnum:
-    member not_challenged : felt
+    member not_challenged : felt  # intentionally has an index of `0` (unset memory); thus challenge storage that has never been set will denote not_challenged
     member challenged : felt
     member adjudicated : felt
     member adjudication_opportunity_expired : felt
@@ -384,7 +372,8 @@ func challenge{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*
     end
 
     let (now) = _timestamp.read()
-    _challenges.write(profile_id, ChallengeStorageEnum.last_event, ChallengeEventEnum.challenged)
+    _challenges.write(
+        profile_id, ChallengeStorageEnum.last_recorded_status, ChallengeStatusEnum.challenged)
     _challenges.write(profile_id, ChallengeStorageEnum.challenger_address, caller_address)
     _challenges.write(profile_id, ChallengeStorageEnum.challenge_evidence_cid, evidence_cid)
     _challenges.write(profile_id, ChallengeStorageEnum.challenge_timestamp, now)
@@ -419,7 +408,8 @@ func adjudicate{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt
     assert challenge_status = ChallengeStatusEnum.challenged
 
     let (now) = _timestamp.read()
-    _challenges.write(profile_id, ChallengeStorageEnum.last_event, ChallengeEventEnum.adjudicated)
+    _challenges.write(
+        profile_id, ChallengeStorageEnum.last_recorded_status, ChallengeStatusEnum.adjudicated)
     _challenges.write(profile_id, ChallengeStorageEnum.adjudication_timestamp, now)
     _challenges.write(profile_id, ChallengeStorageEnum.adjudicator_evidence_cid, evidence_cid)
     _challenges.write(
@@ -439,7 +429,8 @@ func appeal{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
     assert (challenge_status - ChallengeStatusEnum.adjudicated) * (challenge_status - ChallengeStatusEnum.adjudication_opportunity_expired) = 0
 
     let (now) = _timestamp.read()
-    _challenges.write(profile_id, ChallengeStorageEnum.last_event, ChallengeEventEnum.appealed)
+    _challenges.write(
+        profile_id, ChallengeStorageEnum.last_recorded_status, ChallengeStatusEnum.appealed)
     _challenges.write(profile_id, ChallengeStorageEnum.appeal_timestamp, now)
 
     return ()
@@ -460,7 +451,9 @@ func super_adjudicate{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr 
     let (now) = _timestamp.read()
 
     _challenges.write(
-        profile_id, ChallengeStorageEnum.last_event, ChallengeEventEnum.super_adjudicated)
+        profile_id,
+        ChallengeStorageEnum.last_recorded_status,
+        ChallengeStatusEnum.super_adjudicated)
     _challenges.write(profile_id, ChallengeStorageEnum.super_adjudication_timestamp, now)
     _challenges.write(
         profile_id,
@@ -504,7 +497,8 @@ func maybe_settle{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : fe
             _give_reward(challenger_address, SUBMISSION_DEPOSIT_SIZE)
         end
 
-        _challenges.write(profile_id, ChallengeStorageEnum.last_event, ChallengeEventEnum.settled)
+        _challenges.write(
+            profile_id, ChallengeStorageEnum.last_recorded_status, ChallengeStatusEnum.settled)
         tempvar pedersen_ptr = pedersen_ptr
         tempvar range_check_ptr = range_check_ptr
         tempvar syscall_ptr = syscall_ptr
@@ -539,13 +533,14 @@ func get_challenge_status{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_
     local syscall_ptr : felt* = syscall_ptr
 
     let (now) = _timestamp.read()
-    let (last_challenge_event) = _challenges.read(profile_id, ChallengeStorageEnum.last_event)
+    let (last_recorded_status) = _challenges.read(
+        profile_id, ChallengeStorageEnum.last_recorded_status)
 
     #
     # Not challenged
     #
 
-    if last_challenge_event == ChallengeEventEnum.not_challenged:
+    if last_recorded_status == ChallengeStatusEnum.not_challenged:
         return (ChallengeStatusEnum.not_challenged)
     end
 
@@ -553,7 +548,7 @@ func get_challenge_status{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_
     # Challenged
     #
 
-    if last_challenge_event == ChallengeEventEnum.challenged:
+    if last_recorded_status == ChallengeStatusEnum.challenged:
         let (challenge_timestamp) = _challenges.read(
             profile_id, ChallengeStorageEnum.challenge_timestamp)
         let (now) = _timestamp.read()
@@ -579,7 +574,7 @@ func get_challenge_status{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_
     # Adjudicated
     #
 
-    if last_challenge_event == ChallengeEventEnum.adjudicated:
+    if last_recorded_status == ChallengeStatusEnum.adjudicated:
         let (adjudication_timestamp) = _challenges.read(
             profile_id, ChallengeStorageEnum.adjudication_timestamp)
         let (now) = _timestamp.read()
@@ -598,7 +593,7 @@ func get_challenge_status{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_
     # Appealed
     #
 
-    if last_challenge_event == ChallengeEventEnum.appealed:
+    if last_recorded_status == ChallengeStatusEnum.appealed:
         let (appeal_timestamp) = _challenges.read(profile_id, ChallengeStorageEnum.appeal_timestamp)
         let (now) = _timestamp.read()
         let time_passed = now - appeal_timestamp
@@ -617,7 +612,7 @@ func get_challenge_status{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_
     # Super adjudicated
     #
 
-    if last_challenge_event == ChallengeEventEnum.super_adjudicated:
+    if last_recorded_status == ChallengeStatusEnum.super_adjudicated:
         return (ChallengeStatusEnum.super_adjudicated)
     end
 
@@ -625,7 +620,7 @@ func get_challenge_status{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_
     # Settled
     #
 
-    if last_challenge_event == ChallengeEventEnum.settled:
+    if last_recorded_status == ChallengeStatusEnum.settled:
         return (ChallengeStatusEnum.settled)
     end
 
