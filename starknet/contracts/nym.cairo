@@ -280,7 +280,8 @@ func submit{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
     let (local caller_address) = get_caller_address()
     let (now) = _timestamp.read()
 
-    _receive_deposit(caller_address, SUBMISSION_DEPOSIT_SIZE)
+    # XXX: do actually want to receive deposit
+    # _receive_deposit(caller_address, SUBMISSION_DEPOSIT_SIZE)
 
     let (num_profiles) = _num_profiles.read()
     let profile_id = num_profiles + 1
@@ -876,7 +877,6 @@ func assert_is_caller_admin{pedersen_ptr : HashBuiltin*, range_check_ptr, syscal
     return ()
 end
 
-@view
 func assert_is_unused_address{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
         address : felt):
     let (profile_id) = _map_address_to_profile_id.read(address)
@@ -884,7 +884,6 @@ func assert_is_unused_address{pedersen_ptr : HashBuiltin*, range_check_ptr, sysc
     return ()
 end
 
-@view
 func assert_profile_exists{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
         profile_id : felt):
     # Getting a profile asserts its existence
