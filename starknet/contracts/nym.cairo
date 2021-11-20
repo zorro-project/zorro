@@ -715,7 +715,6 @@ func get_profile_by_address{pedersen_ptr : HashBuiltin*, range_check_ptr, syscal
 end
 
 # TODO: rename the provisional concept to be more concrete, e.g. is in provisional time window
-@view
 func get_is_profile_provisional{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
         profile : Profile) -> (res : felt):
     alloc_locals
