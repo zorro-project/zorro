@@ -171,6 +171,14 @@ async def test_notary_submit(ctx):
     assert profile.address == address
     assert profile.is_notarized == 1
 
+    print("profile_id", profile_id)
+
+    (profile, challenge_storage) = (
+        await ctx.nym.export_profile_by_id(profile_id).call()
+    ).result
+
+    print("challenge_storage", challenge_storage)
+
     # applying a second time should result in an error, because the
     # profile already exists
     with pytest.raises(StarkException) as e_info:

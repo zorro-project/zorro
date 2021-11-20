@@ -1,6 +1,7 @@
 %lang starknet
 %builtins pedersen range_check bitwise
 
+from starkware.cairo.common.alloc import alloc
 from starkware.cairo.common.math import assert_not_zero, assert_not_equal
 from starkware.cairo.common.math_cmp import is_le
 from starkware.cairo.common.cairo_builtins import HashBuiltin, BitwiseBuiltin
@@ -734,6 +735,34 @@ func get_amount_available_for_challenge_rewards{
     # Any funds that aren't challenge deposit reserves are for the security reward pool
     let (total_funds) = IERC20.balance_of(contract_address=token_address, account=self_address)
     return (total_funds.low - reserved_balance)
+end
+
+@view
+func export_profile_by_id{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
+        profile_id : felt) -> (profile : Profile, challenge : ChallengeStorageEnum):
+    alloc_locals
+    let (profile) = get_profile(profile_id)
+
+    # An array of felts
+    let (challenge_storage : felt*) = alloc()
+
+    # Populate array of felts
+    _load_challenge_felts(challenge_storage, profile_id, 0)
+
+    # Abusing ChallengeStatusEnum as an actual struct (instead of an enum)
+    let challenge_storage_ptr : ChallengeStorageEnum* = cast(challenge_storage, ChallengeStorageEnum*)
+
+    return (profile, [challenge_storage_ptr])
+end
+
+func _load_challenge_felts{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
+        challenge_storage : felt*, profile_id, i):
+    if i == ChallengeStorageEnum.SIZE:
+        return ()
+    end
+    let (value) = _challenges.read(profile_id, i)
+    assert challenge_storage[i] = value  # set challenge_storage[i]
+    return _load_challenge_felts(challenge_storage, profile_id, i + 1)
 end
 
 #
