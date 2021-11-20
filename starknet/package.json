@@ -8,7 +8,8 @@
     "compile:nym": "hardhat starknet-compile contracts/nym.cairo",
     "fast-compile:nym": "(cd contracts && poetry run starknet-compile nym.cairo)",
     "deploy": "hardhat run ./scripts/deploy.ts --network goerli",
-    "test": "(cd contracts && poetry run pytest -s ../test.py)",
+    "test": "(cd contracts && poetry run pytest --cache-clear -s ../test.py)",
+    "test:cached": "(cd contracts && poetry run pytest -s ../test.py)",
     "generate-insecure-keypair": "ts-node scripts/generate-insecure-keypair.ts"
   },
   "license": "MIT",

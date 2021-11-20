@@ -4,12 +4,13 @@
 
 import asyncio
 import pytest
+import dill
 import os
 from types import SimpleNamespace
 
 from starkware.starkware_utils.error_handling import StarkException
 from starkware.starknet.definitions.error_codes import StarknetErrorCode
-from starkware.starknet.testing.starknet import Starknet
+from starkware.starknet.testing.starknet import Starknet, StarknetContract
 from starkware.crypto.signature.signature import (
     pedersen_hash,
     private_to_stark_key,
@@ -17,6 +18,19 @@ from starkware.crypto.signature.signature import (
 )
 
 from utils.OpenZepplin.Signer import Signer
+
+# monkey-patch StarknetContract to make it serializable
+def __getstate__(self):
+    return self.__dict__
+
+
+def __setstate__(self, state):
+    self.__dict__ = state
+
+
+StarknetContract.__getstate__ = __getstate__
+StarknetContract.__setstate__ = __setstate__
+
 
 admin = Signer(83745982347)
 adjudicator = Signer(7891011)
@@ -79,12 +93,10 @@ def event_loop():
     return asyncio.new_event_loop()
 
 
-@pytest.fixture(scope="module")
-async def ctx():
+async def compute_ctx():
     starknet = await Starknet.empty()
 
     mirror = await starknet.deploy(source=get_contract_path("mirror.cairo"))
-
     admin_account = await deploy_and_initialize_account(starknet, admin)
     notary_account = await deploy_and_initialize_account(starknet, notary)
     adjudicator_account = await deploy_and_initialize_account(starknet, adjudicator)
@@ -107,15 +119,16 @@ async def ctx():
     )
 
     # Give tokens to the notary so they can submit profiles
-    await give_tokens(notary_account.contract_address, SUBMISSION_DEPOSIT_SIZE * 2)
+    initial_notary_funds = SUBMISSION_DEPOSIT_SIZE * 3
+    await give_tokens(notary_account.contract_address, initial_notary_funds)
 
     # Give 50 tokens to the eventual challenger so they can afford to challenge
-    await give_tokens(challenger_account.contract_address, CHALLENGE_DEPOSIT_SIZE * 2)
+    initial_challenger_funds = CHALLENGE_DEPOSIT_SIZE * 2
+    await give_tokens(challenger_account.contract_address, initial_challenger_funds)
 
     # Give remaining tokens to the nym contract (its shared security pool)
     await give_tokens(
-        nym.contract_address,
-        1000 - SUBMISSION_DEPOSIT_SIZE * 2 - CHALLENGE_DEPOSIT_SIZE * 2,
+        nym.contract_address, 1000 - initial_notary_funds - initial_challenger_funds
     )
 
     return SimpleNamespace(
@@ -130,11 +143,25 @@ async def ctx():
     )
 
 
-async def submit(ctx, cid, address):
-    print(ctx)
+@pytest.fixture
+async def ctx(request):
+    CACHE_KEY = "ctx"
+    val = request.config.cache.get(CACHE_KEY, None)
+    if val is None:
+        val = await compute_ctx()
+        res = dill.dumps(val).decode("cp437")
+        request.config.cache.set(CACHE_KEY, res)
+    else:
+        val = dill.loads(val.encode("cp437"))
+    return val
 
+
+async def submit(ctx, cid, address):
     await ctx.erc20_operations.approve(
-        notary, ctx.notary_account, ctx.nym.contract_address, SUBMISSION_DEPOSIT_SIZE
+        notary,
+        ctx.notary_account,
+        ctx.nym.contract_address,
+        SUBMISSION_DEPOSIT_SIZE * 2,
     )
 
     await notary.send_transaction(
@@ -177,7 +204,21 @@ async def test_notary_submit(ctx):
         await ctx.nym.export_profile_by_id(profile_id).call()
     ).result
 
-    print("challenge_storage", challenge_storage)
+    # address2 = 123
+    # cid2 = 1234567
+    # (profile_id, profile) = await submit(ctx, cid2, address2)
+
+    # print("profile_id 2", profile_id)
+
+    # address3 = 1233
+    # cid3 = 12345673
+    # (profile_id, profile) = await submit(ctx, cid3, address3)
+
+    # print("profile_id 3", profile_id)
+
+    (num_profiles) = (await ctx.nym.get_num_profiles().call()).result
+
+    print("num profiles", num_profiles)
 
     # applying a second time should result in an error, because the
     # profile already exists
