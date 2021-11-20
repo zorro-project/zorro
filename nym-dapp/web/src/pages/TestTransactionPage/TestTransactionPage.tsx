@@ -41,6 +41,7 @@ const submitProfile = async () => {
 
   //const { r, s } = ec.sign(starkKeyPair, msgHash);
 
+  /*
   const approval = await notary.invoke('execute', {
     to: ERC20_ADDRESS.address,
     selector: stark.getSelectorFromName('approve'),
@@ -52,11 +53,12 @@ const submitProfile = async () => {
   console.log('Approval transaction hash', approval.transaction_hash)
   await defaultProvider.waitForTx(approval.transaction_hash)
   console.log('done waiting for tx')
+  */
 
   const submission = await notary.invoke('execute', {
     to: NYM_ADDRESS.address,
     selector: stark.getSelectorFromName('submit'),
-    calldata: ['1234', '5678'],
+    calldata: ['1234000', '5678000'],
   })
   console.log('Submission transactoin hash', submission.transaction_hash)
   await defaultProvider.waitForTx(submission.transaction_hash)
