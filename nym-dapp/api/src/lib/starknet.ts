@@ -4,7 +4,7 @@ import NOTARY_ADDRESS from '../../../../starknet/deployments/goerli/notary.json'
 import NYM_ADDRESS from '../../../../starknet/deployments/goerli/nym.json'
 import NYM_ABI from '../../../../starknet/starknet-artifacts/contracts/nym.cairo/nym_abi.json'
 import SIMPLE_ACCOUNT_ABI from '../../../../starknet/starknet-artifacts/contracts/simple_account.cairo/simple_account_abi.json'
-import { assert } from './util'
+import assert from 'minimalistic-assert'
 
 type Felt = string
 
@@ -17,6 +17,13 @@ export const bytesToFelt = (bytes: Uint8Array) => {
       .map((b) => b.toString(16).padStart(2, '0'))
       .join('')
   )
+}
+
+export const getNumProfiles = async () => {
+  const nym = new Contract(NYM_ABI as Abi[], NYM_ADDRESS.address)
+  const response = await nym.call('get_num_profiles', {})
+  return response
+  console.log('Response', response)
 }
 
 export async function notarySubmitProfile(cid: Felt, address: Felt) {
@@ -48,10 +55,10 @@ export async function notarySubmitProfile(cid: Felt, address: Felt) {
   return await defaultProvider.waitForTx(submission.transaction_hash)
 }
 
-export async function getProfile(profileId: Felt) {
+export async function exportProfileById(profileId: Felt) {
   const nym = new Contract(NYM_ABI as Abi[], NYM_ADDRESS.address)
 
-  const profile = await nym.call('get_profile', {
+  const profile = await nym.call('export_profile_by_id', {
     profile_id: profileId,
   })
 

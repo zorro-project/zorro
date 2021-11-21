@@ -47,14 +47,15 @@ export default async () => {
       data: { unaddressedFeedbackId: feedback.id },
     })
 
-    const pohProfiles = await importPoH()
+    // TODO: how are we going to seed actual profiles? Push them to StarkNet first I guess?
+    // const pohProfiles = await importPoH()
 
-    await db.cachedProfile.createMany({
-      data: pohProfiles.map((profile) => ({
-        ...profile,
-        createdTimestamp: new Date(),
-      })),
-    })
+    // await db.cachedProfile.createMany({
+    //   data: pohProfiles.map((profile) => ({
+    //     ...profile,
+    //     createdTimestamp: new Date(),
+    //   })),
+    // })
   } catch (error) {
     console.error(error)
   }

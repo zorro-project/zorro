@@ -5,7 +5,7 @@ import { Textarea } from '@chakra-ui/textarea'
 import { useMutation } from '@redwoodjs/web'
 import { PhotoBox, VideoBox } from 'src/components/SquareBox'
 import { cairoCompatibleAdd } from 'src/lib/ipfs'
-import { bytesToFelt, notarySubmitProfile } from 'src/lib/starknet'
+// import { bytesToFelt, notarySubmitProfile } from ''
 import { ArrayElement } from 'src/lib/util'
 import {
   ApproveProfileMutation,
@@ -13,6 +13,10 @@ import {
   MutationAddNotaryFeedbackArgs,
   UnsubmittedProfilesQuery,
 } from 'types/graphql'
+import {
+  bytesToFelt,
+  notarySubmitProfile,
+} from '../../../../api/src/lib/starknet'
 
 const UnsubmittedProfile: React.FC<{
   profile: ArrayElement<UnsubmittedProfilesQuery['unsubmittedProfiles']>
