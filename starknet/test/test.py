@@ -72,9 +72,7 @@ async def test_submit_ensures_unique_address(ctx_factory):
     assert e_info.value.code == StarknetErrorCode.TRANSACTION_FAILED
 
 
-@pytest.mark.asyncio
-async def test_challenge(ctx_factory):
-    ctx = ctx_factory()
+async def submit_and_challenge(ctx):
     address = 123
     cid = 1234567
     (profile_id, profile) = await submit(ctx, "notary", cid, address)
@@ -103,20 +101,19 @@ async def test_challenge(ctx_factory):
     # Being challenged during provisional time window should result in profile being not confirmed
     assert await get_is_address_confirmed(ctx, address) == 0
 
+    return (profile_id, address)
+
+
+@pytest.mark.asyncio
+async def test_challenge(ctx_factory):
+    ctx = ctx_factory()
+    await submit_and_challenge(ctx)
+
 
 @pytest.mark.asyncio
 async def test_adjudication_in_favor_of_profile(ctx_factory):
     ctx = ctx_factory()
-    cid = 123
-    address = 789
-    (profile_id, profile) = await submit(ctx, "notary", cid, address)
-    assert await get_is_address_confirmed(ctx, address) == 1
-
-    await erc20_approve(ctx, "challenger", ctx.consts.CHALLENGE_DEPOSIT_SIZE)
-    await ctx.execute(
-        "challenger", ctx.nym.contract_address, "challenge", [profile_id, 1234]
-    )
-    assert await get_is_address_confirmed(ctx, address) == 0
+    (profile_id, address) = await submit_and_challenge(ctx)
 
     adjudicator_evidence_cid = 900
     await ctx.execute(
@@ -135,6 +132,21 @@ async def test_adjudication_in_favor_of_profile(ctx_factory):
 
     assert await get_is_address_confirmed(ctx, address) == 1
     assert await get_challenge_status(ctx, profile_id) == 2
+
+
+@pytest.mark.asyncio
+async def test_adjudication_against_profile(ctx_factory):
+    ctx = ctx_factory()
+    (profile_id, address) = await submit_and_challenge(ctx)
+
+    adjudicator_evidence_cid = 900
+    await ctx.execute(
+        "adjudicator",
+        ctx.nym.contract_address,
+        "adjudicate",
+        [profile_id, adjudicator_evidence_cid, 0],
+    )
+    assert await get_is_address_confirmed(ctx, address) == 0
 
 
 @pytest.mark.asyncio
