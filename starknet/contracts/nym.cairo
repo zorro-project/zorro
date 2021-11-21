@@ -226,6 +226,8 @@ func constructor{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : fel
     let (self_address) = IMirror.get_my_address(contract_address=mirror_address)
     _self_address.write(self_address)
 
+    _timestamp.write(123456789)
+
     return ()
 end
 
@@ -331,6 +333,7 @@ func notarize{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}
     return ()
 end
 
+@external
 func challenge{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
         profile_id : felt, evidence_cid : felt):
     alloc_locals
@@ -386,6 +389,7 @@ end
 # Allows a profile owner to directly submit evidence on their own behalf
 # Useful if the profile owner thinks that the adjudicator won't do a good job of defending their profile
 # XXX: document limitation — there's nothing to prevent the adjudicator from adjudicating immediately to prevent evidence from being submitted by the profile owner. Maybe for now the appeal MetaEvidence policy can help handle this abusive case.
+@external
 func submit_evidence{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
         profile_id : felt, evidence_cid : felt):
     alloc_locals
@@ -399,6 +403,7 @@ func submit_evidence{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr :
     return ()
 end
 
+@external
 func adjudicate{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
         profile_id : felt, evidence_cid : felt, should_confirm_profile : felt):
     assert_is_caller_adjudicator()

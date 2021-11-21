@@ -40,7 +40,12 @@ def event_loop():
     return asyncio.new_event_loop()
 
 
-async def _build_cacheable_deployment():
+# StarknetContracts contain an immutable reference to StarknetState, which
+# means if we want to be able to use StarknetState's `copy` method, we cannot
+# rely on StarknetContracts that were created prior to the copy.
+# For that reason, we avoid returning any StarknetContracts in this "copyable"
+# deployment:
+async def _build_copyable_deployment():
     starknet = await Starknet.empty()
 
     consts = SimpleNamespace(
@@ -131,11 +136,11 @@ async def _build_cacheable_deployment():
 
 
 @pytest.fixture(scope="session")
-async def cacheable_deployment(request):
+async def copyable_deployment(request):
     CACHE_KEY = "deployment"
     val = request.config.cache.get(CACHE_KEY, None)
     if val is None:
-        val = await _build_cacheable_deployment()
+        val = await _build_copyable_deployment()
         res = dill.dumps(val).decode("cp437")
         request.config.cache.set(CACHE_KEY, res)
     else:
@@ -144,14 +149,14 @@ async def cacheable_deployment(request):
 
 
 @pytest.fixture(scope="session")
-async def ctx_factory(cacheable_deployment):
-    defs = cacheable_deployment.defs
-    addresses = cacheable_deployment.addresses
-    signers = cacheable_deployment.signers
-    consts = cacheable_deployment.consts
+async def ctx_factory(copyable_deployment):
+    defs = copyable_deployment.defs
+    addresses = copyable_deployment.addresses
+    signers = copyable_deployment.signers
+    consts = copyable_deployment.consts
 
     def make():
-        starknet_state = cacheable_deployment.starknet.state.copy()
+        starknet_state = copyable_deployment.starknet.state.copy()
 
         accounts = SimpleNamespace(
             notary=StarknetContract(

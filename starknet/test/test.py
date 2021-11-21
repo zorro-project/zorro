@@ -5,17 +5,37 @@ from OpenZepplin.Signer import Signer
 from utils import uint
 
 
-async def submit(ctx, cid, address):
-    # Approve erc20
+async def get_is_address_confirmed(ctx, address):
+    (is_confirmed,) = (
+        await ctx.nym.get_is_address_confirmed(address=address).call()
+    ).result
+    return is_confirmed
+
+
+async def get_challenge_status(ctx, profile_id):
+    (challenge_status,) = (await ctx.nym.get_challenge_status(profile_id).call()).result
+    return challenge_status
+
+
+async def export_profile_by_id(ctx, profile_id):
+    (profile, challenge_storage) = (
+        await ctx.nym.export_profile_by_id(profile_id).call()
+    ).result
+    return (profile, challenge_storage)
+
+
+async def erc20_approve(ctx, account_name, amount):
     await ctx.execute(
-        "notary",
+        account_name,
         ctx.erc20.contract_address,
         "approve",
-        [ctx.nym.contract_address, *uint(ctx.consts.SUBMISSION_DEPOSIT_SIZE)],
+        [ctx.nym.contract_address, *uint(amount)],
     )
 
-    # Submit profile
-    await ctx.execute("notary", ctx.nym.contract_address, "submit", [cid, address])
+
+async def submit(ctx, account_name, cid, address):
+    await erc20_approve(ctx, account_name, ctx.consts.SUBMISSION_DEPOSIT_SIZE)
+    await ctx.execute(account_name, ctx.nym.contract_address, "submit", [cid, address])
 
     (profile_id, profile) = (
         await ctx.nym.get_profile_by_address(address).call()
@@ -24,19 +44,17 @@ async def submit(ctx, cid, address):
     return (profile_id, profile)
 
 
-# async def get_is_address_confirmed(ctx, address):
-#     (is_person,) = (
-#         await ctx.nym.get_is_address_confirmed(address=address).call()
-#     ).result
-#     return is_person
-
-
 @pytest.mark.asyncio
 async def test_notary_submit(ctx_factory):
     ctx = ctx_factory()
     address = 123
     cid = 1234567
-    (profile_id, profile) = await submit(ctx, cid, address)
+
+    # TODO: check balance before
+
+    (profile_id, profile) = await submit(ctx, "notary", cid, address)
+
+    # TODO: check balance after
 
     assert profile.cid == cid
     assert profile.address == address
@@ -48,9 +66,9 @@ async def test_submit_ensures_unique_address(ctx_factory):
     ctx = ctx_factory()
     address = 123
     cid = 1234567
-    await submit(ctx, cid, address)
+    await submit(ctx, "notary", cid, address)
     with pytest.raises(StarkException) as e_info:
-        await submit(ctx, cid, address)
+        await submit(ctx, "notary", cid, address)
     assert e_info.value.code == StarknetErrorCode.TRANSACTION_FAILED
 
 
@@ -59,54 +77,84 @@ async def test_challenge(ctx_factory):
     ctx = ctx_factory()
     address = 123
     cid = 1234567
-    (profile_id, profile) = await submit(ctx, cid, address)
-    assert await get_is_person(ctx, address) == 1
+    (profile_id, profile) = await submit(ctx, "notary", cid, address)
+
+    assert await get_challenge_status(ctx, profile_id) == 0
+
+    # should already be confirmed, because submitted by a notary
+    assert await get_is_address_confirmed(ctx, address) == 1
+
+    evidence_cid = 100
+    await erc20_approve(ctx, "challenger", ctx.consts.CHALLENGE_DEPOSIT_SIZE)
+    await ctx.execute(
+        "challenger", ctx.nym.contract_address, "challenge", [profile_id, evidence_cid]
+    )
+
+    assert await get_challenge_status(ctx, profile_id) != 0
+
+    (profile, challenge_storage) = await export_profile_by_id(ctx, profile_id)
+
+    assert challenge_storage.last_recorded_status == 1
+    assert challenge_storage.challenge_evidence_cid == evidence_cid
+    assert (
+        challenge_storage.challenger_address == ctx.accounts.challenger.contract_address
+    )
+
+    # Being challenged during provisional time window should result in profile being not confirmed
+    assert await get_is_address_confirmed(ctx, address) == 0
 
 
-"""
 @pytest.mark.asyncio
-async def test_challenge_and_adjudication(ctx):
-    eth_address = 0x234324
-    address = 321
+async def test_adjudication_in_favor_of_profile(ctx_factory):
+    ctx = ctx_factory()
+    cid = 123
+    address = 789
+    (profile_id, profile) = await submit(ctx, "notary", cid, address)
+    assert await get_is_address_confirmed(ctx, address) == 1
 
-    # TODO: confirm status
-    # TODO: confirm get_is_person result
-    initial_balance = await get_challenger_balance()
-
-    await challenger.send_transaction(
-        ctx.challenger_account,
-        ctx.erc20.contract_address,
-        "approve",
-        [ctx.nym.contract_address, 25],
+    await erc20_approve(ctx, "challenger", ctx.consts.CHALLENGE_DEPOSIT_SIZE)
+    await ctx.execute(
+        "challenger", ctx.nym.contract_address, "challenge", [profile_id, 1234]
     )
-    await challenger.send_transaction(
-        ctx.challenger_account,
-        ctx.nym.contract_address,
-        "challenge",
-        [
-            profile_id,
-            1,
-            2,
-        ],
-    )
+    assert await get_is_address_confirmed(ctx, address) == 0
 
-    # TODO: confirm status
-    assert await get_challenger_balance() == initial_balance - CHALLENGE_DEPOSIT_SIZE
-    assert await get_is_person(ctx, address) == 0
-
-    await adjudicator.send_transaction(
-        ctx.adjudicator_account,
+    adjudicator_evidence_cid = 900
+    await ctx.execute(
+        "adjudicator",
         ctx.nym.contract_address,
         "adjudicate",
-        [
-            profile_id,
-            1,
-        ],
+        [profile_id, adjudicator_evidence_cid, 1],
     )
 
-    # TODO: confirm status
-    assert await get_challenger_balance() == initial_balance - CHALLENGE_DEPOSIT_SIZE
-    assert await get_is_person(ctx, address) == 1
+    (profile, challenge_storage) = await export_profile_by_id(ctx, profile_id)
+    print(challenge_storage)
 
-    # TODO: test scenario where final adjudication says the profile is invalid
-"""
+    assert challenge_storage.last_recorded_status == 2
+    assert challenge_storage.adjudicator_evidence_cid == adjudicator_evidence_cid
+    assert challenge_storage.did_adjudicator_confirm_profile == 1
+
+    assert await get_is_address_confirmed(ctx, address) == 1
+    assert await get_challenge_status(ctx, profile_id) == 2
+
+
+@pytest.mark.asyncio
+async def test_others_cannot_adjudicate(ctx_factory):
+    ctx = ctx_factory()
+    pass
+
+
+@pytest.mark.asyncio
+async def test_others_cannot_notarize(ctx_factory):
+    # test submitting and make sure not notarized after
+    # test cannot notarize()
+    ctx = ctx_factory()
+    pass
+
+
+@pytest.mark.asyncio
+async def test_confirmation_during_provisional_window(ctx_factory):
+    # Submit from a non-notary
+    # Wait x amount of time
+    # Check again
+    ctx = ctx_factory()
+    pass
