@@ -1,5 +1,4 @@
-import { Box, Heading, Text } from '@chakra-ui/layout'
-import { Button, Stack, ButtonProps } from '@chakra-ui/react'
+import { Box, Heading, Link, Stack, Text } from '@chakra-ui/layout'
 import { MetaTags } from '@redwoodjs/web'
 
 import { Contract, Abi, stark, defaultProvider } from 'starknet'
@@ -12,6 +11,11 @@ import ERC20_ADDRESS from '../../../../../starknet/deployments/goerli/erc20.json
 
 import SIMPLE_ACCOUNT_ABI from '../../../../../starknet/starknet-artifacts/contracts/simple_account.cairo/simple_account_abi.json'
 import NOTARY_ADDRESS from '../../../../../starknet/deployments/goerli/notary.json'
+import { Card } from 'src/components/Card'
+import { Input } from '@chakra-ui/input'
+import { Button } from '@chakra-ui/button'
+import React from 'react'
+import { getProfile } from 'src/lib/starknet'
 
 /*
 export interface StarknetState {
@@ -55,18 +59,49 @@ const submitProfile = async () => {
   console.log('done waiting for tx')
   */
 
+  console.log({ calldata })
   const submission = await notary.invoke('execute', {
     to: NYM_ADDRESS.address,
     selector: stark.getSelectorFromName('submit'),
     calldata: ['1234000', '5678000'],
   })
-  console.log('Submission transactoin hash', submission.transaction_hash)
+  console.log('Submission transaction hash', submission.transaction_hash)
   await defaultProvider.waitForTx(submission.transaction_hash)
   console.log('done waiting for tx')
 
   //const contract = new Contract(NYM_ABI as Abi[], NYM_ADDRESS.address)
   //const response = await contract.invoke('get_num_profiles', {})
   //console.log('Response', response)
+}
+
+const GetProfile = () => {
+  const profileId = React.useRef()
+  const output = React.useState<string | null>()
+  const [running, setRunning] = React.useState(false)
+
+  const run = async () => {
+    setRunning(true)
+    try {
+      console.log(profileId.current.value)
+      const profile = await getProfile('0x1')
+      console.log(profile)
+    } finally {
+      setRunning(false)
+    }
+    // defaultProvider.
+  }
+
+  return (
+    <Card>
+      <Stack spacing={4}>
+        <Heading as="h2">get_profile</Heading>
+        <Input ref={profileId} placeholder="Profile ID" defaultValue="1" />
+        <Button onClick={run} isLoading={running} colorScheme="blue">
+          Run
+        </Button>
+      </Stack>
+    </Card>
+  )
 }
 
 const TestTransactionPage = () => {
@@ -80,13 +115,22 @@ const TestTransactionPage = () => {
       <Heading size="lg" pb="4">
         Test Transaction
       </Heading>
-      <Text>{JSON.stringify(NYM_ADDRESS)}</Text>
+      <Text>
+        Contract Address:{' '}
+        <Link
+          isExternal
+          href={`https://voyager.online/contract/${NYM_ADDRESS.address}`}
+        >
+          {NYM_ADDRESS.address}
+        </Link>
+      </Text>
       <Button onClick={submitProfile}>
         <Text>Submit profile</Text>
       </Button>
-      <Button onClick={getNumProfiles}>
+      <Button onClick={getNumProfiles} colorScheme="blue">
         <Text>Get number of profiles</Text>
       </Button>
+      <GetProfile />
     </Box>
   )
 }

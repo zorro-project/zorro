@@ -37,8 +37,9 @@
     "react-webcam": "^6.0.0",
     "react-window": "^1.8.6",
     "react-window-infinite-loader": "^1.0.7",
-    "starknet": "^2.0.1",
-    "use-file-picker": "^1.4.0"
+    "starknet": "github:nym-project/starknet.js",
+    "use-file-picker": "^1.4.0",
+    "use-local-storage-state": "^12.0.0"
   },
   "devDependencies": {
     "@types/react-virtualized-auto-sizer": "^1.0.1",

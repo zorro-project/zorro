@@ -17600,10 +17600,9 @@ stackframe@^1.1.1:
   resolved "https://registry.yarnpkg.com/stackframe/-/stackframe-1.2.0.tgz#52429492d63c62eb989804c11552e3d22e779303"
   integrity sha512-GrdeshiRmS1YLMYgzF16olf2jJ/IzxXY9lhKOskuVziubpTYcYqyOwYeJKzQkwy7uN0fYSsbsC4RQaXf9LCrYA==
 
-starknet@^2.0.1:
+"starknet@github:nym-project/starknet.js":
   version "2.0.1"
-  resolved "https://registry.yarnpkg.com/starknet/-/starknet-2.0.1.tgz#07881137911533e6dfe8a5db83da13f6f7b41475"
-  integrity sha512-25N7pUAOA8sRNDQAchygeU1vTIbl3AqDJXcwQmoLYIrstTizwwZ3TvmkcZtn8KxKoIiWnUBTBftXNpeNvCgroA==
+  resolved "https://codeload.github.com/nym-project/starknet.js/tar.gz/aedd895a62e6018dd1d7330b004d54360007967f"
   dependencies:
     axios "^0.23.0"
     bn.js "^5.2.0"
@@ -18929,6 +18928,11 @@ use-latest@^1.0.0:
   integrity sha512-d2TEuG6nSLKQLAfW3By8mKr8HurOlTkul0sOpxbClIv4SQ4iOd7BYr7VIzdbktUCnv7dua/60xzd8igMU6jmyw==
   dependencies:
     use-isomorphic-layout-effect "^1.0.0"
+
+use-local-storage-state@^12.0.0:
+  version "12.0.0"
+  resolved "https://registry.yarnpkg.com/use-local-storage-state/-/use-local-storage-state-12.0.0.tgz#885e014f3d9f111bb8e1118ae02a13b14a4d362b"
+  integrity sha512-FnjMi6VG16VvYFYRj4G1gADV8ko6N2xBgDcF7uESiTuiNiA/tdyzE2sAM5DBR1WwTnMVYTrtnUE/2Mpda8SSgw==
 
 use-sidecar@^1.0.1:
   version "1.0.5"
