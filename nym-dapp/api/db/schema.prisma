@@ -49,15 +49,38 @@ enum ProfileStatus {
 
 // Cache of profiles populated from the `profiles` storage var in Nym.cairo
 model CachedProfile {
-  nymId            Int           @id @default(autoincrement())
-  ethAddress       String        @unique
-  status           ProfileStatus
-  createdTimestamp DateTime
+  // Fields stored on StarkNet
+  profileId            String   @id
+  cid                  String
+  address              String   @unique
+  submitter_address    String
+  submission_timestamp DateTime
+  is_notarized         Boolean
 
-  CID      String
+  // Derived fields
   photoCID String?
   videoCID String?
 
-  // Associated StarkNet address
-  address String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model CachedChallenge {
+  profileId String @id
+
+  // TODO: use better data types here
+  last_recorded_status            String
+  challenge_timestamp             String
+  challenger_address              String
+  challenge_evidence_cid          String
+  profile_owner_evidence_cid      String
+  adjudication_timestamp          String
+  adjudicator_evidence_cid        String
+  did_adjudicator_confirm_profile String
+  appeal_timestamp                String
+  super_adjudication_timestamp    String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
 }

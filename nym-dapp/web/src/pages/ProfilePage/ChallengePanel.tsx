@@ -18,7 +18,13 @@ const ChallengePanel = ({
     const cid = await cairoCompatibleAdd(data.evidence)
     console.log(cid)
 
-    // TODO: disable form, update database
+    // 1. Get the ERC-20 token address from the Nym contract
+    // 2. Get the required challenge deposit size from the Nym contract
+    // 3. Ask the user to authorize the Nym contract for the required challenge deposit size
+    // 4. Submit the evidence to Infura
+    // 5. Submit the challenge to the Nym contract
+    // 6. Wait for the challenge to be accepted
+    // 7. Refetch the profile
   }, [])
 
   const formMethods = useForm()

@@ -1,6 +1,7 @@
 import type { Prisma } from '@prisma/client'
 import { ResolverArgs } from '@redwoodjs/graphql-server'
 import { db } from 'src/lib/db'
+import { exportProfileById } from 'src/lib/starknet'
 import { sendMessage } from 'src/lib/twilio'
 import sendNotaryApproved from 'src/mailers/sendNotaryApproved'
 import sendNotaryFeedback from 'src/mailers/sendNotaryFeedback'
@@ -11,7 +12,9 @@ const NOTARIES = [
   '+16175958777', // Ted
 ]
 
-export const unsubmittedProfiles = ({ pendingReview }) => {
+export const unsubmittedProfiles = async ({ pendingReview }) => {
+  console.log(await exportProfileById('0x1'))
+
   const whereClause: Prisma.UnsubmittedProfileWhereInput = {}
   if (pendingReview) whereClause.unaddressedFeedbackId = null
   return db.unsubmittedProfile.findMany({
