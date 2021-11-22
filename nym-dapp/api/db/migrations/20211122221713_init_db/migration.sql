@@ -6,6 +6,7 @@ CREATE TABLE "NotaryFeedback" (
     "id" SERIAL NOT NULL,
     "unsubmittedProfileId" INTEGER NOT NULL,
     "feedback" TEXT NOT NULL,
+    "randomField" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -27,38 +28,11 @@ CREATE TABLE "UnsubmittedProfile" (
 );
 
 -- CreateTable
-CREATE TABLE "CachedProfile" (
-    "profileId" TEXT NOT NULL,
-    "cid" TEXT NOT NULL,
-    "address" TEXT NOT NULL,
-    "submitter_address" TEXT NOT NULL,
-    "submission_timestamp" TIMESTAMP(3) NOT NULL,
-    "is_notarized" BOOLEAN NOT NULL,
-    "photoCID" TEXT,
-    "videoCID" TEXT,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
+CREATE TABLE "Random3" (
+    "id" SERIAL NOT NULL,
+    "feedback" TEXT NOT NULL,
 
-    CONSTRAINT "CachedProfile_pkey" PRIMARY KEY ("profileId")
-);
-
--- CreateTable
-CREATE TABLE "CachedChallenge" (
-    "profileId" INTEGER NOT NULL,
-    "last_recorded_status" TEXT NOT NULL,
-    "challenge_timestamp" TEXT NOT NULL,
-    "challenger_address" TEXT NOT NULL,
-    "challenge_evidence_cid" TEXT NOT NULL,
-    "profile_owner_evidence_cid" TEXT NOT NULL,
-    "adjudication_timestamp" TEXT NOT NULL,
-    "adjudicator_evidence_cid" TEXT NOT NULL,
-    "did_adjudicator_confirm_profile" TEXT NOT NULL,
-    "appeal_timestamp" TEXT NOT NULL,
-    "super_adjudication_timestamp" TEXT NOT NULL,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "CachedChallenge_pkey" PRIMARY KEY ("profileId")
+    CONSTRAINT "Random3_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateIndex
@@ -66,9 +40,6 @@ CREATE INDEX "NotaryFeedback_unsubmittedProfileId_idx" ON "NotaryFeedback"("unsu
 
 -- CreateIndex
 CREATE UNIQUE INDEX "UnsubmittedProfile_ethAddress_key" ON "UnsubmittedProfile"("ethAddress");
-
--- CreateIndex
-CREATE UNIQUE INDEX "CachedProfile_address_key" ON "CachedProfile"("address");
 
 -- AddForeignKey
 ALTER TABLE "NotaryFeedback" ADD CONSTRAINT "NotaryFeedback_unsubmittedProfileId_fkey" FOREIGN KEY ("unsubmittedProfileId") REFERENCES "UnsubmittedProfile"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

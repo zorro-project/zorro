@@ -7,6 +7,16 @@ export default async () => {
   try {
     await importPoH()
 
+    console.log('trying to make this work')
+    await db.random3.create({
+      data: {
+        id: 5,
+        feedback: 'test',
+      },
+    })
+
+    return
+
     console.log('Seeding unsubmitted profiles')
     await db.unsubmittedProfile.createMany({
       data: [

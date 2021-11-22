@@ -5,6 +5,8 @@ import NYM_ADDRESS from '../../../../starknet/deployments/goerli/nym.json'
 import NYM_ABI from '../../../../starknet/starknet-artifacts/contracts/nym.cairo/nym_abi.json'
 import SIMPLE_ACCOUNT_ABI from '../../../../starknet/starknet-artifacts/contracts/simple_account.cairo/simple_account_abi.json'
 import assert from 'minimalistic-assert'
+import { mapValues } from 'lodash'
+import { Prisma } from '@prisma/client'
 
 type Felt = string
 
@@ -19,11 +21,12 @@ export const bytesToFelt = (bytes: Uint8Array) => {
   )
 }
 
+export const isInitialized = (cairoVar: string) => cairoVar !== '0x0'
+
 export const getNumProfiles = async () => {
   const nym = new Contract(NYM_ABI as Abi[], NYM_ADDRESS.address)
   const response = await nym.call('get_num_profiles', {})
   return response
-  console.log('Response', response)
 }
 
 export async function notarySubmitProfile(cid: Felt, address: Felt) {
@@ -31,8 +34,6 @@ export async function notarySubmitProfile(cid: Felt, address: Felt) {
     SIMPLE_ACCOUNT_ABI as Abi[],
     NOTARY_ADDRESS.address
   )
-
-  console.log({ cid, address })
 
   const nym = new Contract(NYM_ABI as Abi[], NYM_ADDRESS.address)
 
@@ -55,12 +56,39 @@ export async function notarySubmitProfile(cid: Felt, address: Felt) {
   return await defaultProvider.waitForTx(submission.transaction_hash)
 }
 
-export async function exportProfileById(profileId: Felt) {
+type Profile = {
+  cid: Felt
+  address: Felt
+  submitter_address: Felt
+  submission_timestamp: Felt
+  is_notarized: Felt
+}
+
+type Challenge = {
+  last_recorded_status: Felt
+  challenge_timestamp: Felt
+  challenger_address: Felt
+  challenge_evidence_cid: Felt
+  profile_owner_evidence_cid: Felt
+  adjudication_timestamp: Felt
+  adjudicator_evidence_cid: Felt
+  did_adjudicator_confirm_profile: Felt
+  appeal_timestamp: Felt
+  super_adjudication_timestamp: Felt
+  did_super_adjudicator_confirm_prof: Felt
+}
+
+export async function exportProfileById(
+  profileId: bigint | number | string | Prisma.Decimal
+) {
   const nym = new Contract(NYM_ABI as Abi[], NYM_ADDRESS.address)
 
-  const profile = await nym.call('export_profile_by_id', {
-    profile_id: profileId,
-  })
+  const profile = (await nym.call('export_profile_by_id', {
+    profile_id: profileId.toString(16),
+  })) as any as {
+    profile: Profile
+    challenge: Challenge
+  }
 
   return profile
 }
