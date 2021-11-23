@@ -1,4 +1,4 @@
-Set up project dependencies. Run the following in the current folder:
+# Set up project dependencies. Run the following in the current folder:
 
 ```bash
 # Install `asdf` to manage python tool version https://asdf-vm.com/
@@ -28,3 +28,9 @@ VS Code configuration
 6. VS Code should automatically detect your local virtual environment in `.venv` and offer to use it. Click "yes".
 7. Use cmd-shift-p to select "format code"; when error prompt come up, select Cairo
 8. (optional) Search extensions for "Language support for Cairo" by Eric Lau and install
+
+# To see error messages
+
+```
+poetry run starknet tx_status --network alpha --hash "0x4b956ab1ddfe43ed83f10c0e9ad04702e76e1a7bdf73a9f7791eb1666b97c8" --contract starknet-artifacts/contracts/nym.cairo/nym.json --error_message
+```
