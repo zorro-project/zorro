@@ -5,7 +5,7 @@ import { db } from 'api/src/lib/db'
 
 export default async () => {
   try {
-    await importPoH()
+    // await importPoH()
 
     console.log('Seeding unsubmitted profiles')
     await db.unsubmittedProfile.createMany({
@@ -37,7 +37,7 @@ export default async () => {
     })
     const feedback = await db.notaryFeedback.create({
       data: {
-        unsubmittedProfileId: profile.id,
+        UnsubmittedProfile: { connect: { id: profile.id } },
         feedback: "You don't say the full required phrase in your video",
       },
     })

@@ -1,6 +1,4 @@
 module.exports = (config) => {
-  console.log('reading config!!!!')
-
   // Workaround to import typescript from the API side
   // https://github.com/redwoodjs/redwood/issues/531#issuecomment-848608430
   config.module.rules.forEach((rule) => {

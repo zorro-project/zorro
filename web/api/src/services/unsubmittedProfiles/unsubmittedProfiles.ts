@@ -1,10 +1,10 @@
 import type { Prisma } from '@prisma/client'
 import { ResolverArgs } from '@redwoodjs/graphql-server'
 import { db } from 'src/lib/db'
-import { exportProfileById } from 'src/lib/starknet'
 import { sendMessage } from 'src/lib/twilio'
 import sendNotaryApproved from 'src/mailers/sendNotaryApproved'
 import sendNotaryFeedback from 'src/mailers/sendNotaryFeedback'
+import syncStarknetState from 'src/tasks/syncStarknetState'
 
 // Just hard-code these for now. Will get fancier later.
 const NOTARIES = [
@@ -13,8 +13,6 @@ const NOTARIES = [
 ]
 
 export const unsubmittedProfiles = async ({ pendingReview }) => {
-  console.log(await exportProfileById('0x1'))
-
   const whereClause: Prisma.UnsubmittedProfileWhereInput = {}
   if (pendingReview) whereClause.unaddressedFeedbackId = null
   return db.unsubmittedProfile.findMany({
@@ -102,7 +100,9 @@ export const approveProfile = async ({ profileId }) => {
   const profile = await db.unsubmittedProfile.findUnique({
     where: { id: profileId },
   })
-  // TODO: actually submit the profile on-chain!
+
+  syncStarknetState(true)
+
   // await db.unsubmittedProfile.delete({ where: { id: profileId } })
 
   if (profile.email) {

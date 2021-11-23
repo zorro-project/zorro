@@ -8,12 +8,11 @@
     ]
   },
   "scripts": {
-    "db:reset": "rm -rf api/db/migrations/ && yarn rw prisma migrate dev --name init_db && yarn rw prisma db seed --preview-feature",
-    "dev": "rw dev",
-    "postinstall": "cd node_modules/starknet && npm install"
+    "db:reset": "rm -rf api/db/migrations/ && echo 'y' | yarn rw prisma migrate dev --name init_db && yarn rw prisma db seed",
+    "dev": "rw dev"
   },
   "devDependencies": {
-    "@redwoodjs/core": "^0.38.0"
+    "@redwoodjs/core": "^0.38.3"
   },
   "eslintConfig": {
     "extends": "@redwoodjs/eslint-config",

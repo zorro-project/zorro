@@ -28,33 +28,34 @@ CREATE TABLE "UnsubmittedProfile" (
 
 -- CreateTable
 CREATE TABLE "CachedProfile" (
-    "profileId" TEXT NOT NULL,
-    "cid" TEXT NOT NULL,
-    "address" TEXT NOT NULL,
-    "submitter_address" TEXT NOT NULL,
-    "submission_timestamp" TIMESTAMP(3) NOT NULL,
-    "is_notarized" BOOLEAN NOT NULL,
+    "id" SERIAL NOT NULL,
+    "profileId" DECIMAL(76,0) NOT NULL,
+    "cid" DECIMAL(76,0) NOT NULL,
+    "address" DECIMAL(76,0) NOT NULL,
+    "submitter_address" DECIMAL(76,0) NOT NULL,
+    "submission_timestamp" DECIMAL(76,0) NOT NULL,
+    "is_notarized" DECIMAL(76,0) NOT NULL,
     "photoCID" TEXT,
     "videoCID" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
-    CONSTRAINT "CachedProfile_pkey" PRIMARY KEY ("profileId")
+    CONSTRAINT "CachedProfile_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
 CREATE TABLE "CachedChallenge" (
-    "profileId" INTEGER NOT NULL,
-    "last_recorded_status" TEXT NOT NULL,
-    "challenge_timestamp" TEXT NOT NULL,
-    "challenger_address" TEXT NOT NULL,
-    "challenge_evidence_cid" TEXT NOT NULL,
-    "profile_owner_evidence_cid" TEXT NOT NULL,
-    "adjudication_timestamp" TEXT NOT NULL,
-    "adjudicator_evidence_cid" TEXT NOT NULL,
-    "did_adjudicator_confirm_profile" TEXT NOT NULL,
-    "appeal_timestamp" TEXT NOT NULL,
-    "super_adjudication_timestamp" TEXT NOT NULL,
+    "profileId" DECIMAL(76,0) NOT NULL,
+    "last_recorded_status" DECIMAL(76,0) NOT NULL,
+    "challenge_timestamp" DECIMAL(76,0) NOT NULL,
+    "challenger_address" DECIMAL(76,0) NOT NULL,
+    "challenge_evidence_cid" DECIMAL(76,0) NOT NULL,
+    "profile_owner_evidence_cid" DECIMAL(76,0) NOT NULL,
+    "adjudication_timestamp" DECIMAL(76,0) NOT NULL,
+    "adjudicator_evidence_cid" DECIMAL(76,0) NOT NULL,
+    "did_adjudicator_confirm_profile" DECIMAL(76,0) NOT NULL,
+    "appeal_timestamp" DECIMAL(76,0) NOT NULL,
+    "super_adjudication_timestamp" DECIMAL(76,0) NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -66,6 +67,9 @@ CREATE INDEX "NotaryFeedback_unsubmittedProfileId_idx" ON "NotaryFeedback"("unsu
 
 -- CreateIndex
 CREATE UNIQUE INDEX "UnsubmittedProfile_ethAddress_key" ON "UnsubmittedProfile"("ethAddress");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "CachedProfile_profileId_key" ON "CachedProfile"("profileId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "CachedProfile_address_key" ON "CachedProfile"("address");

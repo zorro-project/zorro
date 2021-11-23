@@ -3,15 +3,15 @@
   "version": "0.0.0",
   "private": true,
   "dependencies": {
-    "@redwoodjs/api": "^0.38.0",
-    "@redwoodjs/graphql-server": "^0.38.0",
+    "@redwoodjs/api": "^0.38.3",
+    "@redwoodjs/graphql-server": "^0.38.3",
     "ethers": "^5.5.1",
     "html-template-tag": "^4.0.0",
     "lodash": "^4.17.21",
     "minimalistic-assert": "^1.0.1",
     "nodemailer": "^6.7.0",
     "nodemailer-html-to-text": "^3.2.0",
-    "starknet": "github:nym-project/starknet.js",
+    "starknet": "2.0.2",
     "twilio": "^3.70.0"
   },
   "devDependencies": {
