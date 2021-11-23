@@ -1,11 +1,10 @@
 import type { Prisma } from '@prisma/client'
 import { ResolverArgs } from '@redwoodjs/graphql-server'
 import { db } from 'src/lib/db'
-import { exportProfileById } from 'src/lib/starknet'
 import { sendMessage } from 'src/lib/twilio'
 import sendNotaryApproved from 'src/mailers/sendNotaryApproved'
 import sendNotaryFeedback from 'src/mailers/sendNotaryFeedback'
-import test from 'src/tasks/test'
+import syncStarknetState from 'src/tasks/syncStarknetState'
 
 // Just hard-code these for now. Will get fancier later.
 const NOTARIES = [
@@ -101,9 +100,9 @@ export const approveProfile = async ({ profileId }) => {
   const profile = await db.unsubmittedProfile.findUnique({
     where: { id: profileId },
   })
-  console.log('approving')
 
-  await test(true)
+  syncStarknetState(true)
+
   // await db.unsubmittedProfile.delete({ where: { id: profileId } })
 
   if (profile.email) {

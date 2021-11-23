@@ -11,7 +11,7 @@
     "minimalistic-assert": "^1.0.1",
     "nodemailer": "^6.7.0",
     "nodemailer-html-to-text": "^3.2.0",
-    "starknet": "github:nym-project/starknet.js",
+    "starknet": "2.0.2",
     "twilio": "^3.70.0"
   },
   "devDependencies": {

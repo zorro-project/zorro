@@ -1,55 +1,63 @@
-// import { mapValues } from 'lodash'
-// import { db } from 'src/lib/db'
-// // import { Prisma } from '@prisma/client'
-// import { exportProfileById, isInitialized } from 'src/lib/starknet'
+import { Prisma } from '@prisma/client'
+import { mapValues } from 'lodash'
+import { db } from 'src/lib/db'
+import { exportProfileById, getNumProfiles } from 'src/lib/starknet'
 
-// export default async function syncStarknetState(onlyNewProfiles = false) {
-//   let currentId = new Prisma.Decimal(1)
+export default async function syncStarknetState(onlyNewProfiles = false) {
+  console.log('Starting StarkNet sync')
+  let currentId = 1
+  let maxId = await getNumProfiles()
 
-//   if (onlyNewProfiles) {
-//     currentId =
-//       (await db.cachedProfile.aggregate({ _max: { profileId: true } }))._max
-//         .profileId || currentId
-//   }
+  if (onlyNewProfiles) {
+    currentId =
+      (
+        await db.cachedProfile.aggregate({ _max: { profileId: true } })
+      )._max.profileId?.toNumber() ?? currentId
+  }
 
-//   // console.log(
-//   //   'profile',
-//   //   await db.cachedProfile.findFirst({ where: { profileId: 1 } })
-//   // )
+  while (currentId < maxId) {
+    console.log(`Exporting profile ${currentId}`)
+    const profile = await exportProfileById(currentId)
 
-//   // while (true) {
-//   // const profile = await exportProfileById(currentId)
-//   // if (!isInitialized(profile.profile.address)) break
+    console.log(profile)
 
-//   // console.log(profile)
+    const profileFields = mapValues(
+      profile.profile,
+      (v) => new Prisma.Decimal(v)
+    )
+    console.log(profileFields)
 
-//   // const profileFields = mapValues(
-//   //   profile.profile,
-//   //   (v) => new Prisma.Decimal(v)
-//   // )
-//   // console.log(profileFields)
+    await db.cachedProfile.upsert({
+      where: { profileId: currentId },
+      create: {
+        profileId: currentId,
+        ...profileFields,
+      },
+      update: {
+        ...profileFields,
+      },
+    })
 
-//   // await db.random3.create({
-//   //   data: { id: 1, feedback: 'test' },
-//   // })
-//   // break
+    const challengeFields = mapValues(
+      profile.challenge,
+      (v) => new Prisma.Decimal(v)
+    )
 
-//   // currentId = currentId.add(new Prisma.Decimal(1))
-//   //   await db.cachedProfile.upsert({
-//   //     where: { profileId: new Prisma.Decimal(1) },
-//   //     create: {
-//   //       profileId: currentId,
-//   //       ...profileFields,
-//   //     },
-//   //     update: {
-//   //       // ...profileFields,
-//   //     },
-//   //   })
-//   //   console.log('upserted')
-//   //   break
-//   // }
+    await db.cachedChallenge.upsert({
+      where: { profileId: currentId },
+      create: {
+        profileId: currentId,
+        ...challengeFields,
+      },
+      update: {
+        ...challengeFields,
+      },
+    })
 
-//   console.log('sync complete')
-// }
+    currentId = currentId.add(new Prisma.Decimal(1))
+  }
 
-// // syncStarknetState()
+  console.log('sync complete')
+}
+
+syncStarknetState()

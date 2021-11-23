@@ -17606,9 +17606,10 @@ stackframe@^1.1.1:
   resolved "https://registry.yarnpkg.com/stackframe/-/stackframe-1.2.0.tgz#52429492d63c62eb989804c11552e3d22e779303"
   integrity sha512-GrdeshiRmS1YLMYgzF16olf2jJ/IzxXY9lhKOskuVziubpTYcYqyOwYeJKzQkwy7uN0fYSsbsC4RQaXf9LCrYA==
 
-starknet@^2.0.1, "starknet@github:nym-project/starknet.js":
-  version "2.0.1"
-  resolved "https://codeload.github.com/nym-project/starknet.js/tar.gz/aedd895a62e6018dd1d7330b004d54360007967f"
+starknet@2.0.2:
+  version "2.0.2"
+  resolved "https://registry.yarnpkg.com/starknet/-/starknet-2.0.2.tgz#3857e941c428cf9f9e652e7361d6ac33b4479237"
+  integrity sha512-IKCpDLAaVhdI1CVuJUKHzR1CBimF8mRpha3vEn2Bm6BPf3/AkGNx8aVaB+nrWTmAkUVHgkQ/4sMFoqBqe2sIhA==
   dependencies:
     axios "^0.23.0"
     bn.js "^5.2.0"

@@ -26,7 +26,7 @@ export const isInitialized = (cairoVar: string) => cairoVar !== '0x0'
 export const getNumProfiles = async () => {
   const nym = new Contract(NYM_ABI as Abi[], NYM_ADDRESS.address)
   const response = await nym.call('get_num_profiles', {})
-  return response
+  return parseInt(response.res as string, 16)
 }
 
 export async function notarySubmitProfile(cid: Felt, address: Felt) {
@@ -88,6 +88,7 @@ export async function exportProfileById(
   })) as any as {
     profile: Profile
     challenge: Challenge
+    num_profiles: string
   }
 
   return profile
