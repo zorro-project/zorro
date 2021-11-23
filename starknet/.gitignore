@@ -7,13 +7,10 @@ node_modules/
 
 todos.md
 logic.md
+kleros.md
 
 # Hardhat
 cache/
 artifacts/
 starknet-artifacts/
 deployments/localhost
-
-# ABIs used by nym-dapp/web/
-!starknet-artifacts/contracts/nym.cairo/nym_abi.json
-!starknet-artifacts/contracts/simple_account.cairo/simple_account_abi.json

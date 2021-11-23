@@ -35,15 +35,13 @@ async function main(): Promise<void> {
     fs.mkdirSync(`./deployments/${NETWORK}`, { recursive: true });
   }
 
-  const [mirror, admin, notary, adjudicator, challenger, minter] =
-    await Promise.all([
-      deployL2("mirror", {}, "mirror"),
-      deployL2("simple_account", {}, "admin"),
-      deployL2("Account", { _public_key: getPublicKey("notary") }, "notary"),
-      deployL2("simple_account", {}, "adjudicator"),
-      deployL2("simple_account", {}, "challenger"),
-      deployL2("simple_account", {}, "minter"),
-    ]);
+  const [admin, notary, adjudicator, challenger, minter] = await Promise.all([
+    deployL2("simple_account", {}, "admin"),
+    deployL2("Account", { _public_key: getPublicKey("notary") }, "notary"),
+    deployL2("simple_account", {}, "adjudicator"),
+    deployL2("simple_account", {}, "challenger"),
+    deployL2("simple_account", {}, "minter"),
+  ]);
 
   const erc20 = await deployL2(
     "ERC20",
@@ -71,7 +69,6 @@ async function main(): Promise<void> {
       adjudicator_address: getAddressString(adjudicator),
       super_adjudicator_l1_address: 0,
       token_address: getAddressString(erc20),
-      mirror_address: getAddressString(mirror),
     },
     "nym"
   );

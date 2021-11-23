@@ -27,12 +27,10 @@ def compile(path):
 
 
 async def create_account(starknet, signer, account_def):
-    account = await starknet.deploy(
+    return await starknet.deploy(
         contract_def=account_def,
         constructor_calldata=[signer.public_key],
     )
-    await account.initialize(account.contract_address).invoke()
-    return account
 
 
 @pytest.fixture(scope="session")
