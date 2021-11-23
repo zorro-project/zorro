@@ -50,11 +50,11 @@ async def test_notary_submit(ctx_factory):
     address = 123
     cid = 1234567
 
-    # TODO: check balance before
+    # XXX:: check balance before
 
     (profile_id, profile) = await submit(ctx, "notary", cid, address)
 
-    # TODO: check balance after
+    # XXX:: check balance after
 
     assert profile.cid == cid
     assert profile.address == address
@@ -82,6 +82,7 @@ async def submit_and_challenge(ctx):
     # should already be confirmed, because submitted by a notary
     assert await get_is_address_confirmed(ctx, address) == 1
 
+    # XXX: check balance before and after
     evidence_cid = 100
     await erc20_approve(ctx, "challenger", ctx.consts.CHALLENGE_DEPOSIT_SIZE)
     await ctx.execute(
@@ -170,3 +171,12 @@ async def test_confirmation_during_provisional_window(ctx_factory):
     # Check again
     ctx = ctx_factory()
     pass
+
+
+# Test to ensure cannot adjudicate after adjudication window expires
+
+# Test super adjudication in both directions
+
+
+# Test to ensure cannot adjudicate right after a profile was submitted
+# Test to ensure cannot super adjudicate right after a profile was submitted
