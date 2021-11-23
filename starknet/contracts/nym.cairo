@@ -746,9 +746,11 @@ end
 
 @view
 func export_profile_by_id{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
-        profile_id : felt) -> (profile : Profile, challenge : ChallengeStorageEnum):
+        profile_id : felt) -> (
+        profile : Profile, challenge : ChallengeStorageEnum, num_profiles : felt):
     alloc_locals
     let (profile) = get_profile(profile_id)
+    let (num_profiles) = _num_profiles.read()
 
     # An array of felts
     let (challenge_storage : felt*) = alloc()
@@ -759,7 +761,7 @@ func export_profile_by_id{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_
     # Abusing ChallengeStatusEnum as an actual struct (instead of an enum)
     let challenge_storage_ptr : ChallengeStorageEnum* = cast(challenge_storage, ChallengeStorageEnum*)
 
-    return (profile, [challenge_storage_ptr])
+    return (profile, [challenge_storage_ptr], num_profiles)
 end
 
 func _load_challenge_felts{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(

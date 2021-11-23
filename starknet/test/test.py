@@ -18,7 +18,7 @@ async def get_challenge_status(ctx, profile_id):
 
 
 async def export_profile_by_id(ctx, profile_id):
-    (profile, challenge_storage) = (
+    (profile, challenge_storage, nym_profiles) = (
         await ctx.nym.export_profile_by_id(profile_id).call()
     ).result
     return (profile, challenge_storage)
