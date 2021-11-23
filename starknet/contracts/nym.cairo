@@ -140,12 +140,10 @@ end
 struct ChallengeStatusEnum:
     member not_challenged : felt  # intentionally has an index of `0` (unset memory); thus challenge storage that has never been set will denote not_challenged
     member challenged : felt
-    member adjudicated : felt
-    member adjudication_opportunity_expired : felt
+    member adjudication_round_completed : felt  # adjudicated, or adjudication opportunity timed out
     member appealed : felt
     member appeal_opportunity_expired : felt
-    member super_adjudicated : felt
-    member super_adjudication_opportunity_expired : felt
+    member super_adjudication_round_completed : felt  # super adjudicated, or super adjudication opportunity timed out
     member settled : felt  # rewards/deposits/etc have been disbursed
 end
 
@@ -397,7 +395,9 @@ func adjudicate{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt
 
     let (now) = _timestamp.read()
     _challenges.write(
-        profile_id, ChallengeStorageEnum.last_recorded_status, ChallengeStatusEnum.adjudicated)
+        profile_id,
+        ChallengeStorageEnum.last_recorded_status,
+        ChallengeStatusEnum.adjudication_round_completed)
     _challenges.write(profile_id, ChallengeStorageEnum.adjudication_timestamp, now)
     _challenges.write(profile_id, ChallengeStorageEnum.adjudicator_evidence_cid, evidence_cid)
     _challenges.write(
@@ -412,9 +412,8 @@ func appeal{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
     let (super_adjudicator_l1_address) = _super_adjudicator_l1_address.read()
     assert from_address = super_adjudicator_l1_address
 
-    # Only appeal things that are `adjudicated` or `adjudication_opportunity_expired`
     let (challenge_status) = get_challenge_status(profile_id)
-    assert (challenge_status - ChallengeStatusEnum.adjudicated) * (challenge_status - ChallengeStatusEnum.adjudication_opportunity_expired) = 0
+    assert (challenge_status - ChallengeStatusEnum.adjudication_round_completed) = 0
 
     let (now) = _timestamp.read()
     _challenges.write(
@@ -441,7 +440,7 @@ func super_adjudicate{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr 
     _challenges.write(
         profile_id,
         ChallengeStorageEnum.last_recorded_status,
-        ChallengeStatusEnum.super_adjudicated)
+        ChallengeStatusEnum.super_adjudication_round_completed)
     _challenges.write(profile_id, ChallengeStorageEnum.super_adjudication_timestamp, now)
     _challenges.write(
         profile_id,
@@ -464,8 +463,7 @@ func maybe_settle{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : fe
 
     let (status) = get_challenge_status(profile_id)
     let res = (status - ChallengeStatusEnum.appeal_opportunity_expired) *
-        (status - ChallengeStatusEnum.super_adjudicated) *
-        (status - ChallengeStatusEnum.super_adjudication_opportunity_expired)
+        (status - ChallengeStatusEnum.super_adjudication_round_completed)
 
     if res == 0:
         # Learn the final outcome of the challenge
@@ -512,7 +510,7 @@ func get_num_profiles{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr 
     return (num_profiles)
 end
 
-# automatically follows the gray lines on this chart, recursively:
+# automatically advances between statuses based on timeouts. It follows the gray "timeout" lines on this chart:
 # https://lucid.app/lucidchart/df9f25d3-d9b0-4d0a-99d1-b1eac42eff3b/edit?viewport_loc=-1482%2C-119%2C4778%2C2436%2C0_0&invitationId=inv_56861740-601a-4a1e-8d61-58c60906253d
 @view
 func get_challenge_status{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
@@ -544,17 +542,17 @@ func get_challenge_status{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_
         let (now) = _timestamp.read()
         let time_passed = now - challenge_timestamp
 
-        # Potentially auto-advance all the way to `appeal_opportunity_expired`
+        # Potentially time out all the way through `adjudication_round_completed` to `appeal_opportunity_expired`
         let (has_appeal_opportunity_expired) = is_le(
             ADJUDICATION_TIME_WINDOW + APPEAL_TIME_WINDOW, time_passed)
         if has_appeal_opportunity_expired == 1:
             return (ChallengeStatusEnum.appeal_opportunity_expired)
         end
 
-        # Potentially auto-advance to `adjudication_opportunity_expired`
+        # Potentially time out to `adjudication_round_completed`
         let (has_adjudication_opportunity_expired) = is_le(ADJUDICATION_TIME_WINDOW, time_passed)
         if has_adjudication_opportunity_expired == 1:
-            return (ChallengeStatusEnum.adjudication_opportunity_expired)
+            return (ChallengeStatusEnum.adjudication_round_completed)
         end
 
         return (ChallengeStatusEnum.challenged)
@@ -564,7 +562,7 @@ func get_challenge_status{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_
     # Adjudicated
     #
 
-    if last_recorded_status == ChallengeStatusEnum.adjudicated:
+    if last_recorded_status == ChallengeStatusEnum.adjudication_round_completed:
         let (adjudication_timestamp) = _challenges.read(
             profile_id, ChallengeStorageEnum.adjudication_timestamp)
         let (now) = _timestamp.read()
@@ -576,7 +574,7 @@ func get_challenge_status{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_
             return (ChallengeStatusEnum.appeal_opportunity_expired)
         end
 
-        return (ChallengeStatusEnum.adjudicated)
+        return (ChallengeStatusEnum.adjudication_round_completed)
     end
 
     #
@@ -588,11 +586,11 @@ func get_challenge_status{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_
         let (now) = _timestamp.read()
         let time_passed = now - appeal_timestamp
 
-        # Potentially auto-advance to `super_adjudication_opportunity_expired`
+        # Potentially auto-advance to `super_adjudication_round_completed`
         let (has_super_adjudication_opportunity_expired) = is_le(
             SUPER_ADJUDICATION_TIME_WINDOW, time_passed)
         if has_super_adjudication_opportunity_expired == 1:
-            return (ChallengeStatusEnum.super_adjudication_opportunity_expired)
+            return (ChallengeStatusEnum.super_adjudication_round_completed)
         end
 
         return (ChallengeStatusEnum.appealed)
@@ -602,8 +600,8 @@ func get_challenge_status{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_
     # Super adjudicated
     #
 
-    if last_recorded_status == ChallengeStatusEnum.super_adjudicated:
-        return (ChallengeStatusEnum.super_adjudicated)
+    if last_recorded_status == ChallengeStatusEnum.super_adjudication_round_completed:
+        return (ChallengeStatusEnum.super_adjudication_round_completed)
     end
 
     #
