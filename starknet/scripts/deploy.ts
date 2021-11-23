@@ -1,13 +1,21 @@
 // Ganked from https://github.com/makerdao/starknet-dai-bridge/blob/mk/draft/scripts/deploy.ts
 
-//import { getAddressOfNextDeployedContract } from "@makerdao/hardhat-utils";
 import fs from "fs";
 import hre from "hardhat";
-
-import { callFrom, getAddress, save } from "./utils";
+import { ec } from "starknet";
+import { callFrom, getAddress, save, getRequiredEnv } from "./utils";
 
 //const L1_GOERLI_DAI_ADDRESS = "0x11fE4B6AE13d2a6055C8D9cF65c55bac32B5d844";
 //const L1_GOERLI_STARKNET_ADDRESS = "0x5e6229F2D4d977d20A50219E521dE6Dd694d45cc";
+
+function getPublicKey(accountName: string) {
+  console.warn("Insecurely obtaining private key: don't do this on mainnet");
+  const privateKey = getRequiredEnv(
+    `STARKNET_${accountName.toUpperCase()}_PRIVATE_KEY`
+  );
+  const keyPair = ec.getKeyPair(privateKey);
+  return BigInt(ec.getStarkKey(keyPair));
+}
 
 function getAddressString(contract: any) {
   return BigInt(contract.address).toString();
@@ -29,18 +37,16 @@ async function main(): Promise<void> {
 
   const [mirror, admin, notary, adjudicator, challenger, minter] =
     await Promise.all([
-      deploy(hre, "mirror", 2, {}, "mirror"),
-      deploy(hre, "simple_account", 2, {}, "admin"),
-      deploy(hre, "simple_account", 2, {}, "notary"),
-      deploy(hre, "simple_account", 2, {}, "adjudicator"),
-      deploy(hre, "simple_account", 2, {}, "challenger"),
-      deploy(hre, "simple_account", 2, {}, "minter"),
+      deployL2("mirror", {}, "mirror"),
+      deployL2("simple_account", {}, "admin"),
+      deployL2("Account", { _public_key: getPublicKey("notary") }, "notary"),
+      deployL2("simple_account", {}, "adjudicator"),
+      deployL2("simple_account", {}, "challenger"),
+      deployL2("simple_account", {}, "minter"),
     ]);
 
-  const erc20 = await deploy(
-    hre,
+  const erc20 = await deployL2(
     "ERC20",
-    2,
     { recipient: getAddressString(minter) },
     "erc20"
   );
@@ -57,10 +63,8 @@ async function main(): Promise<void> {
     [getAddressString(challenger), "100", "0"],
     minter
   );
-  const nymDeployPromise = deploy(
-    hre,
+  const nymDeployPromise = deployL2(
     "nym",
-    2,
     {
       admin_address: getAddressString(admin),
       notary_address: getAddressString(notary),
@@ -75,27 +79,20 @@ async function main(): Promise<void> {
   await Promise.all([transferPromise, transferPromise2, nymDeployPromise]);
 }
 
-async function deploy(
-  hre: any,
-  contractName: string,
-  layer: 1 | 2,
-  calldata: any,
-  saveName?: string
-) {
-  const network = layer === 1 ? "ethers" : "starknet";
-  console.log(`Deploying ${contractName}`);
-  const contractFactory = await hre[network].getContractFactory(contractName);
-  let contract;
-  if (layer === 1) {
-    contract = await contractFactory.deploy(...calldata);
-  } else {
-    contract = await contractFactory.deploy(calldata);
-  }
-  const fileName = saveName || contractName;
-  save(fileName, contract, NETWORK);
-  if (layer === 1) {
-    await contract.deployed();
-  }
+async function deployL2(name: string, calldata: any = {}, saveName?: string) {
+  console.log(`Deploying: ${name}${(saveName && "/" + saveName) || ""}...`);
+  const contractFactory = await hre.starknet.getContractFactory(name);
+  const contract = await contractFactory.deploy(calldata);
+  save(saveName || name, contract, hre.network.name);
+  return contract;
+}
+
+async function deployL1(name: string, calldata: any = [], saveName?: string) {
+  console.log(`Deploying: ${name}${(saveName && "/" + saveName) || ""}`);
+  const contractFactory = await hre.ethers.getContractFactory(name);
+  const contract = await contractFactory.deploy(...calldata);
+  save(saveName || name, contract, hre.network.name);
+  await contract.deployed();
   return contract;
 }
 
