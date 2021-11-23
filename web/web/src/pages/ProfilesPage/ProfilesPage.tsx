@@ -13,11 +13,11 @@ const QUERY = gql`
       id
       edges {
         node {
-          ethAddress
+          address
           photoCID
           status
-          createdTimestamp
-          nymId
+          submissionTimestamp
+          id
         }
       }
       pageInfo {
@@ -119,15 +119,15 @@ const ProfilesPage = () => {
                       rowCount={rowCount}
                       columnWidth={cardSize}
                     >
-                      {({ columnIndex, rowIndex, style }) => (
-                        <Box style={style} p="2">
-                          <ProfileCard
-                            profile={
-                              profiles[rowIndex * columnCount + columnIndex]
-                            }
-                          />
-                        </Box>
-                      )}
+                      {({ columnIndex, rowIndex, style }) => {
+                        const idx = rowIndex * columnCount + columnIndex
+                        if (idx >= profiles.length) return null
+                        return (
+                          <Box style={style} p="2">
+                            <ProfileCard profile={profiles[idx]} />
+                          </Box>
+                        )
+                      }}
                     </FixedSizeGrid>
                   )}
                 </InfiniteLoader>

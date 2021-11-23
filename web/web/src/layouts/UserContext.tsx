@@ -3,7 +3,7 @@ import { useEthers } from '@usedapp/core'
 import { UserContextQuery, UserContextQueryVariables } from 'types/graphql'
 
 type UserContextType = {
-  ethAddress?: string
+  address?: string
   unsubmittedProfile?: UserContextQuery['unsubmittedProfile']
   cachedProfile?: UserContextQuery['cachedProfile']
 }
@@ -22,28 +22,28 @@ export function UserContextProvider({
     UserContextQueryVariables
   >(
     gql`
-      query UserContextQuery($ethAddress: ID!) {
-        unsubmittedProfile(ethAddress: $ethAddress) {
+      query UserContextQuery($address: ID!) {
+        unsubmittedProfile(address: $address) {
           id
-          ethAddress
+          address
         }
 
-        cachedProfile(ethAddress: $ethAddress) {
-          ethAddress
+        cachedProfile(address: $address) {
+          address
         }
       }
     `,
-    { variables: { ethAddress: ethers.account } }
+    { variables: { address: ethers.account } }
   )
 
   React.useEffect(() => {
     if (ethers.account) {
-      queryUser({ variables: { ethAddress: ethers.account } })
+      queryUser({ variables: { address: ethers.account } })
     }
   }, [ethers.account])
 
   const context: UserContextType = {
-    ethAddress: ethers.account,
+    address: ethers.account,
     unsubmittedProfile: data?.unsubmittedProfile,
     cachedProfile: data?.cachedProfile,
   }

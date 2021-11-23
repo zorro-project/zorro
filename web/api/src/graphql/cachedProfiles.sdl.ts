@@ -1,4 +1,5 @@
 export const schema = gql`
+  # TODO: figure out what statuses we want to expose
   enum ProfileStatus {
     submitted_via_notary
     challenged
@@ -7,14 +8,13 @@ export const schema = gql`
   }
 
   type CachedProfile {
-    nymId: Int!
-    ethAddress: String!
+    id: ID!
+    address: ID!
     status: ProfileStatus!
     CID: String!
     photoCID: String
     videoCID: String
-    address: String
-    createdTimestamp: DateTime!
+    submissionTimestamp: DateTime!
   }
 
   type PageInfo {
@@ -38,6 +38,6 @@ export const schema = gql`
     cachedProfiles(first: Int!, cursor: ID = 0): CachedProfileConnection
       @skipAuth
 
-    cachedProfile(ethAddress: ID!): CachedProfile @skipAuth
+    cachedProfile(address: ID!): CachedProfile @skipAuth
   }
 `

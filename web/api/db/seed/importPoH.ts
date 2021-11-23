@@ -45,7 +45,7 @@ export default async function importPoH(): Promise<Partial<CachedProfile>[]> {
     )
 
     for (const profile of data.submissions) {
-      const ethAddress = profile.id
+      const address = profile.id
       const regCID = profile.requests[0].evidence[0].URI.split('/')[2]
       const regJSON = await (
         await fetch(`https://ipfs.kleros.io/ipfs/${regCID}/registration.json`)
@@ -63,7 +63,7 @@ export default async function importPoH(): Promise<Partial<CachedProfile>[]> {
       ])
 
       const normalizedProfile = {
-        ethAddress,
+        address,
         status,
         CID: fileCID,
         photoCID: fileJSON.photo.replace('/ipfs/', ''),

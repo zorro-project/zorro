@@ -6,8 +6,6 @@ import { useEthers } from '@usedapp/core'
 import ConnectButton from 'src/components/ConnectButton/ConnectButton'
 import ipfsClient from 'src/lib/ipfs'
 
-window.ipfsClient = ipfsClient
-
 const SignUpPage = () => {
   const { account } = useEthers()
   if (account != null) return <Redirect to={routes.createProfile()} />

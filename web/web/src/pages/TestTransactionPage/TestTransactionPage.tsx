@@ -3,12 +3,15 @@ import { Input } from '@chakra-ui/input'
 import { Box, Heading, Link, Stack, Text } from '@chakra-ui/layout'
 import { MetaTags } from '@redwoodjs/web'
 import { Card } from 'src/components/Card'
+import getNotaryKey from 'src/lib/getNotaryKey'
+import { cairoCompatibleAdd } from 'src/lib/ipfs'
 import NYM_ADDRESS from '../../../../../starknet/deployments/goerli/nym.json'
 import {
   exportProfileById,
   getNumProfiles,
   notarySubmitProfile,
 } from '../../../../api/src/lib/starknet'
+import { serializeCid } from '../../../../api/src/lib/serializers'
 
 const ExportProfileById = () => {
   const profileId = React.useRef()
@@ -40,6 +43,24 @@ const ExportProfileById = () => {
   )
 }
 
+const submitTestProfile = async () => {
+  // window.bytesToFelt = bytesToFelt
+  // window.feltToBytes = feltToBytes
+  // window.parseCid = parseCid
+  // window.CID = CID
+
+  const cid = await cairoCompatibleAdd(
+    JSON.stringify({
+      photo: 'bafybeicxoq24v5sxcz4myt5kx35kluclpoqhsfb2qdf5oevfuklprux2em',
+      video: 'bafybeiaxvwuj72kcknxm5ofryao4pkqpks5qtadrakzcw743jqruli5zku',
+    })
+  )
+  const addr = '0x334230242D318b5CA159fc38E07dC1248B7b35e4'
+  console.log('cid', cid, serializeCid(cid))
+
+  await notarySubmitProfile(serializeCid(cid), addr, getNotaryKey())
+}
+
 const TestTransactionPage = () => {
   return (
     <Box maxW="xl" mx="auto">
@@ -56,8 +77,8 @@ const TestTransactionPage = () => {
           {NYM_ADDRESS.address}
         </Link>
       </Text>
-      <Button onClick={() => notarySubmitProfile('1234', '5678')}>
-        <Text>Submit profile</Text>
+      <Button onClick={submitTestProfile}>
+        <Text>Submit test profile</Text>
       </Button>
       <Button
         onClick={async () => console.log(await getNumProfiles())}

@@ -23,13 +23,13 @@ import { STATUS_CONFIGS } from './types'
 
 const QUERY = gql`
   query ProfilePageQuery($id: ID!) {
-    cachedProfile(ethAddress: $id) {
-      nymId
-      ethAddress
+    cachedProfile(address: $id) {
+      id
+      address
       photoCID
       videoCID
       status
-      createdTimestamp
+      submissionTimestamp
     }
   }
 `
@@ -39,7 +39,7 @@ const Profile = ({
 }: {
   profile: ProfilePageQuery['cachedProfile']
 }) => {
-  const { ethAddress, photoCID, videoCID, status } = profile
+  const { address, photoCID, videoCID, status } = profile
 
   const statusConfig = STATUS_CONFIGS[status]
 
@@ -53,7 +53,7 @@ const Profile = ({
           </BreadcrumbLink>
         </BreadcrumbItem>
         <BreadcrumbItem isCurrentPage>
-          <BreadcrumbLink>{ethAddress}</BreadcrumbLink>
+          <BreadcrumbLink>{address}</BreadcrumbLink>
         </BreadcrumbItem>
       </Breadcrumb>
 
@@ -62,17 +62,17 @@ const Profile = ({
           <Stack spacing="6">
             <Box>
               <Stack direction="row" align="center">
-                <Identicon size={40} account={ethAddress} />
+                <Identicon size={40} account={address} />
                 <Stack>
                   <Heading size="md" wordBreak="break-all">
                     <Link
                       display="flex"
                       alignItems="center"
-                      href={`https://etherscan.io/address/${ethAddress}`}
+                      href={`https://etherscan.io/address/${address}`}
                       isExternal
                       color="gray.600"
                     >
-                      {ethAddress}
+                      {address}
                       <ExternalLinkIcon ml={1} />
                     </Link>
                   </Heading>
@@ -105,7 +105,7 @@ const Profile = ({
                     <Icon as={FaCalendarPlus} />
                     <Text>
                       <strong>Created</strong>{' '}
-                      {dayjs(profile.createdTimestamp).format(
+                      {dayjs(profile.submissionTimestamp).format(
                         'MMM D, YYYY H:mm:ssZ'
                       )}
                     </Text>

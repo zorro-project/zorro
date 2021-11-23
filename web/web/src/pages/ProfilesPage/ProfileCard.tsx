@@ -40,7 +40,7 @@ const ProfileCard = ({
   return (
     <Box
       as={RLink}
-      href={routes.profile({ id: profile.ethAddress })}
+      href={routes.profile({ id: profile.address })}
       display="flex"
       shadow="md"
       w="100%"
@@ -65,7 +65,7 @@ const ProfileCard = ({
         position="relative"
       />
       <Identicon
-        account={profile.ethAddress}
+        account={profile.address}
         position="absolute"
         top="2"
         right="2"
@@ -81,7 +81,9 @@ const ProfileCard = ({
       >
         <Stack direction="row" alignItems="center">
           <Icon as={FaCalendarCheck} />
-          <Text>{dayjs(profile.createdTimestamp).format('MMM D, YYYY')}</Text>
+          <Text>
+            {dayjs(profile.submissionTimestamp).format('MMM D, YYYY')}
+          </Text>
         </Stack>
         <Stack direction="row" alignItems="center">
           <Icon as={statusConfig.icon} color={statusConfig.iconColor} />

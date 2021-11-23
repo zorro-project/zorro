@@ -3,7 +3,7 @@ export const schema = gql`
     id: Int!
     photoCID: String!
     videoCID: String!
-    ethAddress: String!
+    address: String!
     hasEmail: Boolean!
     createdAt: DateTime!
     updatedAt: DateTime!
@@ -14,13 +14,13 @@ export const schema = gql`
   type Query {
     unsubmittedProfiles(pendingReview: Boolean): [UnsubmittedProfile!]!
       @skipAuth
-    unsubmittedProfile(ethAddress: ID!): UnsubmittedProfile @skipAuth
+    unsubmittedProfile(address: ID!): UnsubmittedProfile @skipAuth
   }
 
   input CreateUnsubmittedProfileInput {
     photoCID: String!
     videoCID: String!
-    ethAddress: String!
+    address: String!
   }
 
   input UpdateUnsubmittedProfileInput {
@@ -30,12 +30,12 @@ export const schema = gql`
 
   type Mutation {
     updateUnsubmittedProfile(
-      ethAddress: String!
+      address: String!
       input: UpdateUnsubmittedProfileInput!
     ): UnsubmittedProfile! @skipAuth
 
     unsubmittedProfileSetEmail(
-      ethAddress: String!
+      address: String!
       email: String!
     ): UnsubmittedProfile! @skipAuth
 

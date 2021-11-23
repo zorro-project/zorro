@@ -6,6 +6,7 @@
     "@redwoodjs/api": "^0.38.3",
     "@redwoodjs/graphql-server": "^0.38.3",
     "ethers": "^5.5.1",
+    "hex-to-array-buffer": "^2.0.0",
     "html-template-tag": "^4.0.0",
     "lodash": "^4.17.21",
     "minimalistic-assert": "^1.0.1",

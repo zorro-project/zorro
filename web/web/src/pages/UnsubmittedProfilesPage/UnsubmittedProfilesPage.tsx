@@ -13,7 +13,7 @@ const UnsubmittedProfilesPage = () => {
         id
         photoCID
         videoCID
-        ethAddress
+        address
       }
     }
   `)

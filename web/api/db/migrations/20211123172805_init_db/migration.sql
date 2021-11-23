@@ -1,6 +1,9 @@
 -- CreateEnum
 CREATE TYPE "ProfileStatus" AS ENUM ('submitted_via_notary', 'challenged', 'deemed_valid', 'deemed_invalid');
 
+-- CreateEnum
+CREATE TYPE "ChallengeStatus" AS ENUM ('not_challenged', 'challenged', 'adjudicated', 'adjudication_opportunity_expired', 'appealed', 'appeal_opportunity_expired', 'super_adjudicated', 'super_adjudication_opportunity_expired', 'settled');
+
 -- CreateTable
 CREATE TABLE "NotaryFeedback" (
     "id" SERIAL NOT NULL,
@@ -17,7 +20,7 @@ CREATE TABLE "UnsubmittedProfile" (
     "id" SERIAL NOT NULL,
     "photoCID" TEXT NOT NULL,
     "videoCID" TEXT NOT NULL,
-    "ethAddress" TEXT NOT NULL,
+    "address" TEXT NOT NULL,
     "email" TEXT,
     "unaddressedFeedbackId" INTEGER,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -28,13 +31,12 @@ CREATE TABLE "UnsubmittedProfile" (
 
 -- CreateTable
 CREATE TABLE "CachedProfile" (
-    "id" SERIAL NOT NULL,
-    "profileId" DECIMAL(76,0) NOT NULL,
-    "cid" DECIMAL(76,0) NOT NULL,
-    "address" DECIMAL(76,0) NOT NULL,
-    "submitter_address" DECIMAL(76,0) NOT NULL,
-    "submission_timestamp" DECIMAL(76,0) NOT NULL,
-    "is_notarized" DECIMAL(76,0) NOT NULL,
+    "id" INTEGER NOT NULL,
+    "cache" JSONB NOT NULL,
+    "notarized" BOOLEAN NOT NULL,
+    "address" TEXT NOT NULL,
+    "submissionTimestamp" TIMESTAMP(3) NOT NULL,
+    "CID" TEXT,
     "photoCID" TEXT,
     "videoCID" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -45,17 +47,17 @@ CREATE TABLE "CachedProfile" (
 
 -- CreateTable
 CREATE TABLE "CachedChallenge" (
-    "profileId" DECIMAL(76,0) NOT NULL,
-    "last_recorded_status" DECIMAL(76,0) NOT NULL,
-    "challenge_timestamp" DECIMAL(76,0) NOT NULL,
-    "challenger_address" DECIMAL(76,0) NOT NULL,
-    "challenge_evidence_cid" DECIMAL(76,0) NOT NULL,
-    "profile_owner_evidence_cid" DECIMAL(76,0) NOT NULL,
-    "adjudication_timestamp" DECIMAL(76,0) NOT NULL,
-    "adjudicator_evidence_cid" DECIMAL(76,0) NOT NULL,
-    "did_adjudicator_confirm_profile" DECIMAL(76,0) NOT NULL,
-    "appeal_timestamp" DECIMAL(76,0) NOT NULL,
-    "super_adjudication_timestamp" DECIMAL(76,0) NOT NULL,
+    "profileId" INTEGER NOT NULL,
+    "cache" JSONB NOT NULL,
+    "lastRecordedStatus" "ChallengeStatus" NOT NULL,
+    "challengeTimestamp" TIMESTAMP(3),
+    "adjudicationTimestamp" TIMESTAMP(3),
+    "superAdjudicationTimestamp" TIMESTAMP(3),
+    "challengeEvidence" TEXT,
+    "profileOwnerEvidence" TEXT,
+    "adjudicatorEvidence" TEXT,
+    "didAdjudicatorConfirmProfile" BOOLEAN NOT NULL,
+    "appealTimestamp" TIMESTAMP(3),
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -66,10 +68,7 @@ CREATE TABLE "CachedChallenge" (
 CREATE INDEX "NotaryFeedback_unsubmittedProfileId_idx" ON "NotaryFeedback"("unsubmittedProfileId");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "UnsubmittedProfile_ethAddress_key" ON "UnsubmittedProfile"("ethAddress");
-
--- CreateIndex
-CREATE UNIQUE INDEX "CachedProfile_profileId_key" ON "CachedProfile"("profileId");
+CREATE UNIQUE INDEX "UnsubmittedProfile_address_key" ON "UnsubmittedProfile"("address");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "CachedProfile_address_key" ON "CachedProfile"("address");

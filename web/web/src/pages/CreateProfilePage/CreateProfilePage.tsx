@@ -41,10 +41,10 @@ const Success = ({
 
   const [updateMutation] = useMutation<UpdateUnsubmittedProfileMutation>(gql`
     mutation UpdateUnsubmittedProfileMutation(
-      $ethAddress: String!
+      $address: String!
       $input: UpdateUnsubmittedProfileInput!
     ) {
-      updateUnsubmittedProfile(ethAddress: $ethAddress, input: $input) {
+      updateUnsubmittedProfile(address: $address, input: $input) {
         id
       }
     }
@@ -84,7 +84,7 @@ const Success = ({
 
       await updateMutation({
         variables: {
-          ethAddress: account,
+          address: account,
           input: {
             photoCID,
             videoCID,
@@ -145,11 +145,11 @@ const Success = ({
 const SignUpCell = createCell<CellProps>({
   QUERY: gql`
     query FindUnsubmittedProfileQuery($account: ID!) {
-      unsubmittedProfile(ethAddress: $account) {
+      unsubmittedProfile(address: $account) {
         photoCID
         videoCID
         hasEmail
-        ethAddress
+        address
         UnaddressedFeedback {
           feedback
         }

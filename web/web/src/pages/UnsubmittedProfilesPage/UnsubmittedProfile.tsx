@@ -13,10 +13,10 @@ import {
   MutationAddNotaryFeedbackArgs,
   UnsubmittedProfilesQuery,
 } from 'types/graphql'
-import {
-  bytesToFelt,
-  notarySubmitProfile,
-} from '../../../../api/src/lib/starknet'
+import { notarySubmitProfile } from '../../../../api/src/lib/starknet'
+import { serializeCid } from '../../../../api/src/lib/serializers'
+
+import getNotaryKey from '../../lib/getNotaryKey'
 
 const UnsubmittedProfile: React.FC<{
   profile: ArrayElement<UnsubmittedProfilesQuery['unsubmittedProfiles']>
@@ -48,18 +48,17 @@ const UnsubmittedProfile: React.FC<{
     }
   `)
 
-  // cid: 0x0170121b57e6343ef350734be0221416e1f5d2066721cd24a789cdb9fefe72
-  // addr: 0x327e8AE4F9D6Cca061EE8C05dC728b9545c2AC78
   const onApprove = async () => {
     // setSubmitting(true)
 
     const cid = await cairoCompatibleAdd(
       JSON.stringify({ photo: profile.photoCID, video: profile.videoCID })
     )
-    console.log(cid)
+
     const submittedProfile = await notarySubmitProfile(
-      bytesToFelt(cid.bytes),
-      profile.ethAddress
+      serializeCid(cid),
+      profile.address,
+      getNotaryKey()
     )
     console.log(submittedProfile)
 
@@ -74,10 +73,10 @@ const UnsubmittedProfile: React.FC<{
       <Td>
         <Text size="xs">
           <Link
-            href={`https://etherscan.io/address/${profile.ethAddress}`}
+            href={`https://etherscan.io/address/${profile.address}`}
             isExternal
           >
-            {profile.ethAddress}
+            {profile.address}
           </Link>
         </Text>
       </Td>

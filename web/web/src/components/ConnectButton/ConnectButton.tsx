@@ -21,7 +21,7 @@ export default function ConnectButton(props: ButtonProps) {
     ethers.activateBrowserWallet()
   }
 
-  return user.ethAddress ? (
+  return user.address ? (
     <>
       <Stack>
         <AccountModal
@@ -31,13 +31,10 @@ export default function ConnectButton(props: ButtonProps) {
         <Button variant="outline" onClick={modalControl.onOpen}>
           <Stack direction="row" alignItems="center">
             <Text fontWeight="bold">
-              {user.ethAddress.slice(0, 6)}...
-              {user.ethAddress.slice(
-                user.ethAddress.length - 4,
-                user.ethAddress.length
-              )}
+              {user.address.slice(0, 6)}...
+              {user.address.slice(user.address.length - 4, user.address.length)}
             </Text>
-            <Identicon account={user.ethAddress} />
+            <Identicon account={user.address} />
           </Stack>
         </Button>
       </Stack>

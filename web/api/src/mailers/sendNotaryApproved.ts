@@ -2,10 +2,7 @@ import html from 'html-template-tag'
 import transport from 'src/lib/mail'
 import layout from './layout'
 
-export default async function sendNotaryApproved(
-  to: string,
-  ethAddress: string
-) {
+export default async function sendNotaryApproved(to: string, address: string) {
   const body = layout(html`
     <p>Great news!</p>
 
@@ -16,7 +13,7 @@ export default async function sendNotaryApproved(
 
     <p>
       To view your profile, just
-      <a href="http://localhost:8910/profiles/${ethAddress}">click here</a>.
+      <a href="http://localhost:8910/profiles/${address}">click here</a>.
     </p>
   `)
 
