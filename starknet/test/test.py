@@ -1,7 +1,7 @@
 import pytest
 from starkware.starkware_utils.error_handling import StarkException
 from starkware.starknet.definitions.error_codes import StarknetErrorCode
-from OpenZepplin.Signer import Signer
+from OpenZeppelin.Signer import Signer
 from utils import uint
 
 

@@ -10,7 +10,7 @@ const nymCompiledContractString = getCompiledContractString(
 );
 
 const accountCompiledContractString = getCompiledContractString(
-  "./contracts/build/OpenZepplin/Account_compiled.json"
+  "./contracts/build/OpenZeppelin/Account_compiled.json"
 );
 
 async function deployAccount() {}

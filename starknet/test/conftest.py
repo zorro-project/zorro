@@ -8,7 +8,7 @@ from types import SimpleNamespace
 from starkware.starknet.compiler.compile import compile_starknet_files
 from starkware.starknet.testing.starknet import Starknet, StarknetContract
 
-from OpenZepplin.Signer import Signer
+from OpenZeppelin.Signer import Signer
 from utils import uint
 
 # pytest-xdest only shows stderr
@@ -55,9 +55,8 @@ async def _build_copyable_deployment():
     )
 
     defs = SimpleNamespace(
-        mirror=compile("mirror.cairo"),
-        account=compile("OpenZepplin/account.cairo"),
-        erc20=compile("OpenZepplin/ERC20.cairo"),
+        account=compile("OpenZeppelin/account.cairo"),
+        erc20=compile("OpenZeppelin/ERC20.cairo"),
         nym=compile("nym.cairo"),
     )
 
@@ -82,7 +81,6 @@ async def _build_copyable_deployment():
         constructor_calldata=[accounts.minter.contract_address],
     )
 
-    mirror = await starknet.deploy(contract_def=defs.mirror)
     nym = await starknet.deploy(
         contract_def=defs.nym,
         constructor_calldata=[
@@ -91,7 +89,6 @@ async def _build_copyable_deployment():
             accounts.adjudicator.contract_address,
             consts.SUPER_ADJUDICATOR_L1_ADDRESS,
             erc20.contract_address,
-            mirror.contract_address,
         ],
     )
 

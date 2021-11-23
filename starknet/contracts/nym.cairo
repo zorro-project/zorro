@@ -9,9 +9,9 @@ from starkware.cairo.common.hash import hash2
 from starkware.cairo.common.registers import get_fp_and_pc
 from starkware.cairo.common.signature import verify_ecdsa_signature
 from starkware.cairo.common.uint256 import Uint256
-from starkware.starknet.common.syscalls import get_caller_address
+from starkware.starknet.common.syscalls import get_caller_address, get_contract_address
 
-from OpenZepplin.IERC20 import IERC20
+from OpenZeppelin.IERC20 import IERC20
 
 #
 # Constants
@@ -35,17 +35,6 @@ const APPEAL_TIME_WINDOW = 3 * 24 * 60 * 60  # 3 days
 const SUPER_ADJUDICATION_TIME_WINDOW = 30 * 24 * 60 * 60  # 30 days
 
 #
-# Interfaces
-#
-
-# TODO: kill this once we can use cairo's syscall for getting own address
-@contract_interface
-namespace IMirror:
-    func get_my_address() -> (res : felt):
-    end
-end
-
-#
 # Profile type
 #
 
@@ -64,11 +53,6 @@ end
 # Temporary: will be replaced by syscall / clock contract
 @storage_var
 func _timestamp() -> (res : felt):
-end
-
-# Temporary: will be replaced by a syscall
-@storage_var
-func _self_address() -> (res : felt):
 end
 
 # XXX: fn for admin to change the notary address
@@ -216,15 +200,12 @@ end
 @constructor
 func constructor{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
         admin_address : felt, notary_address : felt, adjudicator_address : felt,
-        super_adjudicator_l1_address : felt, token_address : felt, mirror_address : felt):
+        super_adjudicator_l1_address : felt, token_address : felt):
     _admin_address.write(admin_address)
     _notary_address.write(notary_address)
     _adjudicator_address.write(adjudicator_address)
     _super_adjudicator_l1_address.write(super_adjudicator_l1_address)
     _token_address.write(token_address)
-
-    let (self_address) = IMirror.get_my_address(contract_address=mirror_address)
-    _self_address.write(self_address)
 
     _timestamp.write(123456789)
 
@@ -736,7 +717,7 @@ end
 func get_amount_available_for_challenge_rewards{
         pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}() -> (res : felt):
     let (token_address) = _token_address.read()
-    let (self_address) = _self_address.read()
+    let (self_address) = get_contract_address()
     let (reserved_balance) = _reserved_balance.read()
 
     # Any funds that aren't challenge deposit reserves are for the security reward pool
@@ -781,7 +762,7 @@ end
 func _receive_deposit{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
         from_address, amount):
     let (token_address) = _token_address.read()
-    let (self_address) = _self_address.read()
+    let (self_address) = get_contract_address()
 
     let (reserved_balance) = _reserved_balance.read()
     _reserved_balance.write(reserved_balance + amount)

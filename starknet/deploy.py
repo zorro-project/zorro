@@ -7,7 +7,7 @@ from asyncio.tasks import wait_for
 import random
 
 from utils.StarknetGateway import deploy, call, invoke
-from utils.OpenZepplin.Signer import Signer
+from utils.OpenZeppelin.Signer import Signer
 
 
 # XXX: *NOT* a cryptographically secure approach to key generation
@@ -16,10 +16,10 @@ def generate_private_key():
 
 
 async def deploy_and_initialize_account(signer):
-    deploy_result = await deploy("contracts/build/OpenZepplin/Account_compiled.json")
+    deploy_result = await deploy("contracts/build/OpenZeppelin/Account_compiled.json")
     initialize_result = await invoke(
         deploy_result.address,
-        "build/OpenZepplin/Account_abi.json",
+        "build/OpenZeppelin/Account_abi.json",
         "initialize",
         [signer.public_key, deploy_result.address, 0],
     )
