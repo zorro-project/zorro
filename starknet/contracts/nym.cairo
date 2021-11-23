@@ -467,6 +467,8 @@ func super_adjudicate{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr 
         ChallengeStorageEnum.did_super_adjudicator_confirm_profile,
         should_confirm_profile)
 
+    maybe_settle(profile_id)
+
     return ()
 end
 
@@ -688,7 +690,7 @@ func get_is_profile_confirmed{pedersen_ptr : HashBuiltin*, range_check_ptr, sysc
         PROVISIONAL_TIME_WINDOW, challenge_timestamp - profile.submission_timestamp)
 
     # XXX: consider a case where the adjudicator and the super adjudicator both time out...
-    # Super edge case, but maybe we should side with the challenger in that case?
+    # Super edge case, but we decided to side with the challenger in that case
 
     return (is_presumed_innocent)
 end
