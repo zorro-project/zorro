@@ -15,7 +15,7 @@ from OpenZeppelin.IERC20 import IERC20
 
 from utils import assert_is_boolean, get_is_equal
 from consts import consts
-from types import (
+from profile import (
     Profile, StatusEnum, _get_current_status, _get_did_adjudication_occur,
     _get_did_super_adjudication_occur)
 
@@ -99,7 +99,7 @@ func constructor{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : fel
 end
 
 #
-# Contract admin mutators
+# Administration
 #
 
 @external
@@ -135,7 +135,7 @@ func update_super_adjudicator_l1_address{
 end
 
 #
-# Profile mutators
+# Profile mutation
 #
 
 @external
@@ -663,9 +663,7 @@ end
 func get_profile_by_address{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
         address : felt) -> (profile_id : felt, profile : Profile):
     let (profile_id) = _map_address_to_profile_id.read(address)
-    assert_not_zero(profile_id)
-    let (profile) = _profiles.read(profile_id)
-    assert_not_zero(profile.cid)
+    let (profile) = get_profile(profile_id)
     return (profile_id, profile)
 end
 
