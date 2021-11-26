@@ -4,7 +4,7 @@
 from starkware.cairo.common.alloc import alloc
 from starkware.cairo.common.math import assert_not_zero, assert_not_equal
 from starkware.cairo.common.math_cmp import is_le
-from starkware.cairo.common.cairo_builtins import HashBuiltin, BitwiseBuiltin
+from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.cairo.common.hash import hash2
 from starkware.cairo.common.registers import get_fp_and_pc
 from starkware.cairo.common.signature import verify_ecdsa_signature
@@ -13,38 +13,11 @@ from starkware.starknet.common.syscalls import get_caller_address, get_contract_
 
 from OpenZeppelin.IERC20 import IERC20
 
-#
-# Constants
-#
-
-const SUBMISSION_DEPOSIT_SIZE = 25  # This constant is also in test.py
-const CHALLENGE_DEPOSIT_SIZE = 25  # This constant is also in test.py
-
-# Profiles challenged while still provision are presumed to be invalid; those challenged after are presumed valid
-const PROVISIONAL_TIME_WINDOW = 9 * 24 * 60 * 60  # 9 days
-
-# The amount of time the adjudicator has to act after a profile is challenged
-const ADJUDICATION_TIME_WINDOW = 6 * 24 * 60 * 60  # 6 days
-
-# The amount of time someone has to initiate an appeal after a profile is adjudicated (or not adjudicated due to timeout)
-const APPEAL_TIME_WINDOW = 3 * 24 * 60 * 60  # 3 days
-
-# the amount of time the super adjudicator has to act after a profile is appealed
-# XXX: estimate this correctly: log2(num kleros jurors) * max_time_per_round
-# Alternatively, we could send an L1->L2 message each appeal round, which would extend the window
-const SUPER_ADJUDICATION_TIME_WINDOW = 30 * 24 * 60 * 60  # 30 days
-
-#
-# Profile type
-#
-
-struct Profile:
-    member cid : felt  # cidv1 for profile pic/video/etc
-    member address : felt  # starknet address
-    member submitter_address : felt
-    member submission_timestamp : felt
-    member is_notarized : felt
-end
+from utils import assert_is_boolean, get_is_equal
+from consts import consts
+from types import (
+    Profile, StatusEnum, _get_current_status, _get_did_adjudication_occur,
+    _get_did_super_adjudication_occur)
 
 #
 # Storage vars
@@ -107,91 +80,6 @@ func _map_address_to_profile_id(address : felt) -> (profile_id : felt):
 end
 
 #
-# Challenge types & helpers
-#
-
-# Abusing a struct as an enum
-# This struct just offers named indices
-struct ChallengeStorageEnum:
-    member last_recorded_status : felt  # one of ChallengeStatusEnum
-
-    # Set in same tx that shifts `last_recorded_status` to `challenged`:
-    member challenge_timestamp : felt  # nonzero iff there was a challenge
-    member challenger_address : felt
-    member challenge_evidence_cid : felt
-
-    # Optionally set while `last_recorded_status` is `challenged`:
-    member profile_owner_evidence_cid : felt
-
-    # Set in same tx that shifts `last_recorded_status` to `adjudicated`:
-    member adjudication_timestamp : felt  # nonzero iff there was an adjudication
-    member adjudicator_evidence_cid : felt
-    member did_adjudicator_confirm_profile : felt
-
-    # Set in the same tx that shifts `last_recorded_status` to `appealed`
-    member appeal_timestamp : felt  # nonzero iff there was an appeal
-
-    # Set in same tx that shifts `last_recorded_status` to `super_adjudicated`:
-    member super_adjudication_timestamp : felt  # nonzero iff there was a super adjudication
-    member did_super_adjudicator_confirm_profile : felt
-end
-
-# Abusing a struct as an enum
-struct ChallengeStatusEnum:
-    member not_challenged : felt  # intentionally has an index of `0` (unset memory); thus challenge storage that has never been set will denote not_challenged
-    member challenged : felt
-    member adjudication_round_completed : felt  # adjudicated, or adjudication opportunity timed out
-    member appealed : felt
-    member appeal_opportunity_expired : felt
-    member super_adjudication_round_completed : felt  # super adjudicated, or super adjudication opportunity timed out
-    member settled : felt  # rewards/deposits/etc have been disbursed
-end
-
-func _get_did_adjudication_occur{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
-        profile_id : felt) -> (res : felt):
-    let (adjudication_timestamp) = _challenges.read(
-        profile_id, ChallengeStorageEnum.adjudication_timestamp)
-    if adjudication_timestamp == 0:
-        return (0)
-    end
-    return (1)
-end
-
-func _get_did_appeal_occur{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
-        profile_id : felt) -> (res : felt):
-    let (appeal_timestamp) = _challenges.read(profile_id, ChallengeStorageEnum.appeal_timestamp)
-    if appeal_timestamp == 0:
-        return (0)
-    end
-    return (1)
-end
-
-func _get_did_super_adjudication_occur{
-        pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(profile_id : felt) -> (
-        res : felt):
-    let (super_adjudication_timestamp) = _challenges.read(
-        profile_id, ChallengeStorageEnum.super_adjudication_timestamp)
-    if super_adjudication_timestamp == 0:
-        return (0)
-    end
-    return (1)
-end
-
-func _reset_challenge{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
-        profile_id : felt):
-    return _inner_reset_challenge(profile_id, 0)
-end
-
-func _inner_reset_challenge{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
-        profile_id : felt, i : felt):
-    if i == ChallengeStorageEnum.SIZE:
-        return ()
-    end
-    _challenges.write(profile_id, i, 0)
-    return _inner_reset_challenge(profile_id, i + 1)
-end
-
-#
 # Constructor
 #
 
@@ -211,13 +99,13 @@ func constructor{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : fel
 end
 
 #
-# Contract administration mutators
+# Contract admin mutators
 #
 
 @external
 func update_admin_address{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
         new_address : felt):
-    assert_is_caller_admin()
+    assert_caller_is_admin()
     _admin_address.write(new_address)
     return ()
 end
@@ -225,7 +113,7 @@ end
 @external
 func update_notary_address{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
         new_address : felt):
-    assert_is_caller_admin()
+    assert_caller_is_admin()
     _notary_address.write(new_address)
     return ()
 end
@@ -233,7 +121,7 @@ end
 @external
 func update_adjudicator_address{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
         new_address : felt):
-    assert_is_caller_admin()
+    assert_caller_is_admin()
     _adjudicator_address.write(new_address)
     return ()
 end
@@ -241,13 +129,13 @@ end
 @external
 func update_super_adjudicator_l1_address{
         pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(new_address : felt):
-    assert_is_caller_admin()
+    assert_caller_is_admin()
     _super_adjudicator_l1_address.write(new_address)
     return ()
 end
 
 #
-# Profile/challenge mutators
+# Profile mutators
 #
 
 @external
@@ -258,26 +146,40 @@ func submit{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
     assert_not_zero(address)
     assert_is_unused_address(address)
 
+    # XXX: verify sig of address
+
     let (local caller_address) = get_caller_address()
     let (now) = _timestamp.read()
 
-    # XXX: do actually want to receive deposit
-    # _receive_deposit(caller_address, SUBMISSION_DEPOSIT_SIZE)
+    _receive_deposit(caller_address, consts.SUBMISSION_DEPOSIT_SIZE)
 
     let (num_profiles) = _num_profiles.read()
     let profile_id = num_profiles + 1
     _num_profiles.write(profile_id)
 
+    _map_address_to_profile_id.write(address, profile_id)
+
     let (is_caller_notary) = get_is_caller_notary()
-    let profile = Profile(
+    _profiles.write(
+        profile_id,
+        Profile(
         cid=cid,
         address=address,
         submitter_address=caller_address,
         submission_timestamp=now,
-        is_notarized=is_caller_notary)
-
-    _profiles.write(profile_id, profile)
-    _map_address_to_profile_id.write(address, profile_id)
+        is_notarized=is_caller_notary,
+        last_recorded_status=StatusEnum.NOT_CHALLENGED,
+        challenge_timestamp=0,
+        challenger_address=0,
+        challenge_evidence_cid=0,
+        owner_evidence_cid=0,
+        adjudication_timestamp=0,
+        adjudicator_evidence_cid=0,
+        did_adjudicator_confirm_profile=0,
+        appeal_timestamp=0,
+        super_adjudication_timestamp=0,
+        did_super_adjudicator_confirm_profile=0
+        ))
 
     return (profile_id=profile_id)
 end
@@ -288,26 +190,37 @@ func notarize{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}
     alloc_locals
 
     # Only notaries can notarize
-    assert_is_caller_notary()
-
-    # only notarize profiles that exist
-    assert_profile_exists(profile_id)
+    assert_caller_is_notary()
 
     # Only notarize profiles that aren't already notarized
     let (local profile : Profile) = get_profile(profile_id)
     assert profile.is_notarized = 0
 
     # Only notarize profiles that aren't challenged
-    let (challenge_status) = get_challenge_status(profile_id)
-    assert challenge_status = ChallengeStatusEnum.not_challenged
+    let (now) = _timestamp.read()
+    let (status) = _get_current_status(profile, now)
+    assert status = StatusEnum.NOT_CHALLENGED
 
-    let new_profile = Profile(
+    _profiles.write(
+        profile_id,
+        Profile(
         cid=profile.cid,
         address=profile.address,
         submitter_address=profile.submitter_address,
         submission_timestamp=profile.submission_timestamp,
-        is_notarized=1)
-    _profiles.write(profile_id, new_profile)
+        is_notarized=1,  # Changed
+        last_recorded_status=profile.last_recorded_status,
+        challenge_timestamp=profile.challenge_timestamp,
+        challenger_address=profile.challenger_address,
+        challenge_evidence_cid=profile.challenge_evidence_cid,
+        owner_evidence_cid=profile.owner_evidence_cid,
+        adjudication_timestamp=profile.adjudication_timestamp,
+        adjudicator_evidence_cid=profile.adjudicator_evidence_cid,
+        did_adjudicator_confirm_profile=profile.did_super_adjudicator_confirm_profile,
+        appeal_timestamp=profile.appeal_timestamp,
+        super_adjudication_timestamp=profile.super_adjudication_timestamp,
+        did_super_adjudicator_confirm_profile=profile.did_super_adjudicator_confirm_profile
+        ))
 
     return ()
 end
@@ -317,18 +230,18 @@ func challenge{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*
         profile_id : felt, evidence_cid : felt):
     alloc_locals
 
-    # Only challenge profiles that exist
-    assert_profile_exists(profile_id)
-
     # Make way for this challenge by settling any existing challenge (if there is one, and if it can be settled)
     maybe_settle(profile_id)
 
     let (caller_address) = get_caller_address()
-    let (status) = get_challenge_status(profile_id)
+
+    let (profile) = get_profile(profile_id)
+    let (now) = _timestamp.read()
+    let (status) = _get_current_status(profile, now)
 
     # Only challenge prpfiles that are `not_challenged` or `settled`
     # See: https://lucid.app/lucidchart/3f5d0cad-572d-4674-9365-f9252c294868/edit?page=0_0&invitationId=inv_27689cb9-7be5-4f88-b76a-a0ef273ac183#
-    assert (status - ChallengeStatusEnum.not_challenged) * (status - ChallengeStatusEnum.settled) = 0
+    assert (status - StatusEnum.NOT_CHALLENGED) * (status - StatusEnum.SETTLED) = 0
 
     # Only allow challenging of profiles that are confirmed or are still provisional
     # (In particular, don't allow challenging of profiles that are already invalid.)
@@ -341,26 +254,29 @@ func challenge{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*
     assert (is_profile_confirmed - 1) * (is_profile_provisional - 1) = 0
 
     # Take a deposit from the challenger
-    _receive_deposit(caller_address, CHALLENGE_DEPOSIT_SIZE)
+    _receive_deposit(caller_address, consts.CHALLENGE_DEPOSIT_SIZE)
 
-    # If this profile was previously challenged, then clear out the old challenge information
-    if status == ChallengeStatusEnum.settled:
-        _reset_challenge(profile_id)
-        tempvar syscall_ptr = syscall_ptr
-        tempvar range_check_ptr = range_check_ptr
-        tempvar pedersen_ptr = pedersen_ptr
-    else:
-        tempvar syscall_ptr = syscall_ptr
-        tempvar range_check_ptr = range_check_ptr
-        tempvar pedersen_ptr = pedersen_ptr
-    end
-
-    let (now) = _timestamp.read()
-    _challenges.write(
-        profile_id, ChallengeStorageEnum.last_recorded_status, ChallengeStatusEnum.challenged)
-    _challenges.write(profile_id, ChallengeStorageEnum.challenger_address, caller_address)
-    _challenges.write(profile_id, ChallengeStorageEnum.challenge_evidence_cid, evidence_cid)
-    _challenges.write(profile_id, ChallengeStorageEnum.challenge_timestamp, now)
+    # We could be challenging a profile that was previously settled and thus has old challenge information lying around, so specifically zero out challenge information
+    _profiles.write(
+        profile_id,
+        Profile(
+        cid=profile.cid,
+        address=profile.address,
+        submitter_address=profile.submitter_address,
+        submission_timestamp=profile.submission_timestamp,
+        is_notarized=profile.is_notarized,
+        last_recorded_status=StatusEnum.CHALLENGED,  # Changed
+        challenge_timestamp=now,  # Changed
+        challenger_address=caller_address,  # Changed
+        challenge_evidence_cid=evidence_cid,  # Changed
+        owner_evidence_cid=0,  # Changed
+        adjudication_timestamp=0,  # Changed
+        adjudicator_evidence_cid=0,  # Changed
+        did_adjudicator_confirm_profile=0,  # Changed
+        appeal_timestamp=0,  # Changed
+        super_adjudication_timestamp=0,  # Changed
+        did_super_adjudicator_confirm_profile=0  # Changed
+        ))
 
     return ()
 end
@@ -372,36 +288,72 @@ end
 func submit_evidence{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
         profile_id : felt, evidence_cid : felt):
     alloc_locals
-    let (local profile_id) = _get_caller_profile_id()
-    let (challenge_status) = get_challenge_status(profile_id)
+    let (local profile_id) = get_caller_profile_id()
 
-    # Can only submit evidence while challenge status is `challenged` (i.e. before adjudication)
-    assert challenge_status = ChallengeStatusEnum.challenged
+    let (now) = _timestamp.read()
+    let (profile) = get_profile(profile_id)
+    let (status) = _get_current_status(profile, now)
 
-    _challenges.write(profile_id, ChallengeStorageEnum.profile_owner_evidence_cid, evidence_cid)
+    # Can only submit evidence while status is `challenged` (i.e. before adjudication)
+    assert status = StatusEnum.CHALLENGED
+
+    _profiles.write(
+        profile_id,
+        Profile(
+        cid=profile.cid,
+        address=profile.address,
+        submitter_address=profile.submitter_address,
+        submission_timestamp=profile.submission_timestamp,
+        is_notarized=profile.is_notarized,
+        last_recorded_status=profile.last_recorded_status,
+        challenge_timestamp=profile.challenge_timestamp,
+        challenger_address=profile.challenger_address,
+        challenge_evidence_cid=profile.challenge_evidence_cid,
+        owner_evidence_cid=evidence_cid,  # Changed
+        adjudication_timestamp=profile.adjudication_timestamp,
+        adjudicator_evidence_cid=profile.adjudicator_evidence_cid,
+        did_adjudicator_confirm_profile=profile.did_super_adjudicator_confirm_profile,
+        appeal_timestamp=profile.appeal_timestamp,
+        super_adjudication_timestamp=profile.super_adjudication_timestamp,
+        did_super_adjudicator_confirm_profile=profile.did_super_adjudicator_confirm_profile
+        ))
     return ()
 end
 
 @external
 func adjudicate{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
         profile_id : felt, evidence_cid : felt, should_confirm_profile : felt):
-    assert_is_caller_adjudicator()
-    assert_profile_exists(profile_id)
+    alloc_locals
+    assert_caller_is_adjudicator()
     assert_is_boolean(should_confirm_profile)
 
-    # Only adjudicate things that are `challenged`
-    let (challenge_status) = get_challenge_status(profile_id)
-    assert challenge_status = ChallengeStatusEnum.challenged
+    let (local profile) = get_profile(profile_id)
 
+    # Only adjudicate things that are `challenged`
     let (now) = _timestamp.read()
-    _challenges.write(
+    let (status) = _get_current_status(profile, now)
+    assert status = StatusEnum.CHALLENGED
+
+    _profiles.write(
         profile_id,
-        ChallengeStorageEnum.last_recorded_status,
-        ChallengeStatusEnum.adjudication_round_completed)
-    _challenges.write(profile_id, ChallengeStorageEnum.adjudication_timestamp, now)
-    _challenges.write(profile_id, ChallengeStorageEnum.adjudicator_evidence_cid, evidence_cid)
-    _challenges.write(
-        profile_id, ChallengeStorageEnum.did_adjudicator_confirm_profile, should_confirm_profile)
+        Profile(
+        cid=profile.cid,
+        address=profile.address,
+        submitter_address=profile.submitter_address,
+        submission_timestamp=profile.submission_timestamp,
+        is_notarized=profile.is_notarized,
+        last_recorded_status=StatusEnum.ADJUDICATION_ROUND_COMPLETED,  # Changed
+        challenge_timestamp=profile.challenge_timestamp,
+        challenger_address=profile.challenger_address,
+        challenge_evidence_cid=profile.challenge_evidence_cid,
+        owner_evidence_cid=profile.owner_evidence_cid,
+        adjudication_timestamp=now,  # Changed
+        adjudicator_evidence_cid=evidence_cid,  # Changed
+        did_adjudicator_confirm_profile=should_confirm_profile,  # Changed
+        appeal_timestamp=profile.appeal_timestamp,
+        super_adjudication_timestamp=profile.super_adjudication_timestamp,
+        did_super_adjudicator_confirm_profile=profile.did_super_adjudicator_confirm_profile
+        ))
 
     return ()
 end
@@ -409,16 +361,37 @@ end
 @l1_handler
 func appeal{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
         from_address : felt, profile_id : felt):
+    alloc_locals
     let (super_adjudicator_l1_address) = _super_adjudicator_l1_address.read()
     assert from_address = super_adjudicator_l1_address
 
-    let (challenge_status) = get_challenge_status(profile_id)
-    assert (challenge_status - ChallengeStatusEnum.adjudication_round_completed) = 0
+    let (local profile) = get_profile(profile_id)
 
+    # Only appeal if adjudication round is complete
     let (now) = _timestamp.read()
-    _challenges.write(
-        profile_id, ChallengeStorageEnum.last_recorded_status, ChallengeStatusEnum.appealed)
-    _challenges.write(profile_id, ChallengeStorageEnum.appeal_timestamp, now)
+    let (status) = _get_current_status(profile, now)
+    assert (status - StatusEnum.ADJUDICATION_ROUND_COMPLETED) = 0
+
+    _profiles.write(
+        profile_id,
+        Profile(
+        cid=profile.cid,
+        address=profile.address,
+        submitter_address=profile.submitter_address,
+        submission_timestamp=profile.submission_timestamp,
+        is_notarized=profile.is_notarized,
+        last_recorded_status=StatusEnum.APPEALED,  # Changed
+        challenge_timestamp=profile.challenge_timestamp,
+        challenger_address=profile.challenger_address,
+        challenge_evidence_cid=profile.challenge_evidence_cid,
+        owner_evidence_cid=profile.owner_evidence_cid,
+        adjudication_timestamp=profile.adjudication_timestamp,
+        adjudicator_evidence_cid=profile.adjudicator_evidence_cid,
+        did_adjudicator_confirm_profile=profile.did_super_adjudicator_confirm_profile,
+        appeal_timestamp=now,  # Changed
+        super_adjudication_timestamp=profile.super_adjudication_timestamp,
+        did_super_adjudicator_confirm_profile=profile.did_super_adjudicator_confirm_profile
+        ))
 
     return ()
 end
@@ -426,26 +399,38 @@ end
 @l1_handler
 func super_adjudicate{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
         from_address : felt, profile_id : felt, should_confirm_profile : felt):
+    alloc_locals
     let (super_adjudicator_l1_address) = _super_adjudicator_l1_address.read()
     assert from_address = super_adjudicator_l1_address
-
     assert_is_boolean(should_confirm_profile)
 
+    let (local profile) = get_profile(profile_id)
+
     # Only super adjudicate things that are `appealed`
-    let (challenge_status) = get_challenge_status(profile_id)
-    assert challenge_status = ChallengeStatusEnum.appealed
-
     let (now) = _timestamp.read()
+    let (status) = _get_current_status(profile, now)
+    assert status = StatusEnum.APPEALED
 
-    _challenges.write(
+    _profiles.write(
         profile_id,
-        ChallengeStorageEnum.last_recorded_status,
-        ChallengeStatusEnum.super_adjudication_round_completed)
-    _challenges.write(profile_id, ChallengeStorageEnum.super_adjudication_timestamp, now)
-    _challenges.write(
-        profile_id,
-        ChallengeStorageEnum.did_super_adjudicator_confirm_profile,
-        should_confirm_profile)
+        Profile(
+        cid=profile.cid,
+        address=profile.address,
+        submitter_address=profile.submitter_address,
+        submission_timestamp=profile.submission_timestamp,
+        is_notarized=profile.is_notarized,
+        last_recorded_status=StatusEnum.SUPER_ADJUDICATION_ROUND_COMPLETED,  # Changed
+        challenge_timestamp=profile.challenge_timestamp,
+        challenger_address=profile.challenger_address,
+        challenge_evidence_cid=profile.challenge_evidence_cid,
+        owner_evidence_cid=profile.owner_evidence_cid,
+        adjudication_timestamp=profile.adjudication_timestamp,
+        adjudicator_evidence_cid=profile.adjudicator_evidence_cid,
+        did_adjudicator_confirm_profile=profile.did_super_adjudicator_confirm_profile,
+        appeal_timestamp=profile.appeal_timestamp,
+        super_adjudication_timestamp=now,  # Changed
+        did_super_adjudicator_confirm_profile=should_confirm_profile  # Changed
+        ))
 
     maybe_settle(profile_id)
 
@@ -458,35 +443,49 @@ end
 func maybe_settle{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
         profile_id : felt):
     alloc_locals
-    # A profile can be challegned iff its status is one of the following
-    # See: https://lucid.app/lucidchart/df9f25d3-d9b0-4d0a-99d1-b1eac42eff3b/edit?viewport_loc=-1482%2C-119%2C4778%2C2436%2C0_0&invitationId=inv_56861740-601a-4a1e-8d61-58c60906253d
 
-    let (status) = get_challenge_status(profile_id)
-    let res = (status - ChallengeStatusEnum.appeal_opportunity_expired) *
-        (status - ChallengeStatusEnum.super_adjudication_round_completed)
+    let (profile) = get_profile(profile_id)
+    let (now) = _timestamp.read()
+    let (status) = _get_current_status(profile, now)
+    let res = (status - StatusEnum.APPEAL_OPPORTUNITY_EXPIRED) * (status - StatusEnum.SUPER_ADJUDICATION_ROUND_COMPLETED)
 
     if res == 0:
         # Learn the final outcome of the challenge
         let (local is_profile_confirmed) = get_is_profile_confirmed(profile_id)
-        let (profile) = get_profile(profile_id)
 
         if is_profile_confirmed == 1:
             # The challenger was wrong: take their deposit
-            _swallow_deposit(CHALLENGE_DEPOSIT_SIZE)
+            _swallow_deposit(consts.CHALLENGE_DEPOSIT_SIZE)
         else:
             # The submitter was wrong: take their deposit
-            _swallow_deposit(SUBMISSION_DEPOSIT_SIZE)
-
-            let (challenger_address) = _challenges.read(
-                profile_id, ChallengeStorageEnum.challenger_address)
+            _swallow_deposit(consts.SUBMISSION_DEPOSIT_SIZE)
 
             # The challenger was right: return their deposit and reward them
-            _return_deposit(challenger_address, CHALLENGE_DEPOSIT_SIZE)
-            _give_reward(challenger_address, SUBMISSION_DEPOSIT_SIZE)
+            _return_deposit(profile.challenger_address, consts.CHALLENGE_DEPOSIT_SIZE)
+            _give_reward(profile.challenger_address, consts.SUBMISSION_DEPOSIT_SIZE)
         end
 
-        _challenges.write(
-            profile_id, ChallengeStorageEnum.last_recorded_status, ChallengeStatusEnum.settled)
+        _profiles.write(
+            profile_id,
+            Profile(
+            cid=profile.cid,
+            address=profile.address,
+            submitter_address=profile.submitter_address,
+            submission_timestamp=profile.submission_timestamp,
+            is_notarized=profile.is_notarized,
+            last_recorded_status=StatusEnum.SETTLED,  # Changed
+            challenge_timestamp=profile.challenge_timestamp,
+            challenger_address=profile.challenger_address,
+            challenge_evidence_cid=profile.challenge_evidence_cid,
+            owner_evidence_cid=profile.owner_evidence_cid,
+            adjudication_timestamp=profile.adjudication_timestamp,
+            adjudicator_evidence_cid=profile.adjudicator_evidence_cid,
+            did_adjudicator_confirm_profile=profile.did_super_adjudicator_confirm_profile,
+            appeal_timestamp=profile.appeal_timestamp,
+            super_adjudication_timestamp=profile.super_adjudication_timestamp,
+            did_super_adjudicator_confirm_profile=profile.did_super_adjudicator_confirm_profile
+            ))
+
         tempvar pedersen_ptr = pedersen_ptr
         tempvar range_check_ptr = range_check_ptr
         tempvar syscall_ptr = syscall_ptr
@@ -497,260 +496,6 @@ func maybe_settle{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : fe
     end
 
     return ()
-end
-
-#
-# Accessors
-#
-
-@view
-func get_num_profiles{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}() -> (
-        res : felt):
-    let (num_profiles) = _num_profiles.read()
-    return (num_profiles)
-end
-
-# automatically advances between statuses based on timeouts. It follows the gray "timeout" lines on this chart:
-# https://lucid.app/lucidchart/df9f25d3-d9b0-4d0a-99d1-b1eac42eff3b/edit?viewport_loc=-1482%2C-119%2C4778%2C2436%2C0_0&invitationId=inv_56861740-601a-4a1e-8d61-58c60906253d
-@view
-func get_challenge_status{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
-        profile_id) -> (status : felt):
-    alloc_locals
-    local pedersen_ptr : HashBuiltin* = pedersen_ptr
-    local range_check_ptr : felt = range_check_ptr
-    local syscall_ptr : felt* = syscall_ptr
-
-    let (now) = _timestamp.read()
-    let (last_recorded_status) = _challenges.read(
-        profile_id, ChallengeStorageEnum.last_recorded_status)
-
-    #
-    # Not challenged
-    #
-
-    if last_recorded_status == ChallengeStatusEnum.not_challenged:
-        return (ChallengeStatusEnum.not_challenged)
-    end
-
-    #
-    # Challenged
-    #
-
-    if last_recorded_status == ChallengeStatusEnum.challenged:
-        let (challenge_timestamp) = _challenges.read(
-            profile_id, ChallengeStorageEnum.challenge_timestamp)
-        let (now) = _timestamp.read()
-        let time_passed = now - challenge_timestamp
-
-        # Potentially time out all the way through `adjudication_round_completed` to `appeal_opportunity_expired`
-        let (has_appeal_opportunity_expired) = is_le(
-            ADJUDICATION_TIME_WINDOW + APPEAL_TIME_WINDOW, time_passed)
-        if has_appeal_opportunity_expired == 1:
-            return (ChallengeStatusEnum.appeal_opportunity_expired)
-        end
-
-        # Potentially time out to `adjudication_round_completed`
-        let (has_adjudication_opportunity_expired) = is_le(ADJUDICATION_TIME_WINDOW, time_passed)
-        if has_adjudication_opportunity_expired == 1:
-            return (ChallengeStatusEnum.adjudication_round_completed)
-        end
-
-        return (ChallengeStatusEnum.challenged)
-    end
-
-    #
-    # Adjudicated
-    #
-
-    if last_recorded_status == ChallengeStatusEnum.adjudication_round_completed:
-        let (adjudication_timestamp) = _challenges.read(
-            profile_id, ChallengeStorageEnum.adjudication_timestamp)
-        let (now) = _timestamp.read()
-        let time_passed = now - adjudication_timestamp
-
-        # Potentially auto-advance to `appeal_opportunity_expired`
-        let (has_appeal_opportunity_expired) = is_le(APPEAL_TIME_WINDOW, time_passed)
-        if has_appeal_opportunity_expired == 1:
-            return (ChallengeStatusEnum.appeal_opportunity_expired)
-        end
-
-        return (ChallengeStatusEnum.adjudication_round_completed)
-    end
-
-    #
-    # Appealed
-    #
-
-    if last_recorded_status == ChallengeStatusEnum.appealed:
-        let (appeal_timestamp) = _challenges.read(profile_id, ChallengeStorageEnum.appeal_timestamp)
-        let (now) = _timestamp.read()
-        let time_passed = now - appeal_timestamp
-
-        # Potentially auto-advance to `super_adjudication_round_completed`
-        let (has_super_adjudication_opportunity_expired) = is_le(
-            SUPER_ADJUDICATION_TIME_WINDOW, time_passed)
-        if has_super_adjudication_opportunity_expired == 1:
-            return (ChallengeStatusEnum.super_adjudication_round_completed)
-        end
-
-        return (ChallengeStatusEnum.appealed)
-    end
-
-    #
-    # Super adjudicated
-    #
-
-    if last_recorded_status == ChallengeStatusEnum.super_adjudication_round_completed:
-        return (ChallengeStatusEnum.super_adjudication_round_completed)
-    end
-
-    #
-    # Settled
-    #
-
-    if last_recorded_status == ChallengeStatusEnum.settled:
-        return (ChallengeStatusEnum.settled)
-    end
-
-    assert 0 = 1  # Should be unreachable
-    return (0)
-end
-
-@view
-func get_is_profile_confirmed{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
-        profile_id : felt) -> (res : felt):
-    alloc_locals
-    let (challenge_status) = get_challenge_status(profile_id)
-
-    #
-    # Status is `not_challenged`
-    #
-
-    if challenge_status == ChallengeStatusEnum.not_challenged:
-        # confirmed if notarized OR survived provisional period without being challenged
-        let (local profile : Profile) = get_profile(profile_id)
-        let (is_provisional) = get_is_profile_provisional(profile)
-
-        # is_notarized || !is_provisional
-        if (profile.is_notarized - 1) * is_provisional == 0:
-            return (1)
-        else:
-            return (0)
-        end
-    end
-
-    #
-    # All other statuses, e.g. `challenged`, `adjudicated`, ...
-    #
-
-    # Logic:
-    # 1. A super adjudiciation is determinative
-    # 2. Absent that, adjudication is determinative
-    # 3. Absent that, presume innocence or not depending on whether the profile was still provisional when it was challenged
-
-    let (did_super_adjudication_occur) = _get_did_super_adjudication_occur(profile_id)
-    if did_super_adjudication_occur == 1:
-        let (res) = _challenges.read(
-            profile_id, ChallengeStorageEnum.did_super_adjudicator_confirm_profile)
-        return (res)
-    end
-
-    let (did_adjudication_occur) = _get_did_adjudication_occur(profile_id)
-    if did_adjudication_occur == 1:
-        let (res) = _challenges.read(
-            profile_id, ChallengeStorageEnum.did_adjudicator_confirm_profile)
-        return (res)
-    end
-
-    let (profile) = get_profile(profile_id)
-    let (challenge_timestamp) = _challenges.read(
-        profile_id, ChallengeStorageEnum.challenge_timestamp)
-    let (is_presumed_innocent) = is_le(
-        PROVISIONAL_TIME_WINDOW, challenge_timestamp - profile.submission_timestamp)
-
-    # XXX: consider a case where the adjudicator and the super adjudicator both time out...
-    # Super edge case, but we decided to side with the challenger in that case
-
-    return (is_presumed_innocent)
-end
-
-@view
-func get_is_address_confirmed{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
-        address : felt) -> (res : felt):
-    let (profile_id) = _map_address_to_profile_id.read(address)
-    assert_not_zero(profile_id)
-    let (res) = get_is_profile_confirmed(profile_id)
-    return (res)
-end
-
-@view
-func get_profile{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
-        profile_id : felt) -> (res : Profile):
-    let (profile) = _profiles.read(profile_id)
-    assert_not_zero(profile.cid)
-    return (profile)
-end
-
-@view
-func get_profile_by_address{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
-        address : felt) -> (profile_id : felt, profile : Profile):
-    let (profile_id) = _map_address_to_profile_id.read(address)
-    assert_not_zero(profile_id)
-    let (profile) = _profiles.read(profile_id)
-    assert_not_zero(profile.cid)
-    return (profile_id, profile)
-end
-
-# TODO: rename the provisional concept to be more concrete, e.g. is in provisional time window
-func get_is_profile_provisional{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
-        profile : Profile) -> (res : felt):
-    alloc_locals
-    local pedersen_ptr : HashBuiltin* = pedersen_ptr
-    let (now) = _timestamp.read()
-    let (res) = is_le(now - profile.submission_timestamp, PROVISIONAL_TIME_WINDOW)
-    return (res)
-end
-
-@view
-func get_amount_available_for_challenge_rewards{
-        pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}() -> (res : felt):
-    let (token_address) = _token_address.read()
-    let (self_address) = get_contract_address()
-    let (reserved_balance) = _reserved_balance.read()
-
-    # Any funds that aren't challenge deposit reserves are for the security reward pool
-    let (total_funds) = IERC20.balance_of(contract_address=token_address, account=self_address)
-    return (total_funds.low - reserved_balance)
-end
-
-@view
-func export_profile_by_id{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
-        profile_id : felt) -> (
-        profile : Profile, challenge : ChallengeStorageEnum, num_profiles : felt):
-    alloc_locals
-    let (profile) = get_profile(profile_id)
-    let (num_profiles) = _num_profiles.read()
-
-    # An array of felts
-    let (challenge_storage : felt*) = alloc()
-
-    # Populate array of felts
-    _load_challenge_felts(challenge_storage, profile_id, 0)
-
-    # Abusing ChallengeStatusEnum as an actual struct (instead of an enum)
-    let challenge_storage_ptr : ChallengeStorageEnum* = cast(challenge_storage, ChallengeStorageEnum*)
-
-    return (profile, [challenge_storage_ptr], num_profiles)
-end
-
-func _load_challenge_felts{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
-        challenge_storage : felt*, profile_id, i):
-    if i == ChallengeStorageEnum.SIZE:
-        return ()
-    end
-    let (value) = _challenges.read(profile_id, i)
-    assert challenge_storage[i] = value  # set challenge_storage[i]
-    return _load_challenge_felts(challenge_storage, profile_id, i + 1)
 end
 
 #
@@ -824,11 +569,159 @@ func _give_reward{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : fe
 end
 
 #
+# Accessors
+#
+
+@view
+func get_num_profiles{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}() -> (
+        res : felt):
+    let (num_profiles) = _num_profiles.read()
+    return (num_profiles)
+end
+
+@view
+func get_current_status{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
+        profile_id : felt) -> (res : felt):
+    let (profile) = get_profile(profile_id)
+    let (now) = _timestamp.read()
+    let (status) = _get_current_status(profile, now)
+    return (status)
+end
+
+# TODO: move this over to types.cairo
+@view
+func get_is_profile_confirmed{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
+        profile_id : felt) -> (res : felt):
+    alloc_locals
+    let (now) = _timestamp.read()
+    let (profile) = get_profile(profile_id)
+    let (status) = _get_current_status(profile, now)
+
+    #
+    # Status is `not_challenged`
+    #
+
+    if status == StatusEnum.NOT_CHALLENGED:
+        # confirmed if notarized OR survived provisional period without being challenged
+        let (local profile : Profile) = get_profile(profile_id)
+        let (is_provisional) = get_is_profile_provisional(profile)
+
+        # is_notarized || !is_provisional
+        if (profile.is_notarized - 1) * is_provisional == 0:
+            return (1)
+        else:
+            return (0)
+        end
+    end
+
+    #
+    # All other statuses, e.g. `challenged`, `adjudicated`, ...
+    #
+
+    # Logic:
+    # 1. A super adjudiciation is determinative
+    # 2. Absent that, adjudication is determinative
+    # 3. Absent that, presume innocence or not depending on whether the profile was still provisional when it was challenged
+
+    let (did_super_adjudication_occur) = _get_did_super_adjudication_occur(profile)
+    if did_super_adjudication_occur == 1:
+        return (profile.did_super_adjudicator_confirm_profile)
+    end
+
+    let (did_adjudication_occur) = _get_did_adjudication_occur(profile)
+    if did_adjudication_occur == 1:
+        return (profile.did_adjudicator_confirm_profile)
+    end
+
+    let (is_presumed_innocent) = is_le(
+        consts.PROVISIONAL_TIME_WINDOW, profile.challenge_timestamp - profile.submission_timestamp)
+
+    # XXX: consider a case where the adjudicator and the super adjudicator both time out...
+    # Super edge case, but we decided to side with the challenger in that case
+
+    return (is_presumed_innocent)
+end
+
+@view
+func get_is_address_confirmed{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
+        address : felt) -> (res : felt):
+    let (profile_id) = _map_address_to_profile_id.read(address)
+    assert_not_zero(profile_id)
+    let (res) = get_is_profile_confirmed(profile_id)
+    return (res)
+end
+
+@view
+func get_profile{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
+        profile_id : felt) -> (res : Profile):
+    let (profile) = _profiles.read(profile_id)
+    assert_not_zero(profile.cid)  # Ensure profile exists
+    return (profile)
+end
+
+@view
+func get_profile_by_address{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
+        address : felt) -> (profile_id : felt, profile : Profile):
+    let (profile_id) = _map_address_to_profile_id.read(address)
+    assert_not_zero(profile_id)
+    let (profile) = _profiles.read(profile_id)
+    assert_not_zero(profile.cid)
+    return (profile_id, profile)
+end
+
+# TODO: rename the provisional concept to be more concrete, e.g. is in provisional time window
+func get_is_profile_provisional{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
+        profile : Profile) -> (res : felt):
+    alloc_locals
+    local pedersen_ptr : HashBuiltin* = pedersen_ptr
+    let (now) = _timestamp.read()
+    let (res) = is_le(now - profile.submission_timestamp, consts.PROVISIONAL_TIME_WINDOW)
+    return (res)
+end
+
+@view
+func get_amount_available_for_challenge_rewards{
+        pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}() -> (res : felt):
+    let (token_address) = _token_address.read()
+    let (self_address) = get_contract_address()
+    let (reserved_balance) = _reserved_balance.read()
+
+    # Any funds that aren't challenge deposit reserves are for the security reward pool
+    let (total_funds) = IERC20.balance_of(contract_address=token_address, account=self_address)
+    return (total_funds.low - reserved_balance)
+end
+
+@view
+func export_profile_by_id{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
+        profile_id : felt) -> (profile : Profile, num_profiles : felt):
+    alloc_locals
+    let (profile) = get_profile(profile_id)
+    let (num_profiles) = _num_profiles.read()
+    return (profile, num_profiles)
+end
+
+@view
+func get_token_address{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}() -> (
+        token_address : felt):
+    return _token_address.read()
+end
+
+@view
+func get_submission_deposit_size() -> (res : felt):
+    return (consts.SUBMISSION_DEPOSIT_SIZE)
+end
+
+@view
+func get_challenge_deposit_size() -> (res : felt):
+    return (consts.CHALLENGE_DEPOSIT_SIZE)
+end
+
+#
 # Roles and guards
 #
 
-func _get_caller_profile_id{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
-        ) -> (profile_id : felt):
+func get_caller_profile_id{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}() -> (
+        profile_id : felt):
     let (caller_address) = get_caller_address()
     let (profile_id) = _map_address_to_profile_id.read(caller_address)
     assert_not_zero(profile_id)
@@ -843,13 +736,13 @@ func get_is_caller_notary{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_
     return (is_notary)
 end
 
-func assert_is_caller_notary{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}():
+func assert_caller_is_notary{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}():
     let (is_notary) = get_is_caller_notary()
     assert is_notary = 1
     return ()
 end
 
-func assert_is_caller_adjudicator{
+func assert_caller_is_adjudicator{
         pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}():
     let (adjudicator_address) = _adjudicator_address.read()
     let (caller_address) = get_caller_address()
@@ -857,7 +750,7 @@ func assert_is_caller_adjudicator{
     return ()
 end
 
-func assert_is_caller_admin{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}():
+func assert_caller_is_admin{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}():
     let (caller_address) = get_caller_address()
     let (admin_address) = _admin_address.read()
     let (res) = get_is_equal(admin_address, caller_address)
@@ -870,42 +763,4 @@ func assert_is_unused_address{pedersen_ptr : HashBuiltin*, range_check_ptr, sysc
     let (profile_id) = _map_address_to_profile_id.read(address)
     assert profile_id = 0
     return ()
-end
-
-func assert_profile_exists{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
-        profile_id : felt):
-    # Getting a profile asserts its existence
-    let (_ : felt) = get_profile(profile_id)
-    return ()
-end
-
-@view
-func get_token_address{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}() -> (
-        token_address : felt):
-    return _token_address.read()
-end
-
-@view
-func get_submission_deposit_size() -> (res : felt):
-    return (SUBMISSION_DEPOSIT_SIZE)
-end
-
-@view
-func get_challenge_deposit_size() -> (res : felt):
-    return (CHALLENGE_DEPOSIT_SIZE)
-end
-
-func assert_is_boolean{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(x : felt):
-    # x == 0 || x == 1
-    assert ((x - 1) * x) = 0
-    return ()
-end
-
-func get_is_equal{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
-        a : felt, b : felt) -> (res : felt):
-    if a == b:
-        return (1)
-    else:
-        return (0)
-    end
 end

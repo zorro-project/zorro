@@ -12,16 +12,16 @@ async def get_is_address_confirmed(ctx, address):
     return is_confirmed
 
 
-async def get_challenge_status(ctx, profile_id):
-    (challenge_status,) = (await ctx.nym.get_challenge_status(profile_id).call()).result
+async def get_current_status(ctx, profile_id):
+    (challenge_status,) = (await ctx.nym.get_current_status(profile_id).call()).result
     return challenge_status
 
 
 async def export_profile_by_id(ctx, profile_id):
-    (profile, challenge_storage, nym_profiles) = (
+    (profile, num_profiles) = (
         await ctx.nym.export_profile_by_id(profile_id).call()
     ).result
-    return (profile, challenge_storage)
+    return profile
 
 
 async def erc20_approve(ctx, account_name, amount):
@@ -77,7 +77,7 @@ async def submit_and_challenge(ctx):
     cid = 1234567
     (profile_id, profile) = await submit(ctx, "notary", cid, address)
 
-    assert await get_challenge_status(ctx, profile_id) == 0
+    assert await get_current_status(ctx, profile_id) == 0
 
     # should already be confirmed, because submitted by a notary
     assert await get_is_address_confirmed(ctx, address) == 1
@@ -89,15 +89,13 @@ async def submit_and_challenge(ctx):
         "challenger", ctx.nym.contract_address, "challenge", [profile_id, evidence_cid]
     )
 
-    assert await get_challenge_status(ctx, profile_id) != 0
+    assert await get_current_status(ctx, profile_id) != 0
 
-    (profile, challenge_storage) = await export_profile_by_id(ctx, profile_id)
+    (profile) = await export_profile_by_id(ctx, profile_id)
 
-    assert challenge_storage.last_recorded_status == 1
-    assert challenge_storage.challenge_evidence_cid == evidence_cid
-    assert (
-        challenge_storage.challenger_address == ctx.accounts.challenger.contract_address
-    )
+    assert profile.last_recorded_status == 1
+    assert profile.challenge_evidence_cid == evidence_cid
+    assert profile.challenger_address == ctx.accounts.challenger.contract_address
 
     # Being challenged during provisional time window should result in profile being not confirmed
     assert await get_is_address_confirmed(ctx, address) == 0
@@ -124,15 +122,15 @@ async def test_adjudication_in_favor_of_profile(ctx_factory):
         [profile_id, adjudicator_evidence_cid, 1],
     )
 
-    (profile, challenge_storage) = await export_profile_by_id(ctx, profile_id)
-    print(challenge_storage)
+    (profile) = await export_profile_by_id(ctx, profile_id)
+    print(profile)
 
-    assert challenge_storage.last_recorded_status == 2
-    assert challenge_storage.adjudicator_evidence_cid == adjudicator_evidence_cid
-    assert challenge_storage.did_adjudicator_confirm_profile == 1
+    assert profile.last_recorded_status == 2
+    assert profile.adjudicator_evidence_cid == adjudicator_evidence_cid
+    assert profile.did_adjudicator_confirm_profile == 1
 
     assert await get_is_address_confirmed(ctx, address) == 1
-    assert await get_challenge_status(ctx, profile_id) == 2
+    assert await get_current_status(ctx, profile_id) == 2
 
 
 @pytest.mark.asyncio
