@@ -6,6 +6,7 @@
     "starknet-devnet": "poetry run starknet-devnet",
     "compile": "hardhat starknet-compile",
     "compile:nym": "hardhat starknet-compile contracts/nym.cairo",
+    "watch": "(cd contracts && find . -name '*.cairo' | entr yarn fast-compile:nym)",
     "fast-compile:nym": "(cd contracts && poetry run starknet-compile nym.cairo)",
     "deploy": "hardhat run ./scripts/deploy.ts --network goerli",
     "test": "(cd contracts && poetry run pytest --cache-clear -s -W ignore::DeprecationWarning ../test/test.py)",
