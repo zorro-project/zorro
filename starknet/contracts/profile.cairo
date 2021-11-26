@@ -68,6 +68,14 @@ func _get_did_super_adjudication_occur(profile : Profile) -> (res : felt):
     return (1)
 end
 
+func _get_is_in_provisional_time_window{
+        pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
+        profile : Profile, now) -> (res : felt):
+    let time_passed_since_submission = now - profile.submission_timestamp
+    let (res) = is_le(time_passed_since_submission, consts.PROVISIONAL_TIME_WINDOW)
+    return (res)
+end
+
 # automatically advances between statuses based on timeouts. It follows the gray "timeout" lines on this chart:
 # https://lucid.app/lucidchart/df9f25d3-d9b0-4d0a-99d1-b1eac42eff3b/edit?viewport_loc=-1482%2C-119%2C4778%2C2436%2C0_0&invitationId=inv_56861740-601a-4a1e-8d61-58c60906253d
 func _get_current_status{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
@@ -160,4 +168,54 @@ func _get_current_status{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_p
 
     assert 0 = 1  # Should be unreachable
     return (0)
+end
+
+# TODO: move this over to profile.cairo
+func _get_is_confirmed{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
+        profile : Profile, now : felt) -> (res : felt):
+    alloc_locals
+    let (status) = _get_current_status(profile, now)
+
+    #
+    # Status is `not_challenged`
+    #
+
+    if status == StatusEnum.NOT_CHALLENGED:
+        # confirmed if notarized OR survived provisional period without being challenged
+        let (is_provisional) = _get_is_in_provisional_time_window(profile, now)
+
+        # is_notarized || !is_provisional
+        if (profile.is_notarized - 1) * is_provisional == 0:
+            return (1)
+        else:
+            return (0)
+        end
+    end
+
+    #
+    # All other statuses, e.g. `challenged`, `adjudicated`, ...
+    #
+
+    # Logic:
+    # 1. A super adjudiciation is determinative
+    # 2. Absent that, adjudication is determinative
+    # 3. Absent that, presume innocence or not depending on whether the profile was still provisional when it was challenged
+
+    let (did_super_adjudication_occur) = _get_did_super_adjudication_occur(profile)
+    if did_super_adjudication_occur == 1:
+        return (profile.did_super_adjudicator_confirm_profile)
+    end
+
+    let (did_adjudication_occur) = _get_did_adjudication_occur(profile)
+    if did_adjudication_occur == 1:
+        return (profile.did_adjudicator_confirm_profile)
+    end
+
+    let (is_presumed_innocent) = is_le(
+        consts.PROVISIONAL_TIME_WINDOW, profile.challenge_timestamp - profile.submission_timestamp)
+
+    # XXX: consider a case where the adjudicator and the super adjudicator both time out...
+    # Super edge case, but we decided to side with the challenger in that case
+
+    return (is_presumed_innocent)
 end

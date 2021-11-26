@@ -5,22 +5,18 @@ from OpenZeppelin.Signer import Signer
 from utils import uint
 
 
-async def get_is_address_confirmed(ctx, address):
-    (is_confirmed,) = (
-        await ctx.nym.get_is_address_confirmed(address=address).call()
-    ).result
+async def get_is_confirmed(ctx, address):
+    (is_confirmed,) = (await ctx.nym.get_is_confirmed(address=address).call()).result
     return is_confirmed
 
 
 async def get_current_status(ctx, profile_id):
-    (challenge_status,) = (await ctx.nym.get_current_status(profile_id).call()).result
-    return challenge_status
+    (_, _, status) = (await ctx.nym.export_profile_by_id(profile_id).call()).result
+    return status
 
 
-async def export_profile_by_id(ctx, profile_id):
-    (profile, num_profiles) = (
-        await ctx.nym.export_profile_by_id(profile_id).call()
-    ).result
+async def get_profile_by_id(ctx, profile_id):
+    (profile) = (await ctx.nym.get_profile_by_id(profile_id).call()).result
     return profile
 
 
@@ -80,7 +76,7 @@ async def submit_and_challenge(ctx):
     assert await get_current_status(ctx, profile_id) == 0
 
     # should already be confirmed, because submitted by a notary
-    assert await get_is_address_confirmed(ctx, address) == 1
+    assert await get_is_confirmed(ctx, address) == 1
 
     # XXX: check balance before and after
     evidence_cid = 100
@@ -91,14 +87,14 @@ async def submit_and_challenge(ctx):
 
     assert await get_current_status(ctx, profile_id) != 0
 
-    (profile) = await export_profile_by_id(ctx, profile_id)
+    (profile) = await get_profile_by_id(ctx, profile_id)
 
     assert profile.last_recorded_status == 1
     assert profile.challenge_evidence_cid == evidence_cid
     assert profile.challenger_address == ctx.accounts.challenger.contract_address
 
     # Being challenged during provisional time window should result in profile being not confirmed
-    assert await get_is_address_confirmed(ctx, address) == 0
+    assert await get_is_confirmed(ctx, address) == 0
 
     return (profile_id, address)
 
@@ -122,14 +118,14 @@ async def test_adjudication_in_favor_of_profile(ctx_factory):
         [profile_id, adjudicator_evidence_cid, 1],
     )
 
-    (profile) = await export_profile_by_id(ctx, profile_id)
+    (profile) = await get_profile_by_id(ctx, profile_id)
     print(profile)
 
     assert profile.last_recorded_status == 2
     assert profile.adjudicator_evidence_cid == adjudicator_evidence_cid
     assert profile.did_adjudicator_confirm_profile == 1
 
-    assert await get_is_address_confirmed(ctx, address) == 1
+    assert await get_is_confirmed(ctx, address) == 1
     assert await get_current_status(ctx, profile_id) == 2
 
 
@@ -145,7 +141,7 @@ async def test_adjudication_against_profile(ctx_factory):
         "adjudicate",
         [profile_id, adjudicator_evidence_cid, 0],
     )
-    assert await get_is_address_confirmed(ctx, address) == 0
+    assert await get_is_confirmed(ctx, address) == 0
 
 
 @pytest.mark.asyncio
