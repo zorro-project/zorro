@@ -16,7 +16,7 @@ async def get_current_status(ctx, profile_id):
 
 
 async def get_profile_by_id(ctx, profile_id):
-    (profile) = (await ctx.nym.get_profile_by_id(profile_id).call()).result
+    (profile,) = (await ctx.nym.get_profile_by_id(profile_id).call()).result
     return profile
 
 
@@ -87,7 +87,7 @@ async def submit_and_challenge(ctx):
 
     assert await get_current_status(ctx, profile_id) != 0
 
-    (profile) = await get_profile_by_id(ctx, profile_id)
+    profile = await get_profile_by_id(ctx, profile_id)
 
     assert profile.last_recorded_status == 1
     assert profile.challenge_evidence_cid == evidence_cid
@@ -118,7 +118,7 @@ async def test_adjudication_in_favor_of_profile(ctx_factory):
         [profile_id, adjudicator_evidence_cid, 1],
     )
 
-    (profile) = await get_profile_by_id(ctx, profile_id)
+    profile = await get_profile_by_id(ctx, profile_id)
     print(profile)
 
     assert profile.last_recorded_status == 2

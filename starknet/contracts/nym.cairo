@@ -28,13 +28,11 @@ from profile import (
 func _timestamp() -> (res : felt):
 end
 
-# XXX: fn for admin to change the notary address
 # The protocol is designed to degrade gracefully if the notary misbehaves
 @storage_var
 func _notary_address() -> (res : felt):
 end
 
-# XXX: fn for changing adjudicator address
 # The protocol is designed to degrade gracefully if the adjudicator misbehaves
 @storage_var
 func _adjudicator_address() -> (res : felt):

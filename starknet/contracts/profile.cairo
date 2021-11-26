@@ -170,7 +170,6 @@ func _get_current_status{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_p
     return (0)
 end
 
-# TODO: move this over to profile.cairo
 func _get_is_confirmed{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
         profile : Profile, now : felt) -> (res : felt):
     alloc_locals
