@@ -5,11 +5,10 @@ from consts import consts
 
 struct Profile:
     member cid : felt  # cidv1 for profile pic/video/etc
-    member address : felt  # starknet address
+    member address : felt
     member submitter_address : felt
     member submission_timestamp : felt
     member is_notarized : felt
-
     member last_recorded_status : felt  # one of StatusEnum
 
     # Set in same tx that shifts `last_recorded_status` to `challenged`:

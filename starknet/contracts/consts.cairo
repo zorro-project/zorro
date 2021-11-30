@@ -1,6 +1,7 @@
 namespace consts:
     const SUBMISSION_DEPOSIT_SIZE = 25  # This constant is also in test.py
     const CHALLENGE_DEPOSIT_SIZE = 25  # This constant is also in test.py
+    const CHALLENGE_REWARD_SIZE = 25
 
     # Profiles challenged while still provision are presumed to be invalid; those challenged after are presumed valid
     const PROVISIONAL_TIME_WINDOW = 9 * 24 * 60 * 60  # 9 days

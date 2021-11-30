@@ -68,11 +68,12 @@ end
 func _profiles(profile_id : felt) -> (res : Profile):
 end
 
+# Map from profile_id to a `1` iff submission deposit was spent
 @storage_var
-func _challenges(profile_id : felt, challenge_storage_index : felt) -> (res : felt):
+func _submission_deposit_spends(profile_id : felt) -> (res : felt):
 end
 
-# Map from starknet address to `profile_id`
+# Map from address to `profile_id`
 @storage_var
 func _map_address_to_profile_id(address : felt) -> (profile_id : felt):
 end
@@ -315,6 +316,7 @@ func submit_evidence{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr :
         super_adjudication_timestamp=profile.super_adjudication_timestamp,
         did_super_adjudicator_confirm_profile=profile.did_super_adjudicator_confirm_profile
         ))
+
     return ()
 end
 
@@ -435,8 +437,32 @@ func super_adjudicate{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr 
     return ()
 end
 
-# XXX: need to handle case where submitter's deposit was vs. wasn't already returned
-# XXX: verify logic
+@external
+func maybe_return_submission_deposit{
+        pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(profile_id : felt):
+    alloc_locals
+    let (now) = _timestamp.read()
+    let (profile) = get_profile_by_id(profile_id)
+
+    # Hold deposit in reserve until profile is outside of its provisional time window
+    let (is_in_provisional_time_window) = _get_is_in_provisional_time_window(profile, now)
+    if is_in_provisional_time_window == 1:
+        return ()
+    end
+
+    # Hold deposit if profile isn't confirmed (due to being challenged, etc)
+    let (is_confirmed) = _get_is_confirmed(profile, now)
+    if is_confirmed == 1:
+        return ()
+    end
+
+    let (submission_deposit_size) = get_submission_deposit_size(profile.submission_timestamp)
+    _return_submission_deposit_if_unspent(
+        profile_id, profile.submitter_address, submission_deposit_size)
+
+    return ()
+end
+
 @external
 func maybe_settle{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
         profile_id : felt):
@@ -447,49 +473,94 @@ func maybe_settle{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : fe
     let (status) = _get_current_status(profile, now)
     let res = (status - StatusEnum.APPEAL_OPPORTUNITY_EXPIRED) * (status - StatusEnum.SUPER_ADJUDICATION_ROUND_COMPLETED)
 
-    if res == 0:
-        # Learn the final outcome of the challenge
-        let (local is_confirmed) = _get_is_confirmed(profile, now)
+    # Only settle if appeal opportunity expired or if adjudication round is complete
+    if res != 0:
+        return ()
+    end
 
-        if is_confirmed == 1:
-            # The challenger was wrong: take their deposit
-            _swallow_deposit(consts.CHALLENGE_DEPOSIT_SIZE)
-        else:
-            # The submitter was wrong: take their deposit
-            _swallow_deposit(consts.SUBMISSION_DEPOSIT_SIZE)
+    let (submission_deposit_size) = get_submission_deposit_size(profile.submission_timestamp)
+    let (challenge_deposit_size) = get_challenge_deposit_size(profile.challenge_timestamp)
 
-            # The challenger was right: return their deposit and reward them
-            _return_deposit(profile.challenger_address, consts.CHALLENGE_DEPOSIT_SIZE)
-            _give_reward(profile.challenger_address, consts.SUBMISSION_DEPOSIT_SIZE)
-        end
+    # Learn the final outcome of the challenge
+    let (did_challenger_lose) = _get_is_confirmed(profile, now)
 
-        _profiles.write(
-            profile_id,
-            Profile(
-            cid=profile.cid,
-            address=profile.address,
-            submitter_address=profile.submitter_address,
-            submission_timestamp=profile.submission_timestamp,
-            is_notarized=profile.is_notarized,
-            last_recorded_status=StatusEnum.SETTLED,  # Changed
-            challenge_timestamp=profile.challenge_timestamp,
-            challenger_address=profile.challenger_address,
-            challenge_evidence_cid=profile.challenge_evidence_cid,
-            owner_evidence_cid=profile.owner_evidence_cid,
-            adjudication_timestamp=profile.adjudication_timestamp,
-            adjudicator_evidence_cid=profile.adjudicator_evidence_cid,
-            did_adjudicator_confirm_profile=profile.did_super_adjudicator_confirm_profile,
-            appeal_timestamp=profile.appeal_timestamp,
-            super_adjudication_timestamp=profile.super_adjudication_timestamp,
-            did_super_adjudicator_confirm_profile=profile.did_super_adjudicator_confirm_profile
-            ))
+    if did_challenger_lose == 1:
+        _return_submission_deposit_if_unspent(
+            profile_id, profile.submitter_address, submission_deposit_size)
+        _swallow_deposit(challenge_deposit_size)  # swallow challenger's deposit
+    else:
+        _swallow_submission_deposit_if_unspent(profile_id, submission_deposit_size)
+        _return_deposit(profile.challenger_address, challenge_deposit_size)  # return challenger's deposit
 
-        tempvar pedersen_ptr = pedersen_ptr
+        # Reward challenger
+        let (challenge_reward_size) = get_challenge_reward_size(profile.challenge_timestamp)
+        _maybe_give_reward(profile.challenger_address, challenge_reward_size)
+    end
+
+    # Other way to factor this would be...
+    # 1. Handle submission deposit
+    # 2. Handle challenge deposit
+    # 3. Hande challenge reward
+
+    # Set `last_recorded_status` to `SETTLED`
+    _profiles.write(
+        profile_id,
+        Profile(
+        cid=profile.cid,
+        address=profile.address,
+        submitter_address=profile.submitter_address,
+        submission_timestamp=profile.submission_timestamp,
+        is_notarized=profile.is_notarized,
+        last_recorded_status=StatusEnum.SETTLED,  # Changed
+        challenge_timestamp=profile.challenge_timestamp,
+        challenger_address=profile.challenger_address,
+        challenge_evidence_cid=profile.challenge_evidence_cid,
+        owner_evidence_cid=profile.owner_evidence_cid,
+        adjudication_timestamp=profile.adjudication_timestamp,
+        adjudicator_evidence_cid=profile.adjudicator_evidence_cid,
+        did_adjudicator_confirm_profile=profile.did_super_adjudicator_confirm_profile,
+        appeal_timestamp=profile.appeal_timestamp,
+        super_adjudication_timestamp=profile.super_adjudication_timestamp,
+        did_super_adjudicator_confirm_profile=profile.did_super_adjudicator_confirm_profile
+        ))
+
+    return ()
+end
+
+func _return_submission_deposit_if_unspent{
+        pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
+        profile_id, submitter_address, amount):
+    let (was_submission_deposit_spent) = _submission_deposit_spends.read(profile_id)
+
+    if was_submission_deposit_spent == 0:
+        _return_deposit(submitter_address, amount)
+        _submission_deposit_spends.write(profile_id, 1)
+
         tempvar range_check_ptr = range_check_ptr
+        tempvar pedersen_ptr = pedersen_ptr
         tempvar syscall_ptr = syscall_ptr
     else:
-        tempvar pedersen_ptr = pedersen_ptr
         tempvar range_check_ptr = range_check_ptr
+        tempvar pedersen_ptr = pedersen_ptr
+        tempvar syscall_ptr = syscall_ptr
+    end
+
+    return ()
+end
+
+func _swallow_submission_deposit_if_unspent{
+        pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(profile_id, amount):
+    let (was_submission_deposit_spent) = _submission_deposit_spends.read(profile_id)
+
+    if was_submission_deposit_spent == 0:
+        _swallow_deposit(amount)
+        _submission_deposit_spends.write(profile_id, 1)
+        tempvar range_check_ptr = range_check_ptr
+        tempvar pedersen_ptr = pedersen_ptr
+        tempvar syscall_ptr = syscall_ptr
+    else:
+        tempvar range_check_ptr = range_check_ptr
+        tempvar pedersen_ptr = pedersen_ptr
         tempvar syscall_ptr = syscall_ptr
     end
 
@@ -537,7 +608,7 @@ func _swallow_deposit{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr 
     return ()
 end
 
-func _give_reward{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
+func _maybe_give_reward{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
         address, amount : felt):
     alloc_locals
 
@@ -577,13 +648,21 @@ func get_token_address{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_c
 end
 
 @view
-func get_submission_deposit_size() -> (res : felt):
+func get_submission_deposit_size(timestamp : felt) -> (res : felt):
+    # Constant for now, but later may depend on time
     return (consts.SUBMISSION_DEPOSIT_SIZE)
 end
 
 @view
-func get_challenge_deposit_size() -> (res : felt):
+func get_challenge_deposit_size(timestamp : felt) -> (res : felt):
+    # Constant for now, but later may depend on time
     return (consts.CHALLENGE_DEPOSIT_SIZE)
+end
+
+@view
+func get_challenge_reward_size(timestamp : felt) -> (res : felt):
+    # Constant for now, but later may depend on time
+    return (consts.CHALLENGE_REWARD_SIZE)
 end
 
 @view
