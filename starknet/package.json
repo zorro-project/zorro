@@ -3,14 +3,27 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
+    "//": "Fun fact! the '//' key in will never be used by npm and is reserved for commenting.",
+
+    "//": "starknet-devnet isn't used yet, but probably will be at some point",
     "starknet-devnet": "poetry run starknet-devnet",
-    "compile": "hardhat starknet-compile",
-    "compile:nym": "hardhat starknet-compile contracts/nym.cairo",
-    "watch": "(cd contracts && find . -name '*.cairo' | entr yarn fast-compile:nym)",
-    "fast-compile:nym": "(cd contracts && poetry run starknet-compile nym.cairo)",
-    "deploy": "hardhat run ./scripts/deploy.ts --network goerli",
+
+    "//": "useful for catching syntax errors while developing",
+    "watch:nym": "(cd contracts && find . -name '*.cairo' | entr poetry run starknet-compile nym.cairo)",
+
+    "//": "use this to run tests after contract code has changed.",
+    "//": "caches test fixtures for use by the `test:cached` command",
     "test": "(cd contracts && poetry run pytest --cache-clear -s -W ignore::DeprecationWarning ../test/test.py)",
+
+    "//": "quickly rerun tests using cached contract fixtures",
     "test:cached": "(cd contracts && poetry run pytest -n auto -s -W ignore::DeprecationWarning ../test/test.py)",
+
+    "//": "for launching on goerli",
+    "compile": "hardhat starknet-compile",
+    "deploy": "hardhat run ./scripts/deploy.ts --network goerli",
+    "launch": "yarn compile && yarn deploy && git add deployments/ && git add starknet-artifacts/",
+
+    "//": "useful for generating a keypair to put in the `.env` file",
     "generate-insecure-keypair": "ts-node scripts/generate-insecure-keypair.ts"
   },
   "license": "MIT",
