@@ -56,12 +56,14 @@ end
 func _num_profiles() -> (res : felt):
 end
 
-# Internal accounting: record how much of our balance is due to challenge
-# deposits, submission deposits, etc so we don't accidentally give out people's
-# deposits as rewards. (It should be possible for the shared security pool to
-# be drained w/o revoking people's deposits.)
+# Internal accounting: challenge deposits + submission deposits
 @storage_var
-func _reserved_balance() -> (res : felt):
+func _deposit_balance() -> (res : felt):
+end
+
+# Internal accounting: balance for secury bounties
+@storage_var
+func _security_pool_balance() -> (res : felt):
 end
 
 @storage_var
@@ -144,8 +146,6 @@ func submit{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
     assert_not_zero(cid)
     assert_not_zero(address)
     assert_is_unused_address(address)
-
-    # XXX: verify sig of address
 
     let (local caller_address) = get_caller_address()
     let (now) = _timestamp.read()
@@ -238,24 +238,29 @@ func challenge{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*
     let (now) = _timestamp.read()
     let (status) = _get_current_status(profile, now)
 
-    # Only challenge prpfiles that are `not_challenged` or `settled`
-    # See: https://lucid.app/lucidchart/3f5d0cad-572d-4674-9365-f9252c294868/edit?page=0_0&invitationId=inv_27689cb9-7be5-4f88-b76a-a0ef273ac183#
+    # Only challenge profiles that are `not_challenged` or `settled`
     assert (status - StatusEnum.NOT_CHALLENGED) * (status - StatusEnum.SETTLED) = 0
 
-    # Only allow challenging of profiles that are confirmed or are still provisional
-    # (In particular, don't allow challenging of profiles that are already invalid.)
-    # XXX: verify this logic
-    let (is_confirmed) = _get_is_confirmed(profile, now)
-    let (profile) = get_profile_by_id(profile_id)
-    let (is_provisional) = _get_is_in_provisional_time_window(profile, now)
+    # Prevent rechallenging of profiles that have already been deemed invalid
+    if status == StatusEnum.SETTLED:
+        let (is_confirmed) = _get_is_confirmed(profile, now)
+        assert is_confirmed = 1
 
-    # is_profile_confirmed || is_profile_provisional
-    assert (is_confirmed - 1) * (is_provisional - 1) = 0
+        tempvar range_check_ptr = range_check_ptr
+        tempvar pedersen_ptr = pedersen_ptr
+        tempvar syscall_ptr = syscall_ptr
+    else:
+        tempvar range_check_ptr = range_check_ptr
+        tempvar pedersen_ptr = pedersen_ptr
+        tempvar syscall_ptr = syscall_ptr
+    end
 
     # Take a deposit from the challenger
     _receive_deposit(caller_address, consts.CHALLENGE_DEPOSIT_SIZE)
 
-    # We could be challenging a profile that was previously settled and thus has old challenge information lying around, so specifically zero out challenge information
+    # We could be challenging a profile that was previously settled and thus has
+    # old challenge information lying around, so specifically zero out challenge
+    # information
     _profiles.write(
         profile_id,
         Profile(
@@ -282,7 +287,8 @@ end
 
 # Allows a profile owner to directly submit evidence on their own behalf
 # Useful if the profile owner thinks that the adjudicator won't do a good job of defending their profile
-# XXX: document limitation — there's nothing to prevent the adjudicator from adjudicating immediately to prevent evidence from being submitted by the profile owner. Maybe for now the appeal MetaEvidence policy can help handle this abusive case.
+# Note: a corrupt adjudicator could adjudicate immediately in order to prevent the profile owner from submitting evidence.
+# This limitation is documented and will be fixed in a future version.
 @external
 func submit_evidence{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
         profile_id : felt, evidence_cid : felt):
@@ -494,13 +500,8 @@ func maybe_settle{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : fe
 
         # Reward challenger
         let (challenge_reward_size) = get_challenge_reward_size(profile.challenge_timestamp)
-        _maybe_give_reward(profile.challenger_address, challenge_reward_size)
+        _maybe_give_security_bounty(profile.challenger_address, challenge_reward_size)
     end
-
-    # Other way to factor this would be...
-    # 1. Handle submission deposit
-    # 2. Handle challenge deposit
-    # 3. Hande challenge reward
 
     # Set `last_recorded_status` to `SETTLED`
     _profiles.write(
@@ -524,6 +525,26 @@ func maybe_settle{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : fe
         did_super_adjudicator_confirm_profile=profile.did_super_adjudicator_confirm_profile
         ))
 
+    return ()
+end
+
+#
+# Treasury management
+#
+
+@external
+func donate_to_security_pool{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
+        amount : felt):
+    let (caller_address) = get_caller_address()
+    let (token_address) = _token_address.read()
+    let (self_address) = get_contract_address()
+    IERC20.transfer_from(
+        contract_address=token_address,
+        sender=caller_address,
+        recipient=self_address,
+        amount=Uint256(amount, 0))
+    let (security_pool_balance) = _security_pool_balance.read()
+    _security_pool_balance.write(security_pool_balance + amount)
     return ()
 end
 
@@ -567,17 +588,13 @@ func _swallow_submission_deposit_if_unspent{
     return ()
 end
 
-#
-# Treasury
-#
-
 func _receive_deposit{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
         from_address, amount):
     let (token_address) = _token_address.read()
     let (self_address) = get_contract_address()
 
-    let (reserved_balance) = _reserved_balance.read()
-    _reserved_balance.write(reserved_balance + amount)
+    let (deposit_balance) = _deposit_balance.read()
+    _deposit_balance.write(deposit_balance + amount)
 
     IERC20.transfer_from(
         contract_address=token_address,
@@ -591,8 +608,8 @@ end
 func _return_deposit{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
         to_address, amount):
     let (token_address) = _token_address.read()
-    let (reserved_balance) = _reserved_balance.read()
-    _reserved_balance.write(reserved_balance - amount)
+    let (deposit_balance) = _deposit_balance.read()
+    _deposit_balance.write(deposit_balance - amount)
     IERC20.transfer(contract_address=token_address, recipient=to_address, amount=Uint256(amount, 0))
 
     return ()
@@ -600,30 +617,31 @@ end
 
 func _swallow_deposit{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
         amount : felt):
-    # Reduce reserved balance by the amount of the deposit that we're swallowing.
-    # This has the effect of freeing up the tokens to be used for challenge rewards.
-    let (reserved_balance) = _reserved_balance.read()
-    _reserved_balance.write(reserved_balance - amount)
+    let (deposit_balance) = _deposit_balance.read()
+    _deposit_balance.write(deposit_balance - amount)
+
+    let (security_pool_balance) = _security_pool_balance.read()
+    _security_pool_balance.write(security_pool_balance + amount)
 
     return ()
 end
 
-func _maybe_give_reward{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
+func _maybe_give_security_bounty{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
         address, amount : felt):
     alloc_locals
 
-    # Determine if we have funds
-    let (amount_available_for_challenge_rewards) = get_amount_available_for_challenge_rewards()
+    let (security_pool_balance) = _security_pool_balance.read()
 
     local pedersen_ptr : HashBuiltin* = pedersen_ptr
     local range_check_ptr = range_check_ptr
     local syscall_ptr : felt* = syscall_ptr
 
-    let (has_funds_for_reward) = is_le(amount, amount_available_for_challenge_rewards)
+    let (has_funds_for_reward) = is_le(amount, security_pool_balance)
 
     if has_funds_for_reward != 0:
         let (token_address) = _token_address.read()
         IERC20.transfer(contract_address=token_address, recipient=amount, amount=Uint256(amount, 0))
+        _security_pool_balance.write(security_pool_balance - amount)
 
         tempvar range_check_ptr = range_check_ptr
         tempvar pedersen_ptr = pedersen_ptr
@@ -696,18 +714,6 @@ func get_is_confirmed{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr 
     let (now) = _timestamp.read()
     let (is_confirmed) = _get_is_confirmed(profile, now)
     return (is_confirmed)
-end
-
-@view
-func get_amount_available_for_challenge_rewards{
-        pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}() -> (res : felt):
-    let (token_address) = _token_address.read()
-    let (self_address) = get_contract_address()
-    let (reserved_balance) = _reserved_balance.read()
-
-    # Any funds that aren't challenge deposit reserves are for the security reward pool
-    let (total_funds) = IERC20.balance_of(contract_address=token_address, account=self_address)
-    return (total_funds.low - reserved_balance)
 end
 
 # For syncing and testing
