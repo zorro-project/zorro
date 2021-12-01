@@ -294,6 +294,17 @@
         "type": "function"
     },
     {
+        "inputs": [
+            {
+                "name": "amount",
+                "type": "felt"
+            }
+        ],
+        "name": "donate_to_security_pool",
+        "outputs": [],
+        "type": "function"
+    },
+    {
         "inputs": [],
         "name": "get_token_address",
         "outputs": [
@@ -414,18 +425,6 @@
             }
         ],
         "name": "get_is_confirmed",
-        "outputs": [
-            {
-                "name": "res",
-                "type": "felt"
-            }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "inputs": [],
-        "name": "get_amount_available_for_challenge_rewards",
         "outputs": [
             {
                 "name": "res",
