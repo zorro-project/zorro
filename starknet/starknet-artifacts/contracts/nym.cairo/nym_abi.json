@@ -25,72 +25,65 @@
                 "name": "is_notarized",
                 "offset": 4,
                 "type": "felt"
-            }
-        ],
-        "name": "Profile",
-        "size": 5,
-        "type": "struct"
-    },
-    {
-        "members": [
+            },
             {
                 "name": "last_recorded_status",
-                "offset": 0,
-                "type": "felt"
-            },
-            {
-                "name": "challenge_timestamp",
-                "offset": 1,
-                "type": "felt"
-            },
-            {
-                "name": "challenger_address",
-                "offset": 2,
-                "type": "felt"
-            },
-            {
-                "name": "challenge_evidence_cid",
-                "offset": 3,
-                "type": "felt"
-            },
-            {
-                "name": "profile_owner_evidence_cid",
-                "offset": 4,
-                "type": "felt"
-            },
-            {
-                "name": "adjudication_timestamp",
                 "offset": 5,
                 "type": "felt"
             },
             {
-                "name": "adjudicator_evidence_cid",
+                "name": "challenge_timestamp",
                 "offset": 6,
                 "type": "felt"
             },
             {
-                "name": "did_adjudicator_confirm_profile",
+                "name": "challenger_address",
                 "offset": 7,
                 "type": "felt"
             },
             {
-                "name": "appeal_timestamp",
+                "name": "challenge_evidence_cid",
                 "offset": 8,
                 "type": "felt"
             },
             {
-                "name": "super_adjudication_timestamp",
+                "name": "owner_evidence_cid",
                 "offset": 9,
                 "type": "felt"
             },
             {
-                "name": "did_super_adjudicator_confirm_profile",
+                "name": "adjudication_timestamp",
                 "offset": 10,
+                "type": "felt"
+            },
+            {
+                "name": "adjudicator_evidence_cid",
+                "offset": 11,
+                "type": "felt"
+            },
+            {
+                "name": "did_adjudicator_confirm_profile",
+                "offset": 12,
+                "type": "felt"
+            },
+            {
+                "name": "appeal_timestamp",
+                "offset": 13,
+                "type": "felt"
+            },
+            {
+                "name": "super_adjudication_timestamp",
+                "offset": 14,
+                "type": "felt"
+            },
+            {
+                "name": "did_super_adjudicator_confirm_profile",
+                "offset": 15,
                 "type": "felt"
             }
         ],
-        "name": "ChallengeStorageEnum",
-        "size": 11,
+        "name": "Profile",
+        "size": 16,
         "type": "struct"
     },
     {
@@ -285,13 +278,75 @@
                 "type": "felt"
             }
         ],
+        "name": "maybe_return_submission_deposit",
+        "outputs": [],
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "name": "profile_id",
+                "type": "felt"
+            }
+        ],
         "name": "maybe_settle",
         "outputs": [],
         "type": "function"
     },
     {
         "inputs": [],
-        "name": "get_num_profiles",
+        "name": "get_token_address",
+        "outputs": [
+            {
+                "name": "token_address",
+                "type": "felt"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "name": "timestamp",
+                "type": "felt"
+            }
+        ],
+        "name": "get_submission_deposit_size",
+        "outputs": [
+            {
+                "name": "res",
+                "type": "felt"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "name": "timestamp",
+                "type": "felt"
+            }
+        ],
+        "name": "get_challenge_deposit_size",
+        "outputs": [
+            {
+                "name": "res",
+                "type": "felt"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "name": "timestamp",
+                "type": "felt"
+            }
+        ],
+        "name": "get_challenge_reward_size",
         "outputs": [
             {
                 "name": "res",
@@ -308,58 +363,7 @@
                 "type": "felt"
             }
         ],
-        "name": "get_challenge_status",
-        "outputs": [
-            {
-                "name": "status",
-                "type": "felt"
-            }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "inputs": [
-            {
-                "name": "profile_id",
-                "type": "felt"
-            }
-        ],
-        "name": "get_is_profile_confirmed",
-        "outputs": [
-            {
-                "name": "res",
-                "type": "felt"
-            }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "inputs": [
-            {
-                "name": "address",
-                "type": "felt"
-            }
-        ],
-        "name": "get_is_address_confirmed",
-        "outputs": [
-            {
-                "name": "res",
-                "type": "felt"
-            }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "inputs": [
-            {
-                "name": "profile_id",
-                "type": "felt"
-            }
-        ],
-        "name": "get_profile",
+        "name": "get_profile_by_id",
         "outputs": [
             {
                 "name": "res",
@@ -392,6 +396,35 @@
     },
     {
         "inputs": [],
+        "name": "get_num_profiles",
+        "outputs": [
+            {
+                "name": "res",
+                "type": "felt"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "name": "address",
+                "type": "felt"
+            }
+        ],
+        "name": "get_is_confirmed",
+        "outputs": [
+            {
+                "name": "res",
+                "type": "felt"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
         "name": "get_amount_available_for_challenge_rewards",
         "outputs": [
             {
@@ -416,47 +449,11 @@
                 "type": "Profile"
             },
             {
-                "name": "challenge",
-                "type": "ChallengeStorageEnum"
-            },
-            {
                 "name": "num_profiles",
                 "type": "felt"
-            }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "inputs": [],
-        "name": "get_token_address",
-        "outputs": [
+            },
             {
-                "name": "token_address",
-                "type": "felt"
-            }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "inputs": [],
-        "name": "get_submission_deposit_size",
-        "outputs": [
-            {
-                "name": "res",
-                "type": "felt"
-            }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "inputs": [],
-        "name": "get_challenge_deposit_size",
-        "outputs": [
-            {
-                "name": "res",
+                "name": "status",
                 "type": "felt"
             }
         ],
