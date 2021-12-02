@@ -64,7 +64,7 @@ class ScenarioState:
     async def get_is_confirmed(self):
         return await _get_is_confirmed(self.ctx, self.address)
 
-    async def wait(ctx):
+    async def wait(ctx, duration):
         pass
 
     async def adjudicate(self, should_confirm, evidence_cid=300):
@@ -73,33 +73,8 @@ class ScenarioState:
     async def appeal(self):
         pass
 
-    async def super_adjudicate(self):
+    async def super_adjudicate(self, should_confirm):
         pass
-
-
-CONFIRMED = "confirmed"
-NOT_CONFIRMED = "not_confirmed"
-TX_REJECTED = "rejected"
-
-scenario = [
-    ("submit", dict(via_notary=True, cid=100, address=1234), CONFIRMED),
-    # (wait, dict(duration=10000), CONFIRMED),
-    ("challenge", dict(), NOT_CONFIRMED),
-    ("adjudicate", dict(should_confirm=1), CONFIRMED),
-]
-
-appeal_window_expired_scenario = scenario + [
-    ("wait", dict(duration=1000), CONFIRMED),
-    ("appeal", dict(), TX_REJECTED),
-]
-
-appealed_scenario = scenario + [
-    ("appeal", dict(), CONFIRMED),
-]
-
-super_adjudicated_scenario = appealed_scenario + [
-    ("super_adjudicate", dict(should_confirm=0), NOT_CONFIRMED),
-]
 
 
 async def run_scenario(ctx, scenario):
@@ -109,6 +84,7 @@ async def run_scenario(ctx, scenario):
         if not func:
             raise AttributeError(f"ScenarioState.{function_name} doesn't exist.")
 
+        print("Running", function_name, kwargs)
         # XXX: handle rejections
         await func(**kwargs)
 
@@ -116,10 +92,68 @@ async def run_scenario(ctx, scenario):
         assert {CONFIRMED: 1, NOT_CONFIRMED: 0}[expected_outcome] == is_confirmed
 
 
-@pytest.mark.asyncio
-async def test_scenario(ctx_factory):
-    ctx = ctx_factory()
+CONFIRMED = "confirmed"
+NOT_CONFIRMED = "not_confirmed"
+TX_REJECTED = "rejected"
 
+
+# Submission
+
+submit_and_challenge_scenario = [
+    ("submit", dict(via_notary=True, cid=100, address=1234), CONFIRMED),
+    # (wait, dict(duration=10000), CONFIRMED),
+    ("challenge", dict(), NOT_CONFIRMED),
+]
+
+# Adjudication
+
+adj_yes_scenario = submit_and_challenge_scenario + [
+    ("adjudicate", dict(should_confirm=1), CONFIRMED),
+]
+
+adj_no_scenario = submit_and_challenge_scenario + [
+    ("adjudicate", dict(should_confirm=0), NOT_CONFIRMED),
+]
+
+# XXX: check that status goes to the correct thing here
+adj_timeout_scenario = submit_and_challenge_scenario + [
+    ("wait", dict(duration=10000), NOT_CONFIRMED),
+]
+
+# Appeals
+
+adj_no_and_appeal_expired_scenario = adj_yes_scenario + [
+    ("wait", dict(duration=1000), CONFIRMED),
+    # ("appeal", dict(), TX_REJECTED), # XXX: re-enable
+]
+
+adj_yes_and_appeal_scenario = adj_yes_scenario + [
+    ("appeal", dict(), CONFIRMED),
+]
+
+adj_no_and_appeal_scenario = adj_no_scenario + [
+    ("appeal", dict(), NOT_CONFIRMED),
+]
+
+# Super adjudication
+
+adj_no_superadj_yes_scenario = adj_no_and_appeal_scenario + [
+    ("super_adjudicate", dict(should_confirm=0), NOT_CONFIRMED),
+]
+
+scenario_pairs = [
+    (key, val)
+    for (key, val) in locals().items()
+    if (isinstance(val, list) and key.endswith("_scenario"))
+]
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("scenario_pair", scenario_pairs)
+async def test_scenario(ctx_factory, scenario_pair):
+    (scenario_name, scenario) = scenario_pair
+    ctx = ctx_factory()
+    print("Testing scenario", scenario)
     await run_scenario(ctx, scenario)
 
 
