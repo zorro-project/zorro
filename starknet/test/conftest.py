@@ -14,7 +14,7 @@ from utils import uint
 # pytest-xdest only shows stderr
 sys.stdout = sys.stderr
 
-
+SUPER_ADJUDICATOR_L1_ADDRESS = 0
 CONTRACT_SRC = [os.path.dirname(__file__), "..", "contracts"]
 
 
@@ -45,12 +45,6 @@ def event_loop():
 # deployment:
 async def _build_copyable_deployment():
     starknet = await Starknet.empty()
-
-    consts = SimpleNamespace(
-        SUPER_ADJUDICATOR_L1_ADDRESS=0,
-        SUBMISSION_DEPOSIT_SIZE=25,  # This constant is also in nym.cairo
-        CHALLENGE_DEPOSIT_SIZE=25,  # This constant is also in nym.cairo
-    )
 
     defs = SimpleNamespace(
         account=compile("OpenZeppelin/account.cairo"),
@@ -85,9 +79,19 @@ async def _build_copyable_deployment():
             accounts.admin.contract_address,
             accounts.notary.contract_address,
             accounts.adjudicator.contract_address,
-            consts.SUPER_ADJUDICATOR_L1_ADDRESS,
+            SUPER_ADJUDICATOR_L1_ADDRESS,
             erc20.contract_address,
         ],
+    )
+
+    (submission_deposit_size,) = (
+        await nym.get_submission_deposit_size(0).call()
+    ).result
+    (challenge_deposit_size,) = (await nym.get_challenge_deposit_size(0).call()).result
+    consts = SimpleNamespace(
+        SUPER_ADJUDICATOR_L1_ADDRESS=SUPER_ADJUDICATOR_L1_ADDRESS,
+        SUBMISSION_DEPOSIT_SIZE=submission_deposit_size,
+        CHALLENGE_DEPOSIT_SIZE=challenge_deposit_size,
     )
 
     async def give_tokens(recipient, amount):
@@ -118,8 +122,8 @@ async def _build_copyable_deployment():
     return SimpleNamespace(
         starknet=starknet,
         defs=defs,
-        signers=signers,
         consts=consts,
+        signers=signers,
         addresses=SimpleNamespace(
             notary=accounts.notary.contract_address,
             adjudicator=accounts.adjudicator.contract_address,
