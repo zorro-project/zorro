@@ -58,6 +58,7 @@ async def _build_copyable_deployment():
         notary=Signer(12345),
         challenger=Signer(888333444555),
         minter=Signer(897654321),
+        rando=Signer(23904852345),
     )
 
     accounts = SimpleNamespace(
@@ -66,6 +67,7 @@ async def _build_copyable_deployment():
         adjudicator=await create_account(starknet, signers.adjudicator, defs.account),
         challenger=await create_account(starknet, signers.challenger, defs.account),
         minter=await create_account(starknet, signers.minter, defs.account),
+        rando=await create_account(starknet, signers.rando, defs.account),
     )
 
     erc20 = await starknet.deploy(
@@ -76,6 +78,7 @@ async def _build_copyable_deployment():
     nym = await starknet.deploy(
         contract_def=defs.nym,
         constructor_calldata=[
+            1,  # is_in_test_mode
             accounts.admin.contract_address,
             accounts.notary.contract_address,
             accounts.adjudicator.contract_address,
@@ -88,10 +91,15 @@ async def _build_copyable_deployment():
         await nym.get_submission_deposit_size(0).call()
     ).result
     (challenge_deposit_size,) = (await nym.get_challenge_deposit_size(0).call()).result
+    time_windows = (await nym.get_time_windows().call()).result
+
+    print("Time windows!!!", time_windows)
+
     consts = SimpleNamespace(
         SUPER_ADJUDICATOR_L1_ADDRESS=SUPER_ADJUDICATOR_L1_ADDRESS,
         SUBMISSION_DEPOSIT_SIZE=submission_deposit_size,
         CHALLENGE_DEPOSIT_SIZE=challenge_deposit_size,
+        time_windows=time_windows,
     )
 
     async def give_tokens(recipient, amount):
@@ -113,10 +121,10 @@ async def _build_copyable_deployment():
         initial_challenger_funds,
     )
 
-    # Give remaining tokens to the nym contract (its shared security pool)
+    # Give tokens to the nym contract (its shared security pool)
     await give_tokens(
-        nym.contract_address,
-        1000 - initial_notary_funds - initial_challenger_funds,
+        accounts.rando.contract_address,
+        200,
     )
 
     return SimpleNamespace(
@@ -128,6 +136,7 @@ async def _build_copyable_deployment():
             notary=accounts.notary.contract_address,
             adjudicator=accounts.adjudicator.contract_address,
             challenger=accounts.challenger.contract_address,
+            rando=accounts.rando.contract_address,
             erc20=erc20.contract_address,
             nym=nym.contract_address,
         ),
@@ -172,6 +181,11 @@ async def ctx_factory(copyable_deployment):
                 state=starknet_state,
                 abi=defs.account.abi,
                 contract_address=addresses.challenger,
+            ),
+            rando=StarknetContract(
+                state=starknet_state,
+                abi=defs.account.abi,
+                contract_address=addresses.rando,
             ),
         )
 

@@ -14,7 +14,6 @@ async def _erc20_approve(ctx, account_name, amount):
     )
 
 
-# Subsume these into ScenarioState?
 async def _submit(ctx, account_name, cid, address):
     await _erc20_approve(ctx, account_name, ctx.consts.SUBMISSION_DEPOSIT_SIZE)
     await ctx.execute(account_name, ctx.nym.contract_address, "submit", [cid, address])
@@ -38,6 +37,28 @@ async def _adjudicate(ctx, profile_id, evidence_cid, should_confirm):
     )
 
 
+async def _appeal(ctx, profile_id, from_address=None):
+    if from_address == None:
+        from_address = ctx.consts.SUPER_ADJUDICATOR_L1_ADDRESS
+    await ctx.starknet.send_message_to_l2(
+        from_address,
+        ctx.nym.contract_address,
+        "appeal",
+        [profile_id],
+    )
+
+
+async def _super_adjudicate(ctx, profile_id, should_confirm, from_address=None):
+    if from_address == None:
+        from_address = ctx.consts.SUPER_ADJUDICATOR_L1_ADDRESS
+    await ctx.starknet.send_message_to_l2(
+        from_address,
+        ctx.nym.contract_address,
+        "super_adjudicate",
+        [profile_id, should_confirm],
+    )
+
+
 async def _get_is_confirmed(ctx, address):
     (is_confirmed,) = (await ctx.nym.get_is_confirmed(address=address).call()).result
     return is_confirmed
@@ -52,9 +73,8 @@ class ScenarioState:
         self.ctx = ctx
 
     async def submit(self, via_notary=True, cid=100, address=1234):
-        (profile_id, address) = await _submit(
-            self.ctx, "notary", cid, address
-        )  # XXX: respect notary
+        submitter_name = "notary" if via_notary else "rando"
+        (profile_id, address) = await _submit(self.ctx, submitter_name, cid, address)
         self.profile_id = profile_id
         self.address = address
 
@@ -64,32 +84,32 @@ class ScenarioState:
     async def get_is_confirmed(self):
         return await _get_is_confirmed(self.ctx, self.address)
 
-    async def wait(ctx, duration):
-        pass
+    # Waits one second more than the named duration by default, because
+    # we don't care about about `<=`` vs `<`` when it comes to time
+    async def named_wait(self, name=None, offset=1):
+        time_windows = self.ctx.consts.time_windows
+        does_time_window_exist = hasattr(time_windows, name)
+        if not does_time_window_exist:
+            raise f"The time window named {name} doesn't exist"
+
+        await self.ctx.nym._test_advance_clock(
+            getattr(time_windows, name) + offset
+        ).invoke()
+
+    async def wait(self, duration):
+        await self.ctx.nym._test_advance_clock(duration).invoke()
 
     async def adjudicate(self, should_confirm, evidence_cid=300):
         await _adjudicate(self.ctx, self.profile_id, evidence_cid, should_confirm)
 
-    async def appeal(self):
-        pass
+    async def appeal(self, from_address=None):
+        await _appeal(self.ctx, self.profile_id, from_address)
 
-    async def super_adjudicate(self, should_confirm):
-        pass
+    async def super_adjudicate(self, should_confirm, from_address=None):
+        await _super_adjudicate(self.ctx, self.profile_id, should_confirm, from_address)
 
-
-async def run_scenario(ctx, scenario):
-    scenario_state = ScenarioState(ctx)
-    for (function_name, kwargs, expected_outcome) in scenario:
-        func = getattr(scenario_state, function_name, None)
-        if not func:
-            raise AttributeError(f"ScenarioState.{function_name} doesn't exist.")
-
-        print("Running", function_name, kwargs)
-        # XXX: handle rejections
-        await func(**kwargs)
-
-        is_confirmed = await scenario_state.get_is_confirmed()
-        assert {CONFIRMED: 1, NOT_CONFIRMED: 0}[expected_outcome] == is_confirmed
+    async def _export_profile(self):
+        return await self.ctx.nym.export_profile_by_id(self.profile_id).call()
 
 
 CONFIRMED = "confirmed"
@@ -97,63 +117,206 @@ NOT_CONFIRMED = "not_confirmed"
 TX_REJECTED = "rejected"
 
 
-# Submission
+async def run_scenario(ctx, scenario):
+    scenario_state = ScenarioState(ctx)
+    for (function_name, kwargs, expected_outcome) in scenario:
+        if expected_outcome not in [CONFIRMED, NOT_CONFIRMED, TX_REJECTED]:
+            raise f"Invalid expected outcome '{expected_outcome}'"
 
-submit_and_challenge_scenario = [
-    ("submit", dict(via_notary=True, cid=100, address=1234), CONFIRMED),
-    # (wait, dict(duration=10000), CONFIRMED),
-    ("challenge", dict(), NOT_CONFIRMED),
-]
+        func = getattr(scenario_state, function_name, None)
+        if not func:
+            raise AttributeError(f"ScenarioState.{function_name} doesn't exist.")
 
-# Adjudication
+        print("Running", function_name, kwargs)
 
-adj_yes_scenario = submit_and_challenge_scenario + [
-    ("adjudicate", dict(should_confirm=1), CONFIRMED),
-]
+        try:
+            await func(**kwargs)
+        except StarkException as e:
+            if expected_outcome == TX_REJECTED:
+                assert e.code == StarknetErrorCode.TRANSACTION_FAILED
 
-adj_no_scenario = submit_and_challenge_scenario + [
-    ("adjudicate", dict(should_confirm=0), NOT_CONFIRMED),
-]
+        if expected_outcome == CONFIRMED or expected_outcome == NOT_CONFIRMED:
+            is_confirmed = await scenario_state.get_is_confirmed()
 
-# XXX: check that status goes to the correct thing here
-adj_timeout_scenario = submit_and_challenge_scenario + [
-    ("wait", dict(duration=10000), NOT_CONFIRMED),
-]
+            if {CONFIRMED: 1, NOT_CONFIRMED: 0}[expected_outcome] != is_confirmed:
+                print(
+                    "Profile state prior to failure",
+                    (await scenario_state._export_profile()),
+                )
 
-# Appeals
+            assert {CONFIRMED: 1, NOT_CONFIRMED: 0}[expected_outcome] == is_confirmed
 
-adj_no_and_appeal_expired_scenario = adj_yes_scenario + [
-    ("wait", dict(duration=1000), CONFIRMED),
-    # ("appeal", dict(), TX_REJECTED), # XXX: re-enable
-]
 
-adj_yes_and_appeal_scenario = adj_yes_scenario + [
-    ("appeal", dict(), CONFIRMED),
-]
+def get_scenario_pairs():
 
-adj_no_and_appeal_scenario = adj_no_scenario + [
-    ("appeal", dict(), NOT_CONFIRMED),
-]
+    #
+    # Submission
+    #
 
-# Super adjudication
+    notary_submit_scenario = [
+        ("submit", dict(via_notary=True, cid=100, address=1234), CONFIRMED),
+    ]
 
-adj_no_superadj_yes_scenario = adj_no_and_appeal_scenario + [
-    ("super_adjudicate", dict(should_confirm=0), NOT_CONFIRMED),
-]
+    duplicate_address_scenario = notary_submit_scenario + [
+        ("submit", dict(via_notary=True, cid=100, address=1234), TX_REJECTED),
+    ]
 
-scenario_pairs = [
-    (key, val)
-    for (key, val) in locals().items()
-    if (isinstance(val, list) and key.endswith("_scenario"))
-]
+    self_submit_scenario = [
+        ("submit", dict(via_notary=False, cid=100, address=1234), NOT_CONFIRMED),
+    ]
+
+    self_submit_and_wait_scenario = self_submit_scenario + [
+        ("wait", dict(duration=60), NOT_CONFIRMED),
+        ("named_wait", dict(name="PROVISIONAL_TIME_WINDOW"), CONFIRMED),
+    ]
+
+    #
+    # Challenges
+    #
+
+    notary_submit_and_challenge_scenario = notary_submit_scenario + [
+        ("challenge", dict(), NOT_CONFIRMED),
+    ]
+
+    notary_submit_and_wait_past_provisional_window_and_challenge_scenario = (
+        notary_submit_scenario
+        + [
+            ("named_wait", dict(name="PROVISIONAL_TIME_WINDOW"), CONFIRMED),
+            ("challenge", dict(), CONFIRMED),
+        ]
+    )
+
+    #
+    # Adjudication
+    #
+
+    adj_yes_scenario = notary_submit_and_challenge_scenario + [
+        ("adjudicate", dict(should_confirm=1), CONFIRMED),
+    ]
+
+    adj_no_scenario = notary_submit_and_challenge_scenario + [
+        ("adjudicate", dict(should_confirm=0), NOT_CONFIRMED),
+    ]
+
+    # XXX: check that status goes to the correct thing here?
+    # Can't adjudicate after timeout
+    adj_timeout_scenario = notary_submit_and_challenge_scenario + [
+        ("named_wait", dict(name="ADJUDICATION_TIME_WINDOW"), NOT_CONFIRMED),
+        ("adjudicate", dict(should_confirm=1), TX_REJECTED),
+    ]
+
+    #
+    # Appeals
+    #
+
+    adj_yes_and_appeal_scenario = adj_yes_scenario + [
+        ("appeal", dict(), CONFIRMED),
+    ]
+
+    adj_no_and_appeal_scenario = adj_no_scenario + [
+        ("appeal", dict(), NOT_CONFIRMED),
+    ]
+
+    # Can still appeal if adjudication times out
+    adj_timeout_and_appeal_scenario = adj_timeout_scenario + [
+        ("appeal", dict(), NOT_CONFIRMED),
+    ]
+
+    # Can't appeal from the wrong address
+    adj_yes_and_appeal_from_wrong_address = adj_yes_scenario + [
+        ("appeal", dict(from_address=12345), TX_REJECTED),
+    ]
+
+    # Can't appeal after timeout
+    adj_yes_and_appeal_expired_scenario = adj_yes_scenario + [
+        ("named_wait", dict(name="APPEAL_TIME_WINDOW"), CONFIRMED),
+        ("appeal", dict(), TX_REJECTED),
+    ]
+
+    #
+    # Super adjudication
+    #
+
+    # all 2x2 combinations
+    adj_no_superadj_no_scenario = adj_no_and_appeal_scenario + [
+        ("super_adjudicate", dict(should_confirm=0), NOT_CONFIRMED),
+    ]
+    adj_no_superadj_yes_scenario = adj_no_and_appeal_scenario + [
+        ("super_adjudicate", dict(should_confirm=1), CONFIRMED),
+    ]
+    adj_yes_superadj_no_scenario = adj_yes_and_appeal_scenario + [
+        ("super_adjudicate", dict(should_confirm=0), NOT_CONFIRMED),
+    ]
+    adj_yes_superadj_yes_scenario = adj_yes_and_appeal_scenario + [
+        ("super_adjudicate", dict(should_confirm=1), CONFIRMED),
+    ]
+
+    # can super adjudicate an appeal of a timed-out adjudication
+    adj_timeout_and_appeal_and_superadj_no_scenario = (
+        adj_timeout_and_appeal_scenario
+        + [
+            ("super_adjudicate", dict(should_confirm=0), NOT_CONFIRMED),
+        ]
+    )
+
+    adj_timeout_and_appeal_and_superadj_yes_scenario = (
+        adj_timeout_and_appeal_scenario
+        + [
+            ("super_adjudicate", dict(should_confirm=1), CONFIRMED),
+        ]
+    )
+
+    # can't super_adjudicate after appeal expired
+    adj_yes_and_appeal_expired_and_attempt_superadj_scenario = (
+        adj_yes_and_appeal_expired_scenario
+        + [
+            ("super_adjudicate", dict(should_confirm=0), TX_REJECTED),
+        ]
+    )
+
+    # can't super_adjudicate from wrong address
+    adj_yes_superadj_yes_scenario = adj_yes_and_appeal_scenario + [
+        ("super_adjudicate", dict(should_confirm=1, from_address=9876), TX_REJECTED),
+    ]
+
+    # can't super_adjudicate after timeout
+    adj_no_and_appeal_and_superadj_timeout_and_attempt_superadj_scenario = (
+        adj_no_and_appeal_scenario
+        + [
+            ("named_wait", dict(name="SUPER_ADJUDICATION_TIME_WINDOW"), NOT_CONFIRMED),
+            ("super_adjudicate", dict(should_confirm=0), TX_REJECTED),
+        ]
+    )
+
+    # adjudication AND super adjudication timeout --> fail safe by assuming challenger is correct, even if challenge came after provisional time window
+    all_timed_out_scenario = (
+        notary_submit_and_wait_past_provisional_window_and_challenge_scenario
+        + [
+            ("named_wait", dict(name="ADJUDICATION_TIME_WINDOW"), NOT_CONFIRMED),
+            ("appeal", dict(), NOT_CONFIRMED),
+            ("named_wait", dict(name="SUPER_ADJUDICATION_TIME_WINDOW"), NOT_CONFIRMED),
+        ]
+    )
+
+    # Collect all scenarios
+    return [
+        (name, scenario)
+        for (name, scenario) in locals().items()
+        if (isinstance(scenario, list))
+    ]
+
+
+scenario_pairs = get_scenario_pairs()
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize("scenario_pair", scenario_pairs)
+@pytest.mark.parametrize(
+    "scenario_pair", scenario_pairs, ids=map(lambda x: x[0], scenario_pairs)
+)
 async def test_scenario(ctx_factory, scenario_pair):
-    (scenario_name, scenario) = scenario_pair
     ctx = ctx_factory()
-    print("Testing scenario", scenario)
+    (scenario_name, scenario) = scenario_pair
+    print("Starting scenario", scenario_name, scenario)
     await run_scenario(ctx, scenario)
 
 
@@ -162,24 +325,6 @@ async def get_current_status(ctx, profile_id):
     (_, _, status) = (await ctx.nym.export_profile_by_id(profile_id).call()).result
     return status
 
-
-async def get_profile_by_id(ctx, profile_id):
-    (profile,) = (await ctx.nym.get_profile_by_id(profile_id).call()).result
-    return profile
-
-async def _super_adjudicate(ctx, profile_id, should_confirm):
-    pass
-
-
-async def _advance_clock(ctx, seconds):
-    pass
-
-
-async def _get_balance(ctx, address):
-    pass
-"""
-
-"""
 @pytest.mark.asyncio
 async def test_notary_submit(ctx_factory):
     ctx = ctx_factory()
@@ -191,17 +336,6 @@ async def test_notary_submit(ctx_factory):
     assert profile.cid == cid
     assert profile.address == address
     assert profile.is_notarized == 1
-
-
-@pytest.mark.asyncio
-async def test_submit_ensures_unique_address(ctx_factory):
-    ctx = ctx_factory()
-    address = 123
-    cid = 1234567
-    await submit(ctx, "notary", cid, address)
-    with pytest.raises(StarkException) as e_info:
-        await submit(ctx, "notary", cid, address)
-    assert e_info.value.code == StarknetErrorCode.TRANSACTION_FAILED
 
 
 @pytest.mark.asyncio
@@ -243,16 +377,6 @@ async def _test_adjudication(ctx, should_confirm):
     assert await get_is_confirmed(ctx, address) == should_confirm
     assert await get_current_status(ctx, profile_id) == 2
 
-
-# want to make a tree of scenarios, where we stop at every leaf with an expected answer...
-# test them all?
-# [
-#     dict(action='submit', is_notarized=True, expected_is_confirmed=1)
-#     {'action': 'submit', 'is_notarized': True, is_},
-#     {'action': 'challenge'},
-# ]
-
-
 def get_scenario_tree():
     return [
         dict(
@@ -285,73 +409,4 @@ def get_post_submit_scenarios(was_notarized):
             next=get_challenge_scenario_tree(),
         ),
     ]
-
-
-2 notarized vs not
-2 time+=0, time+=alot
-1 challenged
-3 time+=0, time+= adjudcation timed out, time+= appeal opportunity expired
-2 adjudication yes, adjudication no
-2 time+=0, time+=appeal opportunity expired
-1 appeal
-2 time+=0, time+=super adjudication opportunity expired
-1 settle
-1 challenge
-
-# =96 scenarios?
-
-
-# Then do this?
-# https://docs.pytest.org/en/stable/example/parametrize.html#set-marks-or-test-id-for-individual-parametrized-test
-
-# async def _test_super_adjudication(ctx, should_adjudicator_confirm, should_super_adjudicator_confirm):
-@pytest.mark.asyncio
-async def test_adjudication_in_favor_of_profile(ctx_factory):
-    ctx = ctx_factory()
-    await _test_adjudication(ctx, 1)
-
-
-@pytest.mark.asyncio
-async def test_adjudication_against_profile(ctx_factory):
-    ctx = ctx_factory()
-    await _test_adjudication(ctx, 0)
-
-
-@pytest.mark.asyncio
-async def test_super_adjudication_against_profile(ctx_factory):
-    ctx = ctx_factory()
-
-
-@pytest.mark.asyncio
-async def test_others_cannot_adjudicate(ctx_factory):
-    ctx = ctx_factory()
-    pass
-
-
-@pytest.mark.asyncio
-async def test_others_cannot_notarize(ctx_factory):
-    # test submitting and make sure not notarized after
-    # test cannot notarize()
-    ctx = ctx_factory()
-    pass
-
-
-@pytest.mark.asyncio
-async def test_confirmation_during_provisional_window(ctx_factory):
-    # Submit from a non-notary
-    # Wait x amount of time
-    # Check again
-    ctx = ctx_factory()
-    pass
-
-
-# Test to ensure cannot adjudicate after adjudication window expires
-
-# Test super adjudication in both directions
-
-
-# Test to ensure cannot adjudicate right after a profile was submitted
-# Test to ensure cannot super adjudicate right after a profile was submitted
-
-# Test all possible paths through the tree, with all possible decisions along the way?
 """

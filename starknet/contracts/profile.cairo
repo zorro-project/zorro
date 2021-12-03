@@ -191,13 +191,26 @@ func _get_is_confirmed{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr
     end
 
     #
-    # All other statuses, e.g. `challenged`, `adjudicated`, ...
+    # Status is `challenged`
+    #
+
+    if status == StatusEnum.CHALLENGED:
+        # Presume innocence or not depending on whether the profile was still provisional
+        # when it was challenged
+        let (is_presumed_innocent) = is_le(
+            consts.PROVISIONAL_TIME_WINDOW,
+            profile.challenge_timestamp - profile.submission_timestamp)
+        return (is_presumed_innocent)
+    end
+
+    #
+    # All other statuses, e.g. `adjudicated`, ...
     #
 
     # Logic:
     # 1. A super adjudiciation is determinative
     # 2. Absent that, adjudication is determinative
-    # 3. Absent that, presume innocence or not depending on whether the profile was still provisional when it was challenged
+    # 3. Absent that, presume the challenger was correct
 
     let (did_super_adjudication_occur) = _get_did_super_adjudication_occur(profile)
     if did_super_adjudication_occur == 1:
@@ -209,11 +222,5 @@ func _get_is_confirmed{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr
         return (profile.did_adjudicator_confirm_profile)
     end
 
-    let (is_presumed_innocent) = is_le(
-        consts.PROVISIONAL_TIME_WINDOW, profile.challenge_timestamp - profile.submission_timestamp)
-
-    # XXX: consider a case where the adjudicator and the super adjudicator both time out...
-    # Super edge case, but we decided to side with the challenger in that case
-
-    return (is_presumed_innocent)
+    return (0)
 end

@@ -64,6 +64,7 @@ async function main(): Promise<void> {
   const nymDeployPromise = deployL2(
     "nym",
     {
+      is_in_test_mode: 0,
       admin_address: getAddressString(admin),
       notary_address: getAddressString(notary),
       adjudicator_address: getAddressString(adjudicator),

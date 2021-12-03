@@ -23,6 +23,10 @@ from profile import (
 # Storage vars
 #
 
+@storage_var
+func _is_in_test_mode() -> (res : felt):
+end
+
 # Temporary: will be replaced by syscall / clock contract
 @storage_var
 func _timestamp() -> (res : felt):
@@ -86,8 +90,9 @@ end
 
 @constructor
 func constructor{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
-        admin_address : felt, notary_address : felt, adjudicator_address : felt,
-        super_adjudicator_l1_address : felt, token_address : felt):
+        is_in_test_mode : felt, admin_address : felt, notary_address : felt,
+        adjudicator_address : felt, super_adjudicator_l1_address : felt, token_address : felt):
+    _is_in_test_mode.write(is_in_test_mode)
     _admin_address.write(admin_address)
     _notary_address.write(notary_address)
     _adjudicator_address.write(adjudicator_address)
@@ -215,7 +220,7 @@ func notarize{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}
         owner_evidence_cid=profile.owner_evidence_cid,
         adjudication_timestamp=profile.adjudication_timestamp,
         adjudicator_evidence_cid=profile.adjudicator_evidence_cid,
-        did_adjudicator_confirm_profile=profile.did_super_adjudicator_confirm_profile,
+        did_adjudicator_confirm_profile=profile.did_adjudicator_confirm_profile,
         appeal_timestamp=profile.appeal_timestamp,
         super_adjudication_timestamp=profile.super_adjudication_timestamp,
         did_super_adjudicator_confirm_profile=profile.did_super_adjudicator_confirm_profile
@@ -317,7 +322,7 @@ func submit_evidence{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr :
         owner_evidence_cid=evidence_cid,  # Changed
         adjudication_timestamp=profile.adjudication_timestamp,
         adjudicator_evidence_cid=profile.adjudicator_evidence_cid,
-        did_adjudicator_confirm_profile=profile.did_super_adjudicator_confirm_profile,
+        did_adjudicator_confirm_profile=profile.did_adjudicator_confirm_profile,
         appeal_timestamp=profile.appeal_timestamp,
         super_adjudication_timestamp=profile.super_adjudication_timestamp,
         did_super_adjudicator_confirm_profile=profile.did_super_adjudicator_confirm_profile
@@ -393,7 +398,7 @@ func appeal{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
         owner_evidence_cid=profile.owner_evidence_cid,
         adjudication_timestamp=profile.adjudication_timestamp,
         adjudicator_evidence_cid=profile.adjudicator_evidence_cid,
-        did_adjudicator_confirm_profile=profile.did_super_adjudicator_confirm_profile,
+        did_adjudicator_confirm_profile=profile.did_adjudicator_confirm_profile,
         appeal_timestamp=now,  # Changed
         super_adjudication_timestamp=profile.super_adjudication_timestamp,
         did_super_adjudicator_confirm_profile=profile.did_super_adjudicator_confirm_profile
@@ -432,7 +437,7 @@ func super_adjudicate{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr 
         owner_evidence_cid=profile.owner_evidence_cid,
         adjudication_timestamp=profile.adjudication_timestamp,
         adjudicator_evidence_cid=profile.adjudicator_evidence_cid,
-        did_adjudicator_confirm_profile=profile.did_super_adjudicator_confirm_profile,
+        did_adjudicator_confirm_profile=profile.did_adjudicator_confirm_profile,
         appeal_timestamp=profile.appeal_timestamp,
         super_adjudication_timestamp=now,  # Changed
         did_super_adjudicator_confirm_profile=should_confirm_profile  # Changed
@@ -519,7 +524,7 @@ func maybe_settle{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : fe
         owner_evidence_cid=profile.owner_evidence_cid,
         adjudication_timestamp=profile.adjudication_timestamp,
         adjudicator_evidence_cid=profile.adjudicator_evidence_cid,
-        did_adjudicator_confirm_profile=profile.did_super_adjudicator_confirm_profile,
+        did_adjudicator_confirm_profile=profile.did_adjudicator_confirm_profile,
         appeal_timestamp=profile.appeal_timestamp,
         super_adjudication_timestamp=profile.super_adjudication_timestamp,
         did_super_adjudicator_confirm_profile=profile.did_super_adjudicator_confirm_profile
@@ -684,6 +689,17 @@ func get_challenge_reward_size(timestamp : felt) -> (res : felt):
 end
 
 @view
+func get_time_windows() -> (
+        PROVISIONAL_TIME_WINDOW : felt, ADJUDICATION_TIME_WINDOW : felt, APPEAL_TIME_WINDOW : felt,
+        SUPER_ADJUDICATION_TIME_WINDOW : felt):
+    return (
+        consts.PROVISIONAL_TIME_WINDOW,
+        consts.ADJUDICATION_TIME_WINDOW,
+        consts.APPEAL_TIME_WINDOW,
+        consts.SUPER_ADJUDICATION_TIME_WINDOW)
+end
+
+@view
 func get_profile_by_id{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
         profile_id : felt) -> (res : Profile):
     let (profile) = _profiles.read(profile_id)
@@ -778,5 +794,19 @@ func assert_is_unused_address{pedersen_ptr : HashBuiltin*, range_check_ptr, sysc
         address : felt):
     let (profile_id) = _map_address_to_profile_id.read(address)
     assert profile_id = 0
+    return ()
+end
+
+#
+# Test hooks
+#
+
+@external
+func _test_advance_clock{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
+        duration):
+    let (is_in_test_mode) = _is_in_test_mode.read()
+    assert is_in_test_mode = 1
+    let (now) = _timestamp.read()
+    _timestamp.write(now + duration)
     return ()
 end
