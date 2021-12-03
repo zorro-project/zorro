@@ -89,6 +89,10 @@
     {
         "inputs": [
             {
+                "name": "is_in_test_mode",
+                "type": "felt"
+            },
+            {
                 "name": "admin_address",
                 "type": "felt"
             },
@@ -368,6 +372,30 @@
         "type": "function"
     },
     {
+        "inputs": [],
+        "name": "get_time_windows",
+        "outputs": [
+            {
+                "name": "PROVISIONAL_TIME_WINDOW",
+                "type": "felt"
+            },
+            {
+                "name": "ADJUDICATION_TIME_WINDOW",
+                "type": "felt"
+            },
+            {
+                "name": "APPEAL_TIME_WINDOW",
+                "type": "felt"
+            },
+            {
+                "name": "SUPER_ADJUDICATION_TIME_WINDOW",
+                "type": "felt"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
         "inputs": [
             {
                 "name": "profile_id",
@@ -457,6 +485,17 @@
             }
         ],
         "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "name": "duration",
+                "type": "felt"
+            }
+        ],
+        "name": "_test_advance_clock",
+        "outputs": [],
         "type": "function"
     }
 ]
