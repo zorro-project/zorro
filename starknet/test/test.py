@@ -64,6 +64,11 @@ async def _get_is_confirmed(ctx, address):
     return is_confirmed
 
 
+async def _get_current_status(ctx, profile_id):
+    (_, _, status) = (await ctx.nym.export_profile_by_id(profile_id).call()).result
+    return status
+
+
 class ScenarioState:
     ctx = None
     profile_id = None
@@ -145,6 +150,16 @@ async def run_scenario(ctx, scenario):
                 )
 
             assert {CONFIRMED: 1, NOT_CONFIRMED: 0}[expected_outcome] == is_confirmed
+
+
+# To be more exhaustive and less reptitive, we could build scenarios in a branching tree:
+# def get_scenario_tree():
+#     return [
+#         *get_post_submit_scenarios([("submit", dict(is_notarized=True), CONFIRMED)]),
+#         *get_post_submit_scenarios(
+#             [("submit", dict(is_notarized=False), NOT_CONFIRMED)]
+#         ),
+#     ]
 
 
 def get_scenario_pairs():
@@ -318,95 +333,3 @@ async def test_scenario(ctx_factory, scenario_pair):
     (scenario_name, scenario) = scenario_pair
     print("Starting scenario", scenario_name, scenario)
     await run_scenario(ctx, scenario)
-
-
-"""
-async def get_current_status(ctx, profile_id):
-    (_, _, status) = (await ctx.nym.export_profile_by_id(profile_id).call()).result
-    return status
-
-@pytest.mark.asyncio
-async def test_notary_submit(ctx_factory):
-    ctx = ctx_factory()
-    address = 123
-    cid = 1234567
-    # XXX:: check balance before
-    (profile_id, profile) = await submit(ctx, "notary", cid, address)
-    # XXX:: check balance after
-    assert profile.cid == cid
-    assert profile.address == address
-    assert profile.is_notarized == 1
-
-
-@pytest.mark.asyncio
-async def test_notary_submit_then_challenge(ctx_factory):
-    ctx = ctx_factory()
-    address = 123
-    cid = 1234567
-    (profile_id, profile) = await submit(ctx, "notary", cid, address)
-    assert await get_current_status(ctx, profile_id) == 0
-    assert (
-        await get_is_confirmed(ctx, address) == 1
-    )  # was submitted by a notary, so should be confirmed
-
-    # XXX: check balance before and after
-    evidence_cid = 200
-    await challenge(ctx, "challenger", profile_id, evidence_cid)
-    assert await get_current_status(ctx, profile_id) != 0
-    profile = await get_profile_by_id(ctx, profile_id)
-    assert profile.last_recorded_status == 1
-    assert profile.challenge_evidence_cid == evidence_cid
-    assert profile.challenger_address == ctx.accounts.challenger.contract_address
-
-    # Being challenged during provisional time window should result in profile being not confirmed
-    # XXX: test being challenged after provisional window
-    assert await get_is_confirmed(ctx, address) == 0
-
-
-async def _test_adjudication(ctx, should_confirm):
-    cid = 4
-    address = 123
-    adjudicator_evidence_cid = 900
-    (profile_id, profile) = await submit(ctx, "notary", cid, address)
-    await challenge(ctx, "challenger", profile_id)
-    await adjudicate(ctx, profile_id, adjudicator_evidence_cid, should_confirm)
-    profile = await get_profile_by_id(ctx, profile_id)
-    assert profile.last_recorded_status == 2
-    assert profile.adjudicator_evidence_cid == adjudicator_evidence_cid
-    assert profile.did_adjudicator_confirm_profile == should_confirm
-    assert await get_is_confirmed(ctx, address) == should_confirm
-    assert await get_current_status(ctx, profile_id) == 2
-
-def get_scenario_tree():
-    return [
-        dict(
-            action="submit",
-            args=dict(is_notarized=True),
-            expected_is_confirmed=1,
-            next=get_post_submit_scenarios(),
-        ),
-        dict(
-            action="submit",
-            args=dict(is_notarized=False),
-            expected_is_confirmed=0,
-            next=get_post_submit_scenarios(),
-        ),
-    ]
-
-
-def get_post_submit_scenarios(was_notarized):
-    return [
-        dict(
-            action="advance_clock",
-            amount=10,  # XXX: choose correctly
-            expected_is_confirmed=was_notarized,
-            next=get_challenge_scenario_tree(),
-        ),
-        dict(
-            action="advance_clock",
-            amount=10000,  # XXX: choose correctly
-            expected_is_confirmed=1,  # should now be confirmed whether or not was originally notarized
-            next=get_challenge_scenario_tree(),
-        ),
-    ]
-"""
