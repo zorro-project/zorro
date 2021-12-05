@@ -59,6 +59,15 @@ async def _super_adjudicate(ctx, profile_id, should_confirm, from_address=None):
     )
 
 
+async def _settle(ctx, profile_id):
+    await ctx.execute(
+        "rando",
+        ctx.nym.contract_address,
+        "settle",
+        [profile_id],
+    )
+
+
 async def _get_is_confirmed(ctx, address):
     (is_confirmed,) = (await ctx.nym.get_is_confirmed(address=address).call()).result
     return is_confirmed
@@ -112,6 +121,9 @@ class ScenarioState:
 
     async def super_adjudicate(self, should_confirm, from_address=None):
         await _super_adjudicate(self.ctx, self.profile_id, should_confirm, from_address)
+
+    async def settle(self):
+        await _settle(self.ctx, self.profile_id)
 
     async def _export_profile(self):
         return await self.ctx.nym.export_profile_by_id(self.profile_id).call()
@@ -238,15 +250,25 @@ def get_scenario_pairs():
     ]
 
     # Can't appeal from the wrong address
-    adj_yes_and_appeal_from_wrong_address = adj_yes_scenario + [
+    adj_yes_and_appeal_from_wrong_address_scenario = adj_yes_scenario + [
         ("appeal", dict(from_address=12345), TX_REJECTED),
     ]
 
-    # Can't appeal after timeout
-    adj_yes_and_appeal_expired_scenario = adj_yes_scenario + [
+    adj_yes_and_appeal_timeout_scenario = adj_yes_scenario + [
         ("named_wait", dict(name="APPEAL_TIME_WINDOW"), CONFIRMED),
-        ("appeal", dict(), TX_REJECTED),
     ]
+
+    adj_no_and_appeal_timeout_scenario = adj_no_scenario + [
+        ("named_wait", dict(name="APPEAL_TIME_WINDOW"), NOT_CONFIRMED),
+    ]
+
+    # Can't appeal after timeout
+    adj_yes_and_appeal_timeout_and_attempt_appeal_scenario = (
+        adj_yes_and_appeal_timeout_scenario
+        + [
+            ("appeal", dict(), TX_REJECTED),
+        ]
+    )
 
     #
     # Super adjudication
@@ -282,8 +304,8 @@ def get_scenario_pairs():
     )
 
     # can't super_adjudicate after appeal expired
-    adj_yes_and_appeal_expired_and_attempt_superadj_scenario = (
-        adj_yes_and_appeal_expired_scenario
+    adj_yes_and_appeal_timeout_and_attempt_superadj_scenario = (
+        adj_yes_and_appeal_timeout_scenario
         + [
             ("super_adjudicate", dict(should_confirm=0), TX_REJECTED),
         ]
@@ -313,6 +335,32 @@ def get_scenario_pairs():
         ]
     )
 
+    #
+    # Settling
+    #
+
+    # Cn settle from appeal timeout state
+    adj_yes_and_appeal_timeout_and_settle_scenario = (
+        adj_yes_and_appeal_timeout_scenario
+        + [
+            ("settle", dict(), CONFIRMED),
+        ]
+    )
+    adj_no_and_appeal_timeout_and_settle_scenario = (
+        adj_no_and_appeal_timeout_scenario
+        + [
+            ("settle", dict(), NOT_CONFIRMED),
+        ]
+    )
+
+    # Can settle from super adjudication complete state
+    adj_no_superadj_no_and_settle_scenario = adj_no_superadj_no_scenario + [
+        ("settle", dict(), NOT_CONFIRMED),
+    ]
+    adj_yes_superadj_yes_and_settle_scenario = adj_yes_superadj_yes_scenario + [
+        ("settle", dict(), CONFIRMED),
+    ]
+
     # Collect all scenarios
     return [
         (name, scenario)
@@ -333,3 +381,67 @@ async def test_scenario(ctx_factory, scenario_pair):
     (scenario_name, scenario) = scenario_pair
     print("Starting scenario", scenario_name, scenario)
     await run_scenario(ctx, scenario)
+
+
+@pytest.mark.asyncio
+async def test_settle_where_challenger_loses(ctx_factory):
+    ctx = ctx_factory()
+
+    # Notary should stay the same
+    # Challenger should lose 25
+    # Pool should gain 25
+
+    # await run_scenario(
+    #     ctx,
+    #     [
+    #         ("submit", dict(via_notary=True, cid=100, address=1234), CONFIRMED),
+    #         ("challenge", dict(), NOT_CONFIRMED),
+    #         ("named_wait", dict(name="ADJUDICATION_TIME_WINDOW"), NOT_CONFIRMED),
+    #         ("named_wait", dict(name="APPEAL_TIME_WINDOW"), NOT_CONFIRMED),
+    #         ("settle", dict(), NOT_CONFIRMED),
+    #     ],
+    # )
+
+
+@pytest.mark.asyncio
+async def test_settle_where_challenger_wins_deposit_from_submitter(ctx_factory):
+    ctx = ctx_factory()
+
+    # Notary should lose 25
+    # Challenger should gain 25
+    # Security pool should stay the same
+
+    await run_scenario(
+        ctx,
+        [
+            ("submit", dict(via_notary=True, cid=100, address=1234), CONFIRMED),
+            ("challenge", dict(), NOT_CONFIRMED),
+            ("named_wait", dict(name="ADJUDICATION_TIME_WINDOW"), NOT_CONFIRMED),
+            ("named_wait", dict(name="APPEAL_TIME_WINDOW"), NOT_CONFIRMED),
+            ("settle", dict(), NOT_CONFIRMED),
+        ],
+    )
+
+
+@pytest.mark.asyncio
+async def test_settle_where_challenger_wins_reward_from_security_pool(ctx_factory):
+    ctx = ctx_factory()
+
+    # (challenge occurs after provisional window)
+
+    # Notary should stay the same
+    # Challenger should gain 25
+    # Pool should reduce 25
+
+
+@pytest.mark.asyncio
+async def test_settle_where_challenger_would_win_reward_but_for_empty_security_pool(
+    ctx_factory,
+):
+    ctx = ctx_factory()
+
+    # (challenge occurs after provisional window)
+
+    # Notary should stay the same
+    # Challenger should stay the same
+    # Pool should stay the same
