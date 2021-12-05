@@ -17,7 +17,7 @@ from utils import assert_is_boolean, get_is_equal
 from consts import consts
 from profile import (
     Profile, StatusEnum, _get_current_status, _get_did_adjudication_occur,
-    _get_did_super_adjudication_occur, _get_is_in_provisional_time_window, _get_is_confirmed)
+    _get_did_super_adjudication_occur, _get_is_in_provisional_time_window, _get_is_verified)
 
 #
 # Storage vars
@@ -179,10 +179,10 @@ func submit{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
         owner_evidence_cid=0,
         adjudication_timestamp=0,
         adjudicator_evidence_cid=0,
-        did_adjudicator_confirm_profile=0,
+        did_adjudicator_verify_profile=0,
         appeal_timestamp=0,
         super_adjudication_timestamp=0,
-        did_super_adjudicator_confirm_profile=0
+        did_super_adjudicator_verify_profile=0
         ))
 
     return (profile_id=profile_id)
@@ -220,10 +220,10 @@ func notarize{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}
         owner_evidence_cid=profile.owner_evidence_cid,
         adjudication_timestamp=profile.adjudication_timestamp,
         adjudicator_evidence_cid=profile.adjudicator_evidence_cid,
-        did_adjudicator_confirm_profile=profile.did_adjudicator_confirm_profile,
+        did_adjudicator_verify_profile=profile.did_adjudicator_verify_profile,
         appeal_timestamp=profile.appeal_timestamp,
         super_adjudication_timestamp=profile.super_adjudication_timestamp,
-        did_super_adjudicator_confirm_profile=profile.did_super_adjudicator_confirm_profile
+        did_super_adjudicator_verify_profile=profile.did_super_adjudicator_verify_profile
         ))
 
     return ()
@@ -248,8 +248,8 @@ func challenge{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*
 
     # Prevent rechallenging of profiles that have already been deemed invalid
     if status == StatusEnum.SETTLED:
-        let (is_confirmed) = _get_is_confirmed(profile, now)
-        assert is_confirmed = 1
+        let (is_verified) = _get_is_verified(profile, now)
+        assert is_verified = 1
 
         tempvar range_check_ptr = range_check_ptr
         tempvar pedersen_ptr = pedersen_ptr
@@ -281,10 +281,10 @@ func challenge{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*
         owner_evidence_cid=0,  # Changed
         adjudication_timestamp=0,  # Changed
         adjudicator_evidence_cid=0,  # Changed
-        did_adjudicator_confirm_profile=0,  # Changed
+        did_adjudicator_verify_profile=0,  # Changed
         appeal_timestamp=0,  # Changed
         super_adjudication_timestamp=0,  # Changed
-        did_super_adjudicator_confirm_profile=0  # Changed
+        did_super_adjudicator_verify_profile=0  # Changed
         ))
 
     return ()
@@ -322,10 +322,10 @@ func submit_evidence{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr :
         owner_evidence_cid=evidence_cid,  # Changed
         adjudication_timestamp=profile.adjudication_timestamp,
         adjudicator_evidence_cid=profile.adjudicator_evidence_cid,
-        did_adjudicator_confirm_profile=profile.did_adjudicator_confirm_profile,
+        did_adjudicator_verify_profile=profile.did_adjudicator_verify_profile,
         appeal_timestamp=profile.appeal_timestamp,
         super_adjudication_timestamp=profile.super_adjudication_timestamp,
-        did_super_adjudicator_confirm_profile=profile.did_super_adjudicator_confirm_profile
+        did_super_adjudicator_verify_profile=profile.did_super_adjudicator_verify_profile
         ))
 
     return ()
@@ -333,10 +333,10 @@ end
 
 @external
 func adjudicate{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
-        profile_id : felt, evidence_cid : felt, should_confirm_profile : felt):
+        profile_id : felt, evidence_cid : felt, should_verify_profile : felt):
     alloc_locals
     assert_caller_is_adjudicator()
-    assert_is_boolean(should_confirm_profile)
+    assert_is_boolean(should_verify_profile)
 
     let (local profile) = get_profile_by_id(profile_id)
 
@@ -360,10 +360,10 @@ func adjudicate{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt
         owner_evidence_cid=profile.owner_evidence_cid,
         adjudication_timestamp=now,  # Changed
         adjudicator_evidence_cid=evidence_cid,  # Changed
-        did_adjudicator_confirm_profile=should_confirm_profile,  # Changed
+        did_adjudicator_verify_profile=should_verify_profile,  # Changed
         appeal_timestamp=profile.appeal_timestamp,
         super_adjudication_timestamp=profile.super_adjudication_timestamp,
-        did_super_adjudicator_confirm_profile=profile.did_super_adjudicator_confirm_profile
+        did_super_adjudicator_verify_profile=profile.did_super_adjudicator_verify_profile
         ))
 
     return ()
@@ -398,10 +398,10 @@ func appeal{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
         owner_evidence_cid=profile.owner_evidence_cid,
         adjudication_timestamp=profile.adjudication_timestamp,
         adjudicator_evidence_cid=profile.adjudicator_evidence_cid,
-        did_adjudicator_confirm_profile=profile.did_adjudicator_confirm_profile,
+        did_adjudicator_verify_profile=profile.did_adjudicator_verify_profile,
         appeal_timestamp=now,  # Changed
         super_adjudication_timestamp=profile.super_adjudication_timestamp,
-        did_super_adjudicator_confirm_profile=profile.did_super_adjudicator_confirm_profile
+        did_super_adjudicator_verify_profile=profile.did_super_adjudicator_verify_profile
         ))
 
     return ()
@@ -409,11 +409,11 @@ end
 
 @l1_handler
 func super_adjudicate{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
-        from_address : felt, profile_id : felt, should_confirm_profile : felt):
+        from_address : felt, profile_id : felt, should_verify_profile : felt):
     alloc_locals
     let (super_adjudicator_l1_address) = _super_adjudicator_l1_address.read()
     assert from_address = super_adjudicator_l1_address
-    assert_is_boolean(should_confirm_profile)
+    assert_is_boolean(should_verify_profile)
 
     let (local profile) = get_profile_by_id(profile_id)
 
@@ -437,10 +437,10 @@ func super_adjudicate{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr 
         owner_evidence_cid=profile.owner_evidence_cid,
         adjudication_timestamp=profile.adjudication_timestamp,
         adjudicator_evidence_cid=profile.adjudicator_evidence_cid,
-        did_adjudicator_confirm_profile=profile.did_adjudicator_confirm_profile,
+        did_adjudicator_verify_profile=profile.did_adjudicator_verify_profile,
         appeal_timestamp=profile.appeal_timestamp,
         super_adjudication_timestamp=now,  # Changed
-        did_super_adjudicator_confirm_profile=should_confirm_profile  # Changed
+        did_super_adjudicator_verify_profile=should_verify_profile  # Changed
         ))
 
     maybe_settle(profile_id)
@@ -461,9 +461,9 @@ func maybe_return_submission_deposit{
         return ()
     end
 
-    # Hold deposit if profile isn't confirmed (due to being challenged, etc)
-    let (is_confirmed) = _get_is_confirmed(profile, now)
-    if is_confirmed == 1:
+    # Hold deposit if profile isn't verified (due to being challenged, etc)
+    let (is_verified) = _get_is_verified(profile, now)
+    if is_verified == 1:
         return ()
     end
 
@@ -493,7 +493,7 @@ func maybe_settle{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : fe
     let (challenge_deposit_size) = get_challenge_deposit_size(profile.challenge_timestamp)
 
     # Learn the final outcome of the challenge
-    let (did_challenger_lose) = _get_is_confirmed(profile, now)
+    let (did_challenger_lose) = _get_is_verified(profile, now)
 
     if did_challenger_lose == 1:
         _return_submission_deposit_if_unspent(
@@ -524,10 +524,10 @@ func maybe_settle{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : fe
         owner_evidence_cid=profile.owner_evidence_cid,
         adjudication_timestamp=profile.adjudication_timestamp,
         adjudicator_evidence_cid=profile.adjudicator_evidence_cid,
-        did_adjudicator_confirm_profile=profile.did_adjudicator_confirm_profile,
+        did_adjudicator_verify_profile=profile.did_adjudicator_verify_profile,
         appeal_timestamp=profile.appeal_timestamp,
         super_adjudication_timestamp=profile.super_adjudication_timestamp,
-        did_super_adjudicator_confirm_profile=profile.did_super_adjudicator_confirm_profile
+        did_super_adjudicator_verify_profile=profile.did_super_adjudicator_verify_profile
         ))
 
     return ()
@@ -730,13 +730,13 @@ func get_num_profiles{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr 
 end
 
 @view
-func get_is_confirmed{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
+func get_is_verified{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
         address : felt) -> (res : felt):
     let (profile_id) = _map_address_to_profile_id.read(address)
     let (profile) = get_profile_by_id(profile_id)
     let (now) = _timestamp.read()
-    let (is_confirmed) = _get_is_confirmed(profile, now)
-    return (is_confirmed)
+    let (is_verified) = _get_is_verified(profile, now)
+    return (is_verified)
 end
 
 # For syncing and testing

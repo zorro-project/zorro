@@ -22,14 +22,14 @@ struct Profile:
     # Set in same tx that shifts `last_recorded_status` to `adjudicated`:
     member adjudication_timestamp : felt  # nonzero iff there was an adjudication
     member adjudicator_evidence_cid : felt
-    member did_adjudicator_confirm_profile : felt
+    member did_adjudicator_verify_profile : felt
 
     # Set in the same tx that shifts `last_recorded_status` to `appealed`
     member appeal_timestamp : felt  # nonzero iff there was an appeal
 
     # Set in same tx that shifts `last_recorded_status` to `super_adjudicated`:
     member super_adjudication_timestamp : felt  # nonzero iff there was a super adjudication
-    member did_super_adjudicator_confirm_profile : felt
+    member did_super_adjudicator_verify_profile : felt
 end
 
 namespace StatusEnum:
@@ -169,7 +169,7 @@ func _get_current_status{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_p
     return (0)
 end
 
-func _get_is_confirmed{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
+func _get_is_verified{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
         profile : Profile, now : felt) -> (res : felt):
     alloc_locals
     let (status) = _get_current_status(profile, now)
@@ -179,7 +179,7 @@ func _get_is_confirmed{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr
     #
 
     if status == StatusEnum.NOT_CHALLENGED:
-        # confirmed if notarized OR survived provisional period without being challenged
+        # verified if notarized OR survived provisional period without being challenged
         let (is_provisional) = _get_is_in_provisional_time_window(profile, now)
 
         # is_notarized || !is_provisional
@@ -214,12 +214,12 @@ func _get_is_confirmed{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr
 
     let (did_super_adjudication_occur) = _get_did_super_adjudication_occur(profile)
     if did_super_adjudication_occur == 1:
-        return (profile.did_super_adjudicator_confirm_profile)
+        return (profile.did_super_adjudicator_verify_profile)
     end
 
     let (did_adjudication_occur) = _get_did_adjudication_occur(profile)
     if did_adjudication_occur == 1:
-        return (profile.did_adjudicator_confirm_profile)
+        return (profile.did_adjudicator_verify_profile)
     end
 
     return (0)

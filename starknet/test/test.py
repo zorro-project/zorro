@@ -28,12 +28,12 @@ async def _challenge(ctx, account_name, profile_id, evidence_cid):
     )
 
 
-async def _adjudicate(ctx, profile_id, evidence_cid, should_confirm):
+async def _adjudicate(ctx, profile_id, evidence_cid, should_verify):
     await ctx.execute(
         "adjudicator",
         ctx.nym.contract_address,
         "adjudicate",
-        [profile_id, evidence_cid, should_confirm],
+        [profile_id, evidence_cid, should_verify],
     )
 
 
@@ -48,14 +48,14 @@ async def _appeal(ctx, profile_id, from_address=None):
     )
 
 
-async def _super_adjudicate(ctx, profile_id, should_confirm, from_address=None):
+async def _super_adjudicate(ctx, profile_id, should_verify, from_address=None):
     if from_address == None:
         from_address = ctx.consts.SUPER_ADJUDICATOR_L1_ADDRESS
     await ctx.starknet.send_message_to_l2(
         from_address,
         ctx.nym.contract_address,
         "super_adjudicate",
-        [profile_id, should_confirm],
+        [profile_id, should_verify],
     )
 
 
@@ -68,9 +68,9 @@ async def _settle(ctx, profile_id):
     )
 
 
-async def _get_is_confirmed(ctx, address):
-    (is_confirmed,) = (await ctx.nym.get_is_confirmed(address=address).call()).result
-    return is_confirmed
+async def _get_is_verified(ctx, address):
+    (is_verified,) = (await ctx.nym.get_is_verified(address=address).call()).result
+    return is_verified
 
 
 async def _get_current_status(ctx, profile_id):
@@ -95,8 +95,8 @@ class ScenarioState:
     async def challenge(self, evidence_cid=200):
         await _challenge(self.ctx, "challenger", self.profile_id, evidence_cid)
 
-    async def get_is_confirmed(self):
-        return await _get_is_confirmed(self.ctx, self.address)
+    async def get_is_verified(self):
+        return await _get_is_verified(self.ctx, self.address)
 
     # Waits one second more than the named duration by default, because
     # we don't care about about `<=`` vs `<`` when it comes to time
@@ -113,14 +113,14 @@ class ScenarioState:
     async def wait(self, duration):
         await self.ctx.nym._test_advance_clock(duration).invoke()
 
-    async def adjudicate(self, should_confirm, evidence_cid=300):
-        await _adjudicate(self.ctx, self.profile_id, evidence_cid, should_confirm)
+    async def adjudicate(self, should_verify, evidence_cid=300):
+        await _adjudicate(self.ctx, self.profile_id, evidence_cid, should_verify)
 
     async def appeal(self, from_address=None):
         await _appeal(self.ctx, self.profile_id, from_address)
 
-    async def super_adjudicate(self, should_confirm, from_address=None):
-        await _super_adjudicate(self.ctx, self.profile_id, should_confirm, from_address)
+    async def super_adjudicate(self, should_verify, from_address=None):
+        await _super_adjudicate(self.ctx, self.profile_id, should_verify, from_address)
 
     async def settle(self):
         await _settle(self.ctx, self.profile_id)
@@ -129,15 +129,15 @@ class ScenarioState:
         return await self.ctx.nym.export_profile_by_id(self.profile_id).call()
 
 
-CONFIRMED = "confirmed"
-NOT_CONFIRMED = "not_confirmed"
+VERIFIED = "verified"
+NOT_VERIFIED = "not_verified"
 TX_REJECTED = "rejected"
 
 
 async def run_scenario(ctx, scenario):
     scenario_state = ScenarioState(ctx)
     for (function_name, kwargs, expected_outcome) in scenario:
-        if expected_outcome not in [CONFIRMED, NOT_CONFIRMED, TX_REJECTED]:
+        if expected_outcome not in [VERIFIED, NOT_VERIFIED, TX_REJECTED]:
             raise f"Invalid expected outcome '{expected_outcome}'"
 
         func = getattr(scenario_state, function_name, None)
@@ -152,24 +152,24 @@ async def run_scenario(ctx, scenario):
             if expected_outcome == TX_REJECTED:
                 assert e.code == StarknetErrorCode.TRANSACTION_FAILED
 
-        if expected_outcome == CONFIRMED or expected_outcome == NOT_CONFIRMED:
-            is_confirmed = await scenario_state.get_is_confirmed()
+        if expected_outcome == VERIFIED or expected_outcome == NOT_VERIFIED:
+            is_verified = await scenario_state.get_is_verified()
 
-            if {CONFIRMED: 1, NOT_CONFIRMED: 0}[expected_outcome] != is_confirmed:
+            if {VERIFIED: 1, NOT_VERIFIED: 0}[expected_outcome] != is_verified:
                 print(
                     "Profile state prior to failure",
                     (await scenario_state._export_profile()),
                 )
 
-            assert {CONFIRMED: 1, NOT_CONFIRMED: 0}[expected_outcome] == is_confirmed
+            assert {VERIFIED: 1, NOT_VERIFIED: 0}[expected_outcome] == is_verified
 
 
 # To be more exhaustive and less reptitive, we could build scenarios in a branching tree:
 # def get_scenario_tree():
 #     return [
-#         *get_post_submit_scenarios([("submit", dict(is_notarized=True), CONFIRMED)]),
+#         *get_post_submit_scenarios([("submit", dict(is_notarized=True), VERIFIED)]),
 #         *get_post_submit_scenarios(
-#             [("submit", dict(is_notarized=False), NOT_CONFIRMED)]
+#             [("submit", dict(is_notarized=False), NOT_VERIFIED)]
 #         ),
 #     ]
 
@@ -181,7 +181,7 @@ def get_scenario_pairs():
     #
 
     notary_submit_scenario = [
-        ("submit", dict(via_notary=True, cid=100, address=1234), CONFIRMED),
+        ("submit", dict(via_notary=True, cid=100, address=1234), VERIFIED),
     ]
 
     duplicate_address_scenario = notary_submit_scenario + [
@@ -189,12 +189,12 @@ def get_scenario_pairs():
     ]
 
     self_submit_scenario = [
-        ("submit", dict(via_notary=False, cid=100, address=1234), NOT_CONFIRMED),
+        ("submit", dict(via_notary=False, cid=100, address=1234), NOT_VERIFIED),
     ]
 
     self_submit_and_wait_scenario = self_submit_scenario + [
-        ("wait", dict(duration=60), NOT_CONFIRMED),
-        ("named_wait", dict(name="PROVISIONAL_TIME_WINDOW"), CONFIRMED),
+        ("wait", dict(duration=60), NOT_VERIFIED),
+        ("named_wait", dict(name="PROVISIONAL_TIME_WINDOW"), VERIFIED),
     ]
 
     #
@@ -202,14 +202,14 @@ def get_scenario_pairs():
     #
 
     notary_submit_and_challenge_scenario = notary_submit_scenario + [
-        ("challenge", dict(), NOT_CONFIRMED),
+        ("challenge", dict(), NOT_VERIFIED),
     ]
 
     notary_submit_and_wait_past_provisional_window_and_challenge_scenario = (
         notary_submit_scenario
         + [
-            ("named_wait", dict(name="PROVISIONAL_TIME_WINDOW"), CONFIRMED),
-            ("challenge", dict(), CONFIRMED),
+            ("named_wait", dict(name="PROVISIONAL_TIME_WINDOW"), VERIFIED),
+            ("challenge", dict(), VERIFIED),
         ]
     )
 
@@ -218,18 +218,18 @@ def get_scenario_pairs():
     #
 
     adj_yes_scenario = notary_submit_and_challenge_scenario + [
-        ("adjudicate", dict(should_confirm=1), CONFIRMED),
+        ("adjudicate", dict(should_verify=1), VERIFIED),
     ]
 
     adj_no_scenario = notary_submit_and_challenge_scenario + [
-        ("adjudicate", dict(should_confirm=0), NOT_CONFIRMED),
+        ("adjudicate", dict(should_verify=0), NOT_VERIFIED),
     ]
 
     # XXX: check that status goes to the correct thing here?
     # Can't adjudicate after timeout
     adj_timeout_scenario = notary_submit_and_challenge_scenario + [
-        ("named_wait", dict(name="ADJUDICATION_TIME_WINDOW"), NOT_CONFIRMED),
-        ("adjudicate", dict(should_confirm=1), TX_REJECTED),
+        ("named_wait", dict(name="ADJUDICATION_TIME_WINDOW"), NOT_VERIFIED),
+        ("adjudicate", dict(should_verify=1), TX_REJECTED),
     ]
 
     #
@@ -237,16 +237,16 @@ def get_scenario_pairs():
     #
 
     adj_yes_and_appeal_scenario = adj_yes_scenario + [
-        ("appeal", dict(), CONFIRMED),
+        ("appeal", dict(), VERIFIED),
     ]
 
     adj_no_and_appeal_scenario = adj_no_scenario + [
-        ("appeal", dict(), NOT_CONFIRMED),
+        ("appeal", dict(), NOT_VERIFIED),
     ]
 
     # Can still appeal if adjudication times out
     adj_timeout_and_appeal_scenario = adj_timeout_scenario + [
-        ("appeal", dict(), NOT_CONFIRMED),
+        ("appeal", dict(), NOT_VERIFIED),
     ]
 
     # Can't appeal from the wrong address
@@ -255,11 +255,11 @@ def get_scenario_pairs():
     ]
 
     adj_yes_and_appeal_timeout_scenario = adj_yes_scenario + [
-        ("named_wait", dict(name="APPEAL_TIME_WINDOW"), CONFIRMED),
+        ("named_wait", dict(name="APPEAL_TIME_WINDOW"), VERIFIED),
     ]
 
     adj_no_and_appeal_timeout_scenario = adj_no_scenario + [
-        ("named_wait", dict(name="APPEAL_TIME_WINDOW"), NOT_CONFIRMED),
+        ("named_wait", dict(name="APPEAL_TIME_WINDOW"), NOT_VERIFIED),
     ]
 
     # Can't appeal after timeout
@@ -276,30 +276,30 @@ def get_scenario_pairs():
 
     # all 2x2 combinations
     adj_no_superadj_no_scenario = adj_no_and_appeal_scenario + [
-        ("super_adjudicate", dict(should_confirm=0), NOT_CONFIRMED),
+        ("super_adjudicate", dict(should_verify=0), NOT_VERIFIED),
     ]
     adj_no_superadj_yes_scenario = adj_no_and_appeal_scenario + [
-        ("super_adjudicate", dict(should_confirm=1), CONFIRMED),
+        ("super_adjudicate", dict(should_verify=1), VERIFIED),
     ]
     adj_yes_superadj_no_scenario = adj_yes_and_appeal_scenario + [
-        ("super_adjudicate", dict(should_confirm=0), NOT_CONFIRMED),
+        ("super_adjudicate", dict(should_verify=0), NOT_VERIFIED),
     ]
     adj_yes_superadj_yes_scenario = adj_yes_and_appeal_scenario + [
-        ("super_adjudicate", dict(should_confirm=1), CONFIRMED),
+        ("super_adjudicate", dict(should_verify=1), VERIFIED),
     ]
 
     # can super adjudicate an appeal of a timed-out adjudication
     adj_timeout_and_appeal_and_superadj_no_scenario = (
         adj_timeout_and_appeal_scenario
         + [
-            ("super_adjudicate", dict(should_confirm=0), NOT_CONFIRMED),
+            ("super_adjudicate", dict(should_verify=0), NOT_VERIFIED),
         ]
     )
 
     adj_timeout_and_appeal_and_superadj_yes_scenario = (
         adj_timeout_and_appeal_scenario
         + [
-            ("super_adjudicate", dict(should_confirm=1), CONFIRMED),
+            ("super_adjudicate", dict(should_verify=1), VERIFIED),
         ]
     )
 
@@ -307,21 +307,21 @@ def get_scenario_pairs():
     adj_yes_and_appeal_timeout_and_attempt_superadj_scenario = (
         adj_yes_and_appeal_timeout_scenario
         + [
-            ("super_adjudicate", dict(should_confirm=0), TX_REJECTED),
+            ("super_adjudicate", dict(should_verify=0), TX_REJECTED),
         ]
     )
 
     # can't super_adjudicate from wrong address
     adj_yes_superadj_yes_scenario = adj_yes_and_appeal_scenario + [
-        ("super_adjudicate", dict(should_confirm=1, from_address=9876), TX_REJECTED),
+        ("super_adjudicate", dict(should_verify=1, from_address=9876), TX_REJECTED),
     ]
 
     # can't super_adjudicate after timeout
     adj_no_and_appeal_and_superadj_timeout_and_attempt_superadj_scenario = (
         adj_no_and_appeal_scenario
         + [
-            ("named_wait", dict(name="SUPER_ADJUDICATION_TIME_WINDOW"), NOT_CONFIRMED),
-            ("super_adjudicate", dict(should_confirm=0), TX_REJECTED),
+            ("named_wait", dict(name="SUPER_ADJUDICATION_TIME_WINDOW"), NOT_VERIFIED),
+            ("super_adjudicate", dict(should_verify=0), TX_REJECTED),
         ]
     )
 
@@ -329,9 +329,9 @@ def get_scenario_pairs():
     all_timed_out_scenario = (
         notary_submit_and_wait_past_provisional_window_and_challenge_scenario
         + [
-            ("named_wait", dict(name="ADJUDICATION_TIME_WINDOW"), NOT_CONFIRMED),
-            ("appeal", dict(), NOT_CONFIRMED),
-            ("named_wait", dict(name="SUPER_ADJUDICATION_TIME_WINDOW"), NOT_CONFIRMED),
+            ("named_wait", dict(name="ADJUDICATION_TIME_WINDOW"), NOT_VERIFIED),
+            ("appeal", dict(), NOT_VERIFIED),
+            ("named_wait", dict(name="SUPER_ADJUDICATION_TIME_WINDOW"), NOT_VERIFIED),
         ]
     )
 
@@ -343,22 +343,22 @@ def get_scenario_pairs():
     adj_yes_and_appeal_timeout_and_settle_scenario = (
         adj_yes_and_appeal_timeout_scenario
         + [
-            ("settle", dict(), CONFIRMED),
+            ("settle", dict(), VERIFIED),
         ]
     )
     adj_no_and_appeal_timeout_and_settle_scenario = (
         adj_no_and_appeal_timeout_scenario
         + [
-            ("settle", dict(), NOT_CONFIRMED),
+            ("settle", dict(), NOT_VERIFIED),
         ]
     )
 
     # Can settle from super adjudication complete state
     adj_no_superadj_no_and_settle_scenario = adj_no_superadj_no_scenario + [
-        ("settle", dict(), NOT_CONFIRMED),
+        ("settle", dict(), NOT_VERIFIED),
     ]
     adj_yes_superadj_yes_and_settle_scenario = adj_yes_superadj_yes_scenario + [
-        ("settle", dict(), CONFIRMED),
+        ("settle", dict(), VERIFIED),
     ]
 
     # Collect all scenarios
@@ -394,11 +394,11 @@ async def test_settle_where_challenger_loses(ctx_factory):
     # await run_scenario(
     #     ctx,
     #     [
-    #         ("submit", dict(via_notary=True, cid=100, address=1234), CONFIRMED),
-    #         ("challenge", dict(), NOT_CONFIRMED),
-    #         ("named_wait", dict(name="ADJUDICATION_TIME_WINDOW"), NOT_CONFIRMED),
-    #         ("named_wait", dict(name="APPEAL_TIME_WINDOW"), NOT_CONFIRMED),
-    #         ("settle", dict(), NOT_CONFIRMED),
+    #         ("submit", dict(via_notary=True, cid=100, address=1234), VERIFIED),
+    #         ("challenge", dict(), NOT_VERIFIED),
+    #         ("named_wait", dict(name="ADJUDICATION_TIME_WINDOW"), NOT_VERIFIED),
+    #         ("named_wait", dict(name="APPEAL_TIME_WINDOW"), NOT_VERIFIED),
+    #         ("settle", dict(), NOT_VERIFIED),
     #     ],
     # )
 
@@ -414,11 +414,11 @@ async def test_settle_where_challenger_wins_deposit_from_submitter(ctx_factory):
     await run_scenario(
         ctx,
         [
-            ("submit", dict(via_notary=True, cid=100, address=1234), CONFIRMED),
-            ("challenge", dict(), NOT_CONFIRMED),
-            ("named_wait", dict(name="ADJUDICATION_TIME_WINDOW"), NOT_CONFIRMED),
-            ("named_wait", dict(name="APPEAL_TIME_WINDOW"), NOT_CONFIRMED),
-            ("settle", dict(), NOT_CONFIRMED),
+            ("submit", dict(via_notary=True, cid=100, address=1234), VERIFIED),
+            ("challenge", dict(), NOT_VERIFIED),
+            ("named_wait", dict(name="ADJUDICATION_TIME_WINDOW"), NOT_VERIFIED),
+            ("named_wait", dict(name="APPEAL_TIME_WINDOW"), NOT_VERIFIED),
+            ("settle", dict(), NOT_VERIFIED),
         ],
     )
 
