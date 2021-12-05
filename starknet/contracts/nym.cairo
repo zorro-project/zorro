@@ -671,6 +671,13 @@ func get_token_address{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_c
 end
 
 @view
+func get_security_pool_balance{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+        ) -> (res : felt):
+    let (balance) = _security_pool_balance.read()
+    return (balance)
+end
+
+@view
 func get_submission_deposit_size(timestamp : felt) -> (res : felt):
     # Constant for now, but later may depend on time
     return (consts.SUBMISSION_DEPOSIT_SIZE)
