@@ -62,7 +62,7 @@
                 "type": "felt"
             },
             {
-                "name": "did_adjudicator_confirm_profile",
+                "name": "did_adjudicator_verify_profile",
                 "offset": 12,
                 "type": "felt"
             },
@@ -77,7 +77,7 @@
                 "type": "felt"
             },
             {
-                "name": "did_super_adjudicator_confirm_profile",
+                "name": "did_super_adjudicator_verify_profile",
                 "offset": 15,
                 "type": "felt"
             }
@@ -233,7 +233,7 @@
                 "type": "felt"
             },
             {
-                "name": "should_confirm_profile",
+                "name": "should_verify_profile",
                 "type": "felt"
             }
         ],
@@ -267,7 +267,7 @@
                 "type": "felt"
             },
             {
-                "name": "should_confirm_profile",
+                "name": "should_verify_profile",
                 "type": "felt"
             }
         ],
@@ -314,6 +314,30 @@
         "outputs": [
             {
                 "name": "token_address",
+                "type": "felt"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "get_deposit_balance",
+        "outputs": [
+            {
+                "name": "res",
+                "type": "felt"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "get_security_pool_balance",
+        "outputs": [
+            {
+                "name": "res",
                 "type": "felt"
             }
         ],
@@ -452,7 +476,7 @@
                 "type": "felt"
             }
         ],
-        "name": "get_is_confirmed",
+        "name": "get_is_verified",
         "outputs": [
             {
                 "name": "res",
