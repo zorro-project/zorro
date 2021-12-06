@@ -264,7 +264,6 @@ def get_scenario_pairs():
         ("adjudicate", dict(should_verify=0), NOT_VERIFIED),
     ]
 
-    # XXX: check that status goes to the correct thing here?
     # Can't adjudicate after timeout
     adj_timeout_scenario = notary_submit_and_challenge_scenario + [
         ("named_wait", dict(name="ADJUDICATION_TIME_WINDOW"), NOT_VERIFIED),
@@ -351,9 +350,12 @@ def get_scenario_pairs():
     )
 
     # can't super_adjudicate from wrong address
-    adj_yes_superadj_yes_scenario = adj_yes_and_appeal_scenario + [
-        ("super_adjudicate", dict(should_verify=1, from_address=9876), TX_REJECTED),
-    ]
+    adj_yes_and_attempt_superadj_from_wront_address_scenario = (
+        adj_yes_and_appeal_scenario
+        + [
+            ("super_adjudicate", dict(should_verify=1, from_address=9876), TX_REJECTED),
+        ]
+    )
 
     # can't super_adjudicate after timeout
     adj_no_and_appeal_and_superadj_timeout_and_attempt_superadj_scenario = (
@@ -398,6 +400,45 @@ def get_scenario_pairs():
     ]
     adj_yes_superadj_yes_and_settle_scenario = adj_yes_superadj_yes_scenario + [
         ("maybe_settle", dict(), VERIFIED),
+    ]
+
+    #
+    # Rechallenging
+    #
+
+    # Can rechallenge after appeal timed out
+    adj_yes_and_appeal_timeout_and_rechallenge_scenario = (
+        adj_yes_and_appeal_timeout_scenario
+        + [
+            ("named_wait", dict(name="PROVISIONAL_TIME_WINDOW"), VERIFIED),
+            ("challenge", dict(), VERIFIED),  # presumed innocent
+        ]
+    )
+
+    # Can rechallenge from unsettled status
+    superadj_yes_and_rechallenge_scenario = adj_no_superadj_yes_scenario + [
+        (
+            "challenge",
+            dict(),
+            NOT_VERIFIED,
+        )  # not presumed innocent because there was no delay — we're still in provisional time window! (unrealistically fast rechallenge)
+    ]
+
+    # Can rechallenge from settled status
+    superadj_yes_and_settle_and_rechallenge_scenario = adj_yes_superadj_yes_and_settle_scenario + [
+        ("challenge", dict(), NOT_VERIFIED)
+    ]  # we rechallenged so quickly that they are still presumed not innocent, hence NOT_VERIFIED
+
+    # cannot rechallenge profiles that are already deemed unverified
+    settle_and_attempt_rechallenge_scenario = adj_no_superadj_no_and_settle_scenario + [
+        ("challenge", dict(), TX_REJECTED)
+    ]
+
+    return [
+        (
+            "superadj_yes_and_settle_and_rechallenge_scenario",
+            superadj_yes_and_settle_and_rechallenge_scenario,
+        ),
     ]
 
     # Collect all scenarios
