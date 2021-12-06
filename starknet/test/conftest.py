@@ -121,7 +121,7 @@ async def _build_copyable_deployment():
         initial_challenger_funds,
     )
 
-    # Give tokens to the nym contract (its shared security pool)
+    # Give tokens to the rando
     await give_tokens(
         accounts.rando.contract_address,
         200,

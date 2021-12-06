@@ -463,7 +463,7 @@ func maybe_return_submission_deposit{
 
     # Hold deposit if profile isn't verified (due to being challenged, etc)
     let (is_verified) = _get_is_verified(profile, now)
-    if is_verified == 1:
+    if is_verified == 0:
         return ()
     end
 
@@ -611,11 +611,11 @@ func _receive_deposit{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr 
 end
 
 func _return_deposit{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
-        to_address, amount):
+        address, amount):
     let (token_address) = _token_address.read()
     let (deposit_balance) = _deposit_balance.read()
     _deposit_balance.write(deposit_balance - amount)
-    IERC20.transfer(contract_address=token_address, recipient=to_address, amount=Uint256(amount, 0))
+    IERC20.transfer(contract_address=token_address, recipient=address, amount=Uint256(amount, 0))
 
     return ()
 end
@@ -645,7 +645,8 @@ func _maybe_give_security_bounty{pedersen_ptr : HashBuiltin*, range_check_ptr, s
 
     if has_funds_for_reward != 0:
         let (token_address) = _token_address.read()
-        IERC20.transfer(contract_address=token_address, recipient=amount, amount=Uint256(amount, 0))
+        IERC20.transfer(
+            contract_address=token_address, recipient=address, amount=Uint256(amount, 0))
         _security_pool_balance.write(security_pool_balance - amount)
 
         tempvar range_check_ptr = range_check_ptr
@@ -668,6 +669,13 @@ end
 func get_token_address{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}() -> (
         token_address : felt):
     return _token_address.read()
+end
+
+@view
+func get_deposit_balance{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}() -> (
+        res : felt):
+    let (balance) = _deposit_balance.read()
+    return (balance)
 end
 
 @view

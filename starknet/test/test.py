@@ -1,7 +1,11 @@
 import pytest
+from collections import Counter
+
 from starkware.starkware_utils.error_handling import StarkException
 from starkware.starknet.definitions.error_codes import StarknetErrorCode
+
 from OpenZeppelin.Signer import Signer
+
 from utils import uint
 
 
@@ -14,11 +18,41 @@ async def _erc20_approve(ctx, account_name, amount):
     )
 
 
+async def _donate_to_security_pool(ctx, account_name, amount):
+    await _erc20_approve(ctx, account_name, amount)
+    await ctx.execute(
+        account_name, ctx.nym.contract_address, "donate_to_security_pool", [amount]
+    )
+
+
+async def _get_balance(ctx, address):
+    return (await ctx.erc20.balance_of(address).call()).result.res.low
+
+
 async def _submit(ctx, account_name, cid, address):
     await _erc20_approve(ctx, account_name, ctx.consts.SUBMISSION_DEPOSIT_SIZE)
     await ctx.execute(account_name, ctx.nym.contract_address, "submit", [cid, address])
     (profile_id, _) = (await ctx.nym.get_profile_by_address(address).call()).result
     return (profile_id, address)
+
+
+async def _maybe_return_submission_deposit(ctx, profile_id):
+    await ctx.execute(
+        "rando",
+        ctx.nym.contract_address,
+        "maybe_return_submission_deposit",
+        [profile_id],
+    )
+
+
+async def _get_balances(ctx):
+    return Counter(
+        notary=(await _get_balance(ctx, ctx.accounts.notary.contract_address)),
+        challenger=(await _get_balance(ctx, ctx.accounts.challenger.contract_address)),
+        rando=(await _get_balance(ctx, ctx.accounts.rando.contract_address)),
+        nym=(await _get_balance(ctx, ctx.nym.contract_address)),
+        nym_security_pool=(await ctx.nym.get_security_pool_balance().call()).result.res,
+    )
 
 
 async def _challenge(ctx, account_name, profile_id, evidence_cid):
@@ -59,11 +93,11 @@ async def _super_adjudicate(ctx, profile_id, should_verify, from_address=None):
     )
 
 
-async def _settle(ctx, profile_id):
+async def _maybe_settle(ctx, profile_id):
     await ctx.execute(
         "rando",
         ctx.nym.contract_address,
-        "settle",
+        "maybe_settle",
         [profile_id],
     )
 
@@ -73,9 +107,9 @@ async def _get_is_verified(ctx, address):
     return is_verified
 
 
-async def _get_current_status(ctx, profile_id):
-    (_, _, status) = (await ctx.nym.export_profile_by_id(profile_id).call()).result
-    return status
+# async def _get_current_status(ctx, profile_id):
+#     (_, _, status) = (await ctx.nym.export_profile_by_id(profile_id).call()).result
+#     return status
 
 
 class ScenarioState:
@@ -91,6 +125,9 @@ class ScenarioState:
         (profile_id, address) = await _submit(self.ctx, submitter_name, cid, address)
         self.profile_id = profile_id
         self.address = address
+
+    async def maybe_return_submission_deposit(self):
+        await _maybe_return_submission_deposit(self.ctx, self.profile_id)
 
     async def challenge(self, evidence_cid=200):
         await _challenge(self.ctx, "challenger", self.profile_id, evidence_cid)
@@ -122,8 +159,8 @@ class ScenarioState:
     async def super_adjudicate(self, should_verify, from_address=None):
         await _super_adjudicate(self.ctx, self.profile_id, should_verify, from_address)
 
-    async def settle(self):
-        await _settle(self.ctx, self.profile_id)
+    async def maybe_settle(self):
+        await _maybe_settle(self.ctx, self.profile_id)
 
     async def _export_profile(self):
         return await self.ctx.nym.export_profile_by_id(self.profile_id).call()
@@ -151,6 +188,8 @@ async def run_scenario(ctx, scenario):
         except StarkException as e:
             if expected_outcome == TX_REJECTED:
                 assert e.code == StarknetErrorCode.TRANSACTION_FAILED
+            else:
+                raise e
 
         if expected_outcome == VERIFIED or expected_outcome == NOT_VERIFIED:
             is_verified = await scenario_state.get_is_verified()
@@ -343,22 +382,22 @@ def get_scenario_pairs():
     adj_yes_and_appeal_timeout_and_settle_scenario = (
         adj_yes_and_appeal_timeout_scenario
         + [
-            ("settle", dict(), VERIFIED),
+            ("maybe_settle", dict(), VERIFIED),
         ]
     )
     adj_no_and_appeal_timeout_and_settle_scenario = (
         adj_no_and_appeal_timeout_scenario
         + [
-            ("settle", dict(), NOT_VERIFIED),
+            ("maybe_settle", dict(), NOT_VERIFIED),
         ]
     )
 
     # Can settle from super adjudication complete state
     adj_no_superadj_no_and_settle_scenario = adj_no_superadj_no_scenario + [
-        ("settle", dict(), NOT_VERIFIED),
+        ("maybe_settle", dict(), NOT_VERIFIED),
     ]
     adj_yes_superadj_yes_and_settle_scenario = adj_yes_superadj_yes_scenario + [
-        ("settle", dict(), VERIFIED),
+        ("maybe_settle", dict(), VERIFIED),
     ]
 
     # Collect all scenarios
@@ -383,34 +422,39 @@ async def test_scenario(ctx_factory, scenario_pair):
     await run_scenario(ctx, scenario)
 
 
+def get_balance_deltas(pre_balances, post_balances):
+    return {key: post_balances[key] - pre_balances[key] for key in post_balances.keys()}
+
+
 @pytest.mark.asyncio
 async def test_settle_where_challenger_loses(ctx_factory):
     ctx = ctx_factory()
 
-    # Notary should stay the same
-    # Challenger should lose 25
-    # Pool should gain 25
+    pre_balances = await _get_balances(ctx)
+    await run_scenario(
+        ctx,
+        [
+            ("submit", dict(via_notary=True, cid=100, address=1234), VERIFIED),
+            ("challenge", dict(), NOT_VERIFIED),
+            ("adjudicate", dict(should_verify=1), VERIFIED),
+            ("named_wait", dict(name="APPEAL_TIME_WINDOW"), VERIFIED),
+            ("maybe_settle", dict(), VERIFIED),
+        ],
+    )
+    post_balances = await _get_balances(ctx)
+    deltas = get_balance_deltas(pre_balances, post_balances)
 
-    # await run_scenario(
-    #     ctx,
-    #     [
-    #         ("submit", dict(via_notary=True, cid=100, address=1234), VERIFIED),
-    #         ("challenge", dict(), NOT_VERIFIED),
-    #         ("named_wait", dict(name="ADJUDICATION_TIME_WINDOW"), NOT_VERIFIED),
-    #         ("named_wait", dict(name="APPEAL_TIME_WINDOW"), NOT_VERIFIED),
-    #         ("settle", dict(), NOT_VERIFIED),
-    #     ],
-    # )
+    assert deltas["notary"] == 0
+    assert deltas["challenger"] == -25
+    assert deltas["nym"] == 25
+    assert deltas["nym_security_pool"] == 25
 
 
 @pytest.mark.asyncio
 async def test_settle_where_challenger_wins_deposit_from_submitter(ctx_factory):
     ctx = ctx_factory()
 
-    # Notary should lose 25
-    # Challenger should gain 25
-    # Security pool should stay the same
-
+    pre_balances = await _get_balances(ctx)
     await run_scenario(
         ctx,
         [
@@ -418,20 +462,47 @@ async def test_settle_where_challenger_wins_deposit_from_submitter(ctx_factory):
             ("challenge", dict(), NOT_VERIFIED),
             ("named_wait", dict(name="ADJUDICATION_TIME_WINDOW"), NOT_VERIFIED),
             ("named_wait", dict(name="APPEAL_TIME_WINDOW"), NOT_VERIFIED),
-            ("settle", dict(), NOT_VERIFIED),
+            ("maybe_settle", dict(), NOT_VERIFIED),
         ],
     )
+    post_balances = await _get_balances(ctx)
+    deltas = get_balance_deltas(pre_balances, post_balances)
+
+    assert deltas["notary"] == -25
+    assert deltas["challenger"] == 25
+    assert deltas["nym"] == 0
+    assert deltas["nym_security_pool"] == 0
 
 
 @pytest.mark.asyncio
 async def test_settle_where_challenger_wins_reward_from_security_pool(ctx_factory):
     ctx = ctx_factory()
 
-    # (challenge occurs after provisional window)
+    DONATION_AMOUNT = 100
+    await _donate_to_security_pool(ctx, "rando", DONATION_AMOUNT)
 
-    # Notary should stay the same
-    # Challenger should gain 25
-    # Pool should reduce 25
+    pre_balances = await _get_balances(ctx)
+    assert pre_balances["nym_security_pool"] == DONATION_AMOUNT
+    await run_scenario(
+        ctx,
+        [
+            ("submit", dict(via_notary=True, cid=100, address=1234), VERIFIED),
+            ("named_wait", dict(name="PROVISIONAL_TIME_WINDOW"), VERIFIED),
+            ("maybe_return_submission_deposit", dict(), VERIFIED),
+            ("challenge", dict(), VERIFIED),
+            ("adjudicate", dict(should_verify=0), NOT_VERIFIED),
+            ("named_wait", dict(name="APPEAL_TIME_WINDOW"), NOT_VERIFIED),
+            ("maybe_settle", dict(), NOT_VERIFIED),
+        ],
+    )
+    post_balances = await _get_balances(ctx)
+    deltas = get_balance_deltas(pre_balances, post_balances)
+    print(pre_balances, post_balances, deltas)
+
+    assert deltas["notary"] == 0
+    assert deltas["challenger"] == 25
+    assert deltas["nym"] == -25
+    assert deltas["nym_security_pool"] == -25
 
 
 @pytest.mark.asyncio
@@ -440,8 +511,23 @@ async def test_settle_where_challenger_would_win_reward_but_for_empty_security_p
 ):
     ctx = ctx_factory()
 
-    # (challenge occurs after provisional window)
+    pre_balances = await _get_balances(ctx)
+    await run_scenario(
+        ctx,
+        [
+            ("submit", dict(via_notary=True, cid=100, address=1234), VERIFIED),
+            ("named_wait", dict(name="PROVISIONAL_TIME_WINDOW"), VERIFIED),
+            ("maybe_return_submission_deposit", dict(), VERIFIED),
+            ("challenge", dict(), VERIFIED),
+            ("adjudicate", dict(should_verify=0), NOT_VERIFIED),
+            ("named_wait", dict(name="APPEAL_TIME_WINDOW"), NOT_VERIFIED),
+            ("maybe_settle", dict(), NOT_VERIFIED),
+        ],
+    )
+    post_balances = await _get_balances(ctx)
+    deltas = get_balance_deltas(pre_balances, post_balances)
 
-    # Notary should stay the same
-    # Challenger should stay the same
-    # Pool should stay the same
+    assert deltas["notary"] == 0
+    assert deltas["challenger"] == 0
+    assert deltas["nym"] == 0
+    assert deltas["nym_security_pool"] == 0
