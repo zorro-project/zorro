@@ -7,24 +7,65 @@ import {
   hash,
   number,
   stark,
+  Signer,
+  compileCalldata,
 } from 'starknet'
 import ERC20_ADDRESS from '../../../../starknet/deployments/goerli/erc20.json'
 import NOTARY_ADDRESS from '../../../../starknet/deployments/goerli/notary.json'
 import NYM_ADDRESS from '../../../../starknet/deployments/goerli/nym.json'
 import NYM_ABI from '../../../../starknet/starknet-artifacts/contracts/nym.cairo/nym_abi.json'
+import ERC20_ABI from '../../../../starknet/starknet-artifacts/contracts/openzeppelin/ERC20.cairo/ERC20_abi.json'
 import OZ_ACCOUNT_ABI from '../../../../starknet/starknet-artifacts/contracts/OpenZeppelin/Account.cairo/Account_abi.json'
 import assert from 'minimalistic-assert'
 import { mapValues } from 'lodash'
 import { Prisma } from '@prisma/client'
 import { CID } from 'ipfs-http-client'
 import { sanitizeHex } from 'starknet/dist/utils/encode'
+import { BigNumberish, toBN } from 'starknet/dist/utils/number'
+import { bnToUint256, Uint256, uint256ToBN } from 'starknet/dist/utils/uint256'
 
 type Felt = string
 
+export const NymAddress = NYM_ADDRESS.address
+export const NotaryAddress = NOTARY_ADDRESS.address
+export const ERC20Address = ERC20_ADDRESS.address
+const nym = new Contract(NYM_ABI as Abi[], NymAddress)
+
 export const getNumProfiles = async () => {
-  const nym = new Contract(NYM_ABI as Abi[], NYM_ADDRESS.address)
   const response = await nym.call('get_num_profiles', {})
   return parseInt(response.res as string, 16)
+}
+
+export async function getSubmissionDepositSize(timestamp = new Date()) {
+  const response = await nym.call('get_submission_deposit_size', {
+    timestamp: number.toHex(number.toBN(timestamp.getTime() / 1000)),
+  })
+  return parseInt(response.res as string, 16)
+}
+
+export async function erc20Approve(
+  owner: Signer,
+  spender: Felt,
+  amount: BigNumberish
+) {
+  const uintAmount = bnToUint256(amount)
+  const resp = await owner.addTransaction({
+    type: 'INVOKE_FUNCTION',
+    contract_address: ERC20Address,
+    entry_point_selector: stark.getSelectorFromName('approve'),
+    calldata: [spender, uintAmount.low, uintAmount.high],
+  })
+  return defaultProvider.waitForTx(resp.transaction_hash)
+}
+
+export async function getAllowance(owner: Felt, spender: Felt) {
+  const erc20 = new Contract(ERC20_ABI as Abi[], ERC20Address)
+  const resp = await erc20.call('allowance', {
+    owner,
+    spender,
+  })
+
+  return uint256ToBN(resp.res as any)
 }
 
 export async function notarySubmitProfile(
@@ -32,70 +73,45 @@ export async function notarySubmitProfile(
   address: Felt,
   notaryKey: Felt
 ) {
-  const notary = new Contract(OZ_ACCOUNT_ABI as Abi[], NOTARY_ADDRESS.address)
-
-  const nym = new Contract(NYM_ABI as Abi[], NYM_ADDRESS.address)
-
-  const nonce = (await notary.call('get_nonce')).res as string
-
-  const calldata = [cid, address]
-
-  const msgHash = encode.addHexPrefix(
-    hash.hashMessage(
-      notary.connectedTo,
-      NYM_ADDRESS.address,
-      stark.getSelectorFromName('submit'),
-      calldata,
-      nonce
-    )
+  const notary = new Signer(
+    defaultProvider,
+    NotaryAddress,
+    ec.getKeyPair(notaryKey)
   )
 
-  console.log(cid)
+  const depositSize = await getSubmissionDepositSize()
+  console.log({ depositSize })
 
-  console.log(msgHash)
+  await erc20Approve(notary, NymAddress, depositSize)
+  console.log('erc20 approved')
 
-  const keypair = ec.getKeyPair(notaryKey)
-
-  const { r, s } = ec.sign(keypair, msgHash)
-  console.log('submitting')
-  const { code, transaction_hash } = await notary.invoke(
-    'execute',
-    {
-      to: NYM_ADDRESS.address,
-      selector: stark.getSelectorFromName('submit'),
-      calldata,
-      nonce: nonce,
-    },
-    [number.toHex(r), number.toHex(s)]
-  )
-
-  await defaultProvider.waitForTx(transaction_hash)
-  console.log('submitted')
-
-  // const depositSize = await nym.call('get_submission_deposit_size', {})
-  // const approveTransfer = await notary.invoke('execute', {
-  //   to: ERC20_ADDRESS.address,
-  //   selector: stark.getSelectorFromName('approve'),
-  //   calldata: [NYM_ADDRESS.address, depositSize.res, '0'],
-  // })
-
-  // await defaultProvider.waitForTx(approveTransfer.transaction_hash)
-  // console.log('submitting')
-
-  // const submission = await notary.invoke('execute', {
-  //   to: NYM_ADDRESS.address,
-  //   selector: stark.getSelectorFromName('submit'),
-  //   calldata: [cid, address],
-  // })
-  // return await defaultProvider.waitForTx(submission.transaction_hash)
+  const resp = await notary.addTransaction({
+    type: 'INVOKE_FUNCTION',
+    contract_address: NymAddress,
+    entry_point_selector: stark.getSelectorFromName('submit'),
+    calldata: [cid, address],
+  })
+  return defaultProvider.waitForTx(resp.transaction_hash)
 }
 
+// Keep in sync with profile.cairo
 type Profile = {
   cid: Felt
   address: Felt
   submitter_address: Felt
   submission_timestamp: Felt
   is_notarized: Felt
+  last_recorded_status: Felt
+  challenge_timestamp: Felt
+  challenger_address: Felt
+  challenge_evidence_cid: Felt
+  owner_evidence_cid: Felt
+  adjudication_timestamp: Felt
+  adjudicator_evidence_cid: Felt
+  did_adjudicator_verify_profile: Felt
+  appeal_timestamp: Felt
+  super_adjudication_timestamp: Felt
+  did_super_adjudicator_verify_profile: Felt
 }
 
 type Challenge = {
@@ -115,7 +131,7 @@ type Challenge = {
 export async function exportProfileById(
   profileId: bigint | number | string | Prisma.Decimal
 ) {
-  const nym = new Contract(NYM_ABI as Abi[], NYM_ADDRESS.address)
+  const nym = new Contract(NYM_ABI as Abi[], NymAddress)
 
   const profile = (await nym.call('export_profile_by_id', {
     profile_id: profileId.toString(16),

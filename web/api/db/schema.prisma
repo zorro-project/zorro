@@ -40,71 +40,62 @@ model UnsubmittedProfile {
   NotaryFeedback NotaryFeedback[]
 }
 
+// Keep in sync with `StatusEnum` in `starknet/contracts/profile.cairo`
+enum StatusEnum {
+  NOT_CHALLENGED
+  CHALLENGED
+  ADJUDICATION_ROUND_COMPLETED
+  APPEALED
+  APPEAL_OPPORTUNITY_EXPIRED
+  SUPER_ADJUDICATION_ROUND_COMPLETED
+  SETTLED
+}
+
 // Cache of profiles populated from the `profiles` storage var in Nym.cairo
 model CachedProfile {
   id Int @id
 
   // Fields stored on StarkNet:
-  //  - cid
-  //  - address
-  //  - submitter_address
-  //  - submission_timestamp
-  //  - is_notarized
+  //  - cid : felt  # cidv1 for profile pic/video/etc
+  //  - address : felt
+  //  - submitter_address : felt
+  //  - submission_timestamp : felt
+  //  - is_notarized : felt
+  //  - last_recorded_status : felt  # one of StatusEnum
+  //  - challenge_timestamp : felt  # nonzero iff there was a challenge
+  //  - challenger_address : felt
+  //  - challenge_evidence_cid : felt
+  //  - owner_evidence_cid : felt
+  //  - adjudication_timestamp : felt  # nonzero iff there was an adjudication
+  //  - adjudicator_evidence_cid : felt
+  //  - did_adjudicator_verify_profile : felt
+  //  - appeal_timestamp : felt  # nonzero iff there was an appeal
+  //  - super_adjudication_timestamp : felt  # nonzero iff there was a super adjudication
+  //  - did_super_adjudicator_verify_profile : felt
   cache Json @db.JsonB
 
   // Derived fields
-  notarized           Boolean
-  address             String   @unique
-  submissionTimestamp DateTime
-  CID                 String?
-  photoCID            String?
-  videoCID            String?
+  CID      String?
+  photoCID String?
+  videoCID String?
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
+  address              String     @unique
+  submissionTimestamp  DateTime
+  notarized            Boolean
+  lastRecordedStatus   StatusEnum
+  challengeTimestamp   DateTime?
+  challengerAddress    String?
+  challengeEvidenceCID String?
+  ownerEvidenceCID     String?
 
-// Some of these are derived states that will never be persisted to the
-// database. But we still need all of them recorded here so the integer offsets
-// line up correctly.
-enum ChallengeStatus {
-  not_challenged
-  challenged
-  adjudicated
-  adjudication_opportunity_expired
-  appealed
-  appeal_opportunity_expired
-  super_adjudicated
-  super_adjudication_opportunity_expired
-  settled
-}
+  adjudicationTimestamp       DateTime?
+  adjudicatorEvidenceCID      String?
+  didadjudicatorVerifyProfile Boolean
 
-model CachedChallenge {
-  profileId Int @id
-
-  // Fields stored on StarkNet:
-  //  - last_recorded_status
-  //  - challenge_timestamp
-  //  - challenger_address
-  //  - challenge_evidence_cid
-  //  - profile_owner_evidence_cid
-  //  - adjudication_timestamp
-  //  - adjudicator_evidence_cid
-  //  - did_adjudicator_confirm_profile
-  //  - appeal_timestamp
-  //  - super_adjudication_timestamp
-  cache Json @db.JsonB
-
-  lastRecordedStatus         ChallengeStatus
-  challengeTimestamp         DateTime?
-  adjudicationTimestamp      DateTime?
-  superAdjudicationTimestamp DateTime?
-
-  challengeEvidence            String?
-  profileOwnerEvidence         String?
-  adjudicatorEvidence          String?
-  didAdjudicatorConfirmProfile Boolean
-  appealTimestamp              DateTime?
+  appealTimestamp                  DateTime?
+  superAdjudicationTimestamp       DateTime?
+  didSuperAdjudicatorVerifyProfile Boolean
+  // End derived fields
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
