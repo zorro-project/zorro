@@ -163,7 +163,7 @@ func submit{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
 
     _map_address_to_profile_id.write(address, profile_id)
 
-    let (is_caller_notary) = get_is_caller_notary()
+    let (is_caller_notary) = _get_is_caller_notary()
     _profiles.write(
         profile_id,
         Profile(
@@ -298,7 +298,7 @@ end
 func submit_evidence{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
         profile_id : felt, evidence_cid : felt):
     alloc_locals
-    let (local profile_id) = get_caller_profile_id()
+    let (local profile_id) = _get_caller_profile_id()
 
     let (now) = _timestamp.read()
     let (profile) = get_profile_by_id(profile_id)
@@ -763,15 +763,15 @@ end
 # Caller information
 #
 
-func get_caller_profile_id{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}() -> (
-        profile_id : felt):
+func _get_caller_profile_id{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
+        ) -> (profile_id : felt):
     let (caller_address) = get_caller_address()
     let (profile_id) = _map_address_to_profile_id.read(caller_address)
     assert_not_zero(profile_id)
     return (profile_id)
 end
 
-func get_is_caller_notary{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}() -> (
+func _get_is_caller_notary{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}() -> (
         res : felt):
     let (caller_address) = get_caller_address()
     let (notary_address) = _notary_address.read()
@@ -784,7 +784,7 @@ end
 #
 
 func assert_caller_is_notary{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}():
-    let (is_notary) = get_is_caller_notary()
+    let (is_notary) = _get_is_caller_notary()
     assert is_notary = 1
     return ()
 end

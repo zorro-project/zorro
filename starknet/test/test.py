@@ -434,13 +434,6 @@ def get_scenario_pairs():
         ("challenge", dict(), TX_REJECTED)
     ]
 
-    return [
-        (
-            "superadj_yes_and_settle_and_rechallenge_scenario",
-            superadj_yes_and_settle_and_rechallenge_scenario,
-        ),
-    ]
-
     # Collect all scenarios
     return [
         (name, scenario)
