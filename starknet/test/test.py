@@ -14,14 +14,14 @@ async def _erc20_approve(ctx, account_name, amount):
         account_name,
         ctx.erc20.contract_address,
         "approve",
-        [ctx.nym.contract_address, *uint(amount)],
+        [ctx.zorro.contract_address, *uint(amount)],
     )
 
 
 async def _donate_to_security_pool(ctx, account_name, amount):
     await _erc20_approve(ctx, account_name, amount)
     await ctx.execute(
-        account_name, ctx.nym.contract_address, "donate_to_security_pool", [amount]
+        account_name, ctx.zorro.contract_address, "donate_to_security_pool", [amount]
     )
 
 
@@ -31,15 +31,17 @@ async def _get_balance(ctx, address):
 
 async def _submit(ctx, account_name, cid, address):
     await _erc20_approve(ctx, account_name, ctx.consts.SUBMISSION_DEPOSIT_SIZE)
-    await ctx.execute(account_name, ctx.nym.contract_address, "submit", [cid, address])
-    (profile_id, _) = (await ctx.nym.get_profile_by_address(address).call()).result
+    await ctx.execute(
+        account_name, ctx.zorro.contract_address, "submit", [cid, address]
+    )
+    (profile_id, _) = (await ctx.zorro.get_profile_by_address(address).call()).result
     return (profile_id, address)
 
 
 async def _maybe_return_submission_deposit(ctx, profile_id):
     await ctx.execute(
         "rando",
-        ctx.nym.contract_address,
+        ctx.zorro.contract_address,
         "maybe_return_submission_deposit",
         [profile_id],
     )
@@ -50,22 +52,27 @@ async def _get_balances(ctx):
         notary=(await _get_balance(ctx, ctx.accounts.notary.contract_address)),
         challenger=(await _get_balance(ctx, ctx.accounts.challenger.contract_address)),
         rando=(await _get_balance(ctx, ctx.accounts.rando.contract_address)),
-        nym=(await _get_balance(ctx, ctx.nym.contract_address)),
-        nym_security_pool=(await ctx.nym.get_security_pool_balance().call()).result.res,
+        zorro=(await _get_balance(ctx, ctx.zorro.contract_address)),
+        zorro_security_pool=(
+            await ctx.zorro.get_security_pool_balance().call()
+        ).result.res,
     )
 
 
 async def _challenge(ctx, account_name, profile_id, evidence_cid):
     await _erc20_approve(ctx, account_name, ctx.consts.CHALLENGE_DEPOSIT_SIZE)
     await ctx.execute(
-        account_name, ctx.nym.contract_address, "challenge", [profile_id, evidence_cid]
+        account_name,
+        ctx.zorro.contract_address,
+        "challenge",
+        [profile_id, evidence_cid],
     )
 
 
 async def _adjudicate(ctx, profile_id, evidence_cid, should_verify):
     await ctx.execute(
         "adjudicator",
-        ctx.nym.contract_address,
+        ctx.zorro.contract_address,
         "adjudicate",
         [profile_id, evidence_cid, should_verify],
     )
@@ -76,7 +83,7 @@ async def _appeal(ctx, profile_id, from_address=None):
         from_address = ctx.consts.SUPER_ADJUDICATOR_L1_ADDRESS
     await ctx.starknet.send_message_to_l2(
         from_address,
-        ctx.nym.contract_address,
+        ctx.zorro.contract_address,
         "appeal",
         [profile_id],
     )
@@ -87,7 +94,7 @@ async def _super_adjudicate(ctx, profile_id, should_verify, from_address=None):
         from_address = ctx.consts.SUPER_ADJUDICATOR_L1_ADDRESS
     await ctx.starknet.send_message_to_l2(
         from_address,
-        ctx.nym.contract_address,
+        ctx.zorro.contract_address,
         "super_adjudicate",
         [profile_id, should_verify],
     )
@@ -96,19 +103,19 @@ async def _super_adjudicate(ctx, profile_id, should_verify, from_address=None):
 async def _maybe_settle(ctx, profile_id):
     await ctx.execute(
         "rando",
-        ctx.nym.contract_address,
+        ctx.zorro.contract_address,
         "maybe_settle",
         [profile_id],
     )
 
 
 async def _get_is_verified(ctx, address):
-    (is_verified,) = (await ctx.nym.get_is_verified(address=address).call()).result
+    (is_verified,) = (await ctx.zorro.get_is_verified(address=address).call()).result
     return is_verified
 
 
 # async def _get_current_status(ctx, profile_id):
-#     (_, _, status) = (await ctx.nym.export_profile_by_id(profile_id).call()).result
+#     (_, _, status) = (await ctx.zorro.export_profile_by_id(profile_id).call()).result
 #     return status
 
 
@@ -143,12 +150,12 @@ class ScenarioState:
         if not does_time_window_exist:
             raise f"The time window named {name} doesn't exist"
 
-        await self.ctx.nym._test_advance_clock(
+        await self.ctx.zorro._test_advance_clock(
             getattr(time_windows, name) + offset
         ).invoke()
 
     async def wait(self, duration):
-        await self.ctx.nym._test_advance_clock(duration).invoke()
+        await self.ctx.zorro._test_advance_clock(duration).invoke()
 
     async def adjudicate(self, should_verify, evidence_cid=300):
         await _adjudicate(self.ctx, self.profile_id, evidence_cid, should_verify)
@@ -163,7 +170,7 @@ class ScenarioState:
         await _maybe_settle(self.ctx, self.profile_id)
 
     async def _export_profile(self):
-        return await self.ctx.nym.export_profile_by_id(self.profile_id).call()
+        return await self.ctx.zorro.export_profile_by_id(self.profile_id).call()
 
 
 VERIFIED = "verified"
@@ -480,8 +487,8 @@ async def test_settle_where_challenger_loses(ctx_factory):
 
     assert deltas["notary"] == 0
     assert deltas["challenger"] == -25
-    assert deltas["nym"] == 25
-    assert deltas["nym_security_pool"] == 25
+    assert deltas["zorro"] == 25
+    assert deltas["zorro_security_pool"] == 25
 
 
 @pytest.mark.asyncio
@@ -504,8 +511,8 @@ async def test_settle_where_challenger_wins_deposit_from_submitter(ctx_factory):
 
     assert deltas["notary"] == -25
     assert deltas["challenger"] == 25
-    assert deltas["nym"] == 0
-    assert deltas["nym_security_pool"] == 0
+    assert deltas["zorro"] == 0
+    assert deltas["zorro_security_pool"] == 0
 
 
 @pytest.mark.asyncio
@@ -516,7 +523,7 @@ async def test_settle_where_challenger_wins_reward_from_security_pool(ctx_factor
     await _donate_to_security_pool(ctx, "rando", DONATION_AMOUNT)
 
     pre_balances = await _get_balances(ctx)
-    assert pre_balances["nym_security_pool"] == DONATION_AMOUNT
+    assert pre_balances["zorro_security_pool"] == DONATION_AMOUNT
     await run_scenario(
         ctx,
         [
@@ -535,8 +542,8 @@ async def test_settle_where_challenger_wins_reward_from_security_pool(ctx_factor
 
     assert deltas["notary"] == 0
     assert deltas["challenger"] == 25
-    assert deltas["nym"] == -25
-    assert deltas["nym_security_pool"] == -25
+    assert deltas["zorro"] == -25
+    assert deltas["zorro_security_pool"] == -25
 
 
 @pytest.mark.asyncio
@@ -563,5 +570,5 @@ async def test_settle_where_challenger_would_win_reward_but_for_empty_security_p
 
     assert deltas["notary"] == 0
     assert deltas["challenger"] == 0
-    assert deltas["nym"] == 0
-    assert deltas["nym_security_pool"] == 0
+    assert deltas["zorro"] == 0
+    assert deltas["zorro_security_pool"] == 0

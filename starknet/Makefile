@@ -1,7 +1,3 @@
-build:
-	(cd contracts && poetry run starknet-compile Nym.cairo --output ./build/Nym_compiled.json --abi ./build/Nym_abi.json)
-	mkdir -p contracts/build/OpenZeppelin
-	(cd contracts && poetry run starknet-compile OpenZeppelin/Account.cairo --output ./build/OpenZeppelin/Account_compiled.json --abi ./build/OpenZeppelin/Account_abi.json)
 deploy:
 	poetry run ./deploy.py
 

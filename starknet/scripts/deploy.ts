@@ -61,8 +61,8 @@ async function main(): Promise<void> {
     [getAddressString(challenger), "100", "0"],
     minter
   );
-  const nymDeployPromise = deployL2(
-    "nym",
+  const zorroDeployPromise = deployL2(
+    "zorro",
     {
       is_in_test_mode: 0,
       admin_address: getAddressString(admin),
@@ -71,10 +71,10 @@ async function main(): Promise<void> {
       super_adjudicator_l1_address: 0,
       token_address: getAddressString(erc20),
     },
-    "nym"
+    "zorro"
   );
 
-  await Promise.all([transferPromise, transferPromise2, nymDeployPromise]);
+  await Promise.all([transferPromise, transferPromise2, zorroDeployPromise]);
 }
 
 async function deployL2(name: string, calldata: any = {}, saveName?: string) {

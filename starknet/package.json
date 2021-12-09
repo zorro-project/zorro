@@ -1,5 +1,5 @@
 {
-  "name": "Nym",
+  "name": "Zorro",
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
@@ -9,7 +9,7 @@
     "starknet-devnet": "poetry run starknet-devnet",
 
     "//": "useful for catching syntax errors while developing",
-    "watch:nym": "(cd contracts && find . -name '*.cairo' | entr poetry run starknet-compile nym.cairo)",
+    "watch:zorro": "(cd contracts && find . -name '*.cairo' | entr poetry run starknet-compile zorro.cairo)",
 
     "//": "use this to run tests after contract code has changed.",
     "//": "caches test fixtures for use by the `test:cached` command",

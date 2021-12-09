@@ -49,7 +49,7 @@ async def _build_copyable_deployment():
     defs = SimpleNamespace(
         account=compile("OpenZeppelin/account.cairo"),
         erc20=compile("OpenZeppelin/ERC20.cairo"),
-        nym=compile("nym.cairo"),
+        zorro=compile("zorro.cairo"),
     )
 
     signers = SimpleNamespace(
@@ -75,8 +75,8 @@ async def _build_copyable_deployment():
         constructor_calldata=[accounts.minter.contract_address],
     )
 
-    nym = await starknet.deploy(
-        contract_def=defs.nym,
+    zorro = await starknet.deploy(
+        contract_def=defs.zorro,
         constructor_calldata=[
             1,  # is_in_test_mode
             accounts.admin.contract_address,
@@ -88,10 +88,12 @@ async def _build_copyable_deployment():
     )
 
     (submission_deposit_size,) = (
-        await nym.get_submission_deposit_size(0).call()
+        await zorro.get_submission_deposit_size(0).call()
     ).result
-    (challenge_deposit_size,) = (await nym.get_challenge_deposit_size(0).call()).result
-    time_windows = (await nym.get_time_windows().call()).result
+    (challenge_deposit_size,) = (
+        await zorro.get_challenge_deposit_size(0).call()
+    ).result
+    time_windows = (await zorro.get_time_windows().call()).result
 
     print("Time windows!!!", time_windows)
 
@@ -138,7 +140,7 @@ async def _build_copyable_deployment():
             challenger=accounts.challenger.contract_address,
             rando=accounts.rando.contract_address,
             erc20=erc20.contract_address,
-            nym=nym.contract_address,
+            zorro=zorro.contract_address,
         ),
     )
 
@@ -202,10 +204,10 @@ async def ctx_factory(copyable_deployment):
             consts=consts,
             accounts=accounts,
             execute=execute,
-            nym=StarknetContract(
+            zorro=StarknetContract(
                 state=starknet_state,
-                abi=defs.nym.abi,
-                contract_address=addresses.nym,
+                abi=defs.zorro.abi,
+                contract_address=addresses.zorro,
             ),
             erc20=StarknetContract(
                 state=starknet_state,

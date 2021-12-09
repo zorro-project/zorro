@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "nym-project"
+name = "zorro-project"
 version = "0.1.0"
 description = ""
 authors = ["Ted Suzman <ted@suzman.net>"]
