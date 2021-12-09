@@ -17611,10 +17611,10 @@ stackframe@^1.1.1:
   resolved "https://registry.yarnpkg.com/stackframe/-/stackframe-1.2.0.tgz#52429492d63c62eb989804c11552e3d22e779303"
   integrity sha512-GrdeshiRmS1YLMYgzF16olf2jJ/IzxXY9lhKOskuVziubpTYcYqyOwYeJKzQkwy7uN0fYSsbsC4RQaXf9LCrYA==
 
-starknet@2.0.2:
-  version "2.0.2"
-  resolved "https://registry.yarnpkg.com/starknet/-/starknet-2.0.2.tgz#3857e941c428cf9f9e652e7361d6ac33b4479237"
-  integrity sha512-IKCpDLAaVhdI1CVuJUKHzR1CBimF8mRpha3vEn2Bm6BPf3/AkGNx8aVaB+nrWTmAkUVHgkQ/4sMFoqBqe2sIhA==
+starknet@^2.3.1:
+  version "2.3.1"
+  resolved "https://registry.yarnpkg.com/starknet/-/starknet-2.3.1.tgz#6c4ff1d74b2f20f8372fbb616587687756debd30"
+  integrity sha512-A5/POnt1s5gocVTx4NdrJDekhguLLvLQtgALV2w6sVNiCN8/yT2OIcUHjg1F82FB+vfE8usf2X8ccGyMwQteHw==
   dependencies:
     axios "^0.23.0"
     bn.js "^5.2.0"
@@ -17624,6 +17624,7 @@ starknet@2.0.2:
     json-bigint "^1.0.0"
     minimalistic-assert "^1.0.1"
     pako "^2.0.4"
+    url-join "^4.0.1"
 
 state-toggle@^1.0.0:
   version "1.0.3"
@@ -18877,6 +18878,11 @@ urix@^0.1.0:
   version "0.1.0"
   resolved "https://registry.yarnpkg.com/urix/-/urix-0.1.0.tgz#da937f7a62e21fec1fd18d49b35c2935067a6c72"
   integrity sha1-2pN/emLiH+wf0Y1Js1wpNQZ6bHI=
+
+url-join@^4.0.1:
+  version "4.0.1"
+  resolved "https://registry.yarnpkg.com/url-join/-/url-join-4.0.1.tgz#b642e21a2646808ffa178c4c5fda39844e12cde7"
+  integrity sha512-jk1+QP6ZJqyOiuEI9AEWQfju/nB2Pw466kbA0LEZljHwKeMgd9WrAEgEGxjPDD2+TNbbb37rTyhEfrCXfuKXnA==
 
 url-loader@4.1.1, url-loader@^4.1.1:
   version "4.1.1"

@@ -1,8 +1,5 @@
 -- CreateEnum
-CREATE TYPE "ProfileStatus" AS ENUM ('submitted_via_notary', 'challenged', 'deemed_valid', 'deemed_invalid');
-
--- CreateEnum
-CREATE TYPE "ChallengeStatus" AS ENUM ('not_challenged', 'challenged', 'adjudicated', 'adjudication_opportunity_expired', 'appealed', 'appeal_opportunity_expired', 'super_adjudicated', 'super_adjudication_opportunity_expired', 'settled');
+CREATE TYPE "StatusEnum" AS ENUM ('NOT_CHALLENGED', 'CHALLENGED', 'ADJUDICATION_ROUND_COMPLETED', 'APPEALED', 'APPEAL_OPPORTUNITY_EXPIRED', 'SUPER_ADJUDICATION_ROUND_COMPLETED', 'SETTLED');
 
 -- CreateTable
 CREATE TABLE "NotaryFeedback" (
@@ -33,35 +30,27 @@ CREATE TABLE "UnsubmittedProfile" (
 CREATE TABLE "CachedProfile" (
     "id" INTEGER NOT NULL,
     "cache" JSONB NOT NULL,
-    "notarized" BOOLEAN NOT NULL,
-    "address" TEXT NOT NULL,
-    "submissionTimestamp" TIMESTAMP(3) NOT NULL,
     "CID" TEXT,
     "photoCID" TEXT,
     "videoCID" TEXT,
+    "address" TEXT NOT NULL,
+    "submissionTimestamp" TIMESTAMP(3) NOT NULL,
+    "notarized" BOOLEAN NOT NULL,
+    "lastRecordedStatus" "StatusEnum" NOT NULL,
+    "challengeTimestamp" TIMESTAMP(3),
+    "challengerAddress" TEXT,
+    "challengeEvidenceCID" TEXT,
+    "ownerEvidenceCID" TEXT,
+    "adjudicationTimestamp" TIMESTAMP(3),
+    "adjudicatorEvidenceCID" TEXT,
+    "didadjudicatorVerifyProfile" BOOLEAN NOT NULL,
+    "appealTimestamp" TIMESTAMP(3),
+    "superAdjudicationTimestamp" TIMESTAMP(3),
+    "didSuperAdjudicatorVerifyProfile" BOOLEAN NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "CachedProfile_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "CachedChallenge" (
-    "profileId" INTEGER NOT NULL,
-    "cache" JSONB NOT NULL,
-    "lastRecordedStatus" "ChallengeStatus" NOT NULL,
-    "challengeTimestamp" TIMESTAMP(3),
-    "adjudicationTimestamp" TIMESTAMP(3),
-    "superAdjudicationTimestamp" TIMESTAMP(3),
-    "challengeEvidence" TEXT,
-    "profileOwnerEvidence" TEXT,
-    "adjudicatorEvidence" TEXT,
-    "didAdjudicatorConfirmProfile" BOOLEAN NOT NULL,
-    "appealTimestamp" TIMESTAMP(3),
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "CachedChallenge_pkey" PRIMARY KEY ("profileId")
 );
 
 -- CreateIndex
