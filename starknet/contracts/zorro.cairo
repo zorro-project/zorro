@@ -79,9 +79,12 @@ end
 func _submission_deposit_spends(profile_id : felt) -> (res : felt):
 end
 
-# Map from address to `profile_id`
 @storage_var
-func _map_address_to_profile_id(address : felt) -> (profile_id : felt):
+func _starknet_address_to_profile_id_map(starknet_address : felt) -> (profile_id : felt):
+end
+
+@storage_var
+func _ethereum_address_to_profile_id_map(ethereum_address : felt) -> (profile_id : felt):
 end
 
 #
@@ -146,11 +149,20 @@ end
 
 @external
 func submit{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
-        cid : felt, address : felt) -> (profile_id : felt):
+        cid : felt, starknet_address : felt, ethereum_address : felt) -> (profile_id : felt):
     alloc_locals
     assert_not_zero(cid)
-    assert_not_zero(address)
-    assert_is_unused_address(address)
+
+    # Require at least one of `starknet_address` and `ethereum_address`
+    assert_not_zero(starknet_address + ethereum_address)
+
+    # Require starknet_address == 0 || the starknet address is unused
+    let (profile_id) = _starknet_address_to_profile_id_map.read(starknet_address)
+    assert starknet_address * profile_id = 0
+
+    # Require ethereum_address == 0 || the ethereum address is unused
+    let (profile_id) = _ethereum_address_to_profile_id_map.read(ethereum_address)
+    assert ethereum_address * profile_id = 0
 
     let (local caller_address) = get_caller_address()
     let (now) = _timestamp.read()
@@ -161,14 +173,16 @@ func submit{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
     let profile_id = num_profiles + 1
     _num_profiles.write(profile_id)
 
-    _map_address_to_profile_id.write(address, profile_id)
+    _starknet_address_to_profile_id_map.write(starknet_address, profile_id)
+    _ethereum_address_to_profile_id_map.write(ethereum_address, profile_id)
 
     let (is_caller_notary) = _get_is_caller_notary()
     _profiles.write(
         profile_id,
         Profile(
         cid=cid,
-        address=address,
+        starknet_address=starknet_address,
+        ethereum_address=ethereum_address,
         submitter_address=caller_address,
         submission_timestamp=now,
         is_notarized=is_caller_notary,
@@ -209,7 +223,8 @@ func notarize{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}
         profile_id,
         Profile(
         cid=profile.cid,
-        address=profile.address,
+        starknet_address=profile.starknet_address,
+        ethereum_address=profile.ethereum_address,
         submitter_address=profile.submitter_address,
         submission_timestamp=profile.submission_timestamp,
         is_notarized=1,  # Changed
@@ -270,7 +285,8 @@ func challenge{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*
         profile_id,
         Profile(
         cid=profile.cid,
-        address=profile.address,
+        starknet_address=profile.starknet_address,
+        ethereum_address=profile.ethereum_address,
         submitter_address=profile.submitter_address,
         submission_timestamp=profile.submission_timestamp,
         is_notarized=profile.is_notarized,
@@ -311,7 +327,8 @@ func submit_evidence{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr :
         profile_id,
         Profile(
         cid=profile.cid,
-        address=profile.address,
+        starknet_address=profile.starknet_address,
+        ethereum_address=profile.ethereum_address,
         submitter_address=profile.submitter_address,
         submission_timestamp=profile.submission_timestamp,
         is_notarized=profile.is_notarized,
@@ -349,7 +366,8 @@ func adjudicate{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt
         profile_id,
         Profile(
         cid=profile.cid,
-        address=profile.address,
+        starknet_address=profile.starknet_address,
+        ethereum_address=profile.ethereum_address,
         submitter_address=profile.submitter_address,
         submission_timestamp=profile.submission_timestamp,
         is_notarized=profile.is_notarized,
@@ -387,7 +405,8 @@ func appeal{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
         profile_id,
         Profile(
         cid=profile.cid,
-        address=profile.address,
+        starknet_address=profile.starknet_address,
+        ethereum_address=profile.ethereum_address,
         submitter_address=profile.submitter_address,
         submission_timestamp=profile.submission_timestamp,
         is_notarized=profile.is_notarized,
@@ -426,7 +445,8 @@ func super_adjudicate{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr 
         profile_id,
         Profile(
         cid=profile.cid,
-        address=profile.address,
+        starknet_address=profile.starknet_address,
+        ethereum_address=profile.ethereum_address,
         submitter_address=profile.submitter_address,
         submission_timestamp=profile.submission_timestamp,
         is_notarized=profile.is_notarized,
@@ -513,7 +533,8 @@ func maybe_settle{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : fe
         profile_id,
         Profile(
         cid=profile.cid,
-        address=profile.address,
+        starknet_address=profile.starknet_address,
+        ethereum_address=profile.ethereum_address,
         submitter_address=profile.submitter_address,
         submission_timestamp=profile.submission_timestamp,
         is_notarized=profile.is_notarized,
@@ -723,9 +744,19 @@ func get_profile_by_id{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr
 end
 
 @view
-func get_profile_by_address{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
-        address : felt) -> (profile_id : felt, profile : Profile):
-    let (profile_id) = _map_address_to_profile_id.read(address)
+func get_profile_by_starknet_address{
+        pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(address : felt) -> (
+        profile_id : felt, profile : Profile):
+    let (profile_id) = _starknet_address_to_profile_id_map.read(address)
+    let (profile) = get_profile_by_id(profile_id)
+    return (profile_id, profile)
+end
+
+@view
+func get_profile_by_ethereum_address{
+        pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(address : felt) -> (
+        profile_id : felt, profile : Profile):
+    let (profile_id) = _ethereum_address_to_profile_id_map.read(address)
     let (profile) = get_profile_by_id(profile_id)
     return (profile_id, profile)
 end
@@ -737,14 +768,28 @@ func get_num_profiles{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr 
     return (num_profiles)
 end
 
-@view
-func get_is_verified{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
-        address : felt) -> (res : felt):
-    let (profile_id) = _map_address_to_profile_id.read(address)
+func _get_is_profile_id_verified{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
+        profile_id : felt) -> (res : felt):
     let (profile) = get_profile_by_id(profile_id)
     let (now) = _timestamp.read()
     let (is_verified) = _get_is_verified(profile, now)
     return (is_verified)
+end
+
+@view
+func get_is_starknet_address_verified{
+        pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(address : felt) -> (
+        res : felt):
+    let (profile_id) = _starknet_address_to_profile_id_map.read(address)
+    return _get_is_profile_id_verified(profile_id)
+end
+
+@view
+func get_is_ethereum_address_verified{
+        pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(address : felt) -> (
+        res : felt):
+    let (profile_id) = _ethereum_address_to_profile_id_map.read(address)
+    return _get_is_profile_id_verified(profile_id)
 end
 
 # For syncing and testing
@@ -766,7 +811,7 @@ end
 func _get_caller_profile_id{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
         ) -> (profile_id : felt):
     let (caller_address) = get_caller_address()
-    let (profile_id) = _map_address_to_profile_id.read(caller_address)
+    let (profile_id) = _starknet_address_to_profile_id_map.read(caller_address)
     assert_not_zero(profile_id)
     return (profile_id)
 end
@@ -802,13 +847,6 @@ func assert_caller_is_admin{pedersen_ptr : HashBuiltin*, range_check_ptr, syscal
     let (admin_address) = _admin_address.read()
     let (res) = get_is_equal(admin_address, caller_address)
     assert res = 1
-    return ()
-end
-
-func assert_is_unused_address{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
-        address : felt):
-    let (profile_id) = _map_address_to_profile_id.read(address)
-    assert profile_id = 0
     return ()
 end
 
