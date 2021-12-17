@@ -101,7 +101,7 @@ const VideoModal = (props: {
                   Raise your right hand, and repeat the following:
                   <br />
                   <strong>
-                    "I solemnly swear this is my first time registering a Nym
+                    "I solemnly swear this is my first time registering a Zorro
                     account"
                   </strong>
                 </ListItem>

@@ -12,8 +12,8 @@ import {
 } from 'starknet'
 import ERC20_ADDRESS from '../../../../starknet/deployments/goerli/erc20.json'
 import NOTARY_ADDRESS from '../../../../starknet/deployments/goerli/notary.json'
-import NYM_ADDRESS from '../../../../starknet/deployments/goerli/zorro.json'
-import NYM_ABI from '../../../../starknet/starknet-artifacts/contracts/zorro.cairo/zorro_abi.json'
+import ZORRO_ADDRESS from '../../../../starknet/deployments/goerli/zorro.json'
+import ZORRO_ABI from '../../../../starknet/starknet-artifacts/contracts/zorro.cairo/zorro_abi.json'
 import ERC20_ABI from '../../../../starknet/starknet-artifacts/contracts/openzeppelin/ERC20.cairo/ERC20_abi.json'
 import OZ_ACCOUNT_ABI from '../../../../starknet/starknet-artifacts/contracts/OpenZeppelin/Account.cairo/Account_abi.json'
 import assert from 'minimalistic-assert'
@@ -26,18 +26,18 @@ import { bnToUint256, Uint256, uint256ToBN } from 'starknet/dist/utils/uint256'
 
 type Felt = string
 
-export const NymAddress = NYM_ADDRESS.address
+export const ZorroAddress = ZORRO_ADDRESS.address
 export const NotaryAddress = NOTARY_ADDRESS.address
 export const ERC20Address = ERC20_ADDRESS.address
-const nym = new Contract(NYM_ABI as Abi[], NymAddress)
+const zorro = new Contract(ZORRO_ABI as Abi[], ZorroAddress)
 
 export const getNumProfiles = async () => {
-  const response = await nym.call('get_num_profiles', {})
+  const response = await zorro.call('get_num_profiles', {})
   return parseInt(response.res as string, 16)
 }
 
 export async function getSubmissionDepositSize(timestamp = new Date()) {
-  const response = await nym.call('get_submission_deposit_size', {
+  const response = await zorro.call('get_submission_deposit_size', {
     timestamp: number.toHex(number.toBN(timestamp.getTime() / 1000)),
   })
   return parseInt(response.res as string, 16)
@@ -82,12 +82,12 @@ export async function notarySubmitProfile(
   const depositSize = await getSubmissionDepositSize()
   console.log({ depositSize })
 
-  await erc20Approve(notary, NymAddress, depositSize)
+  await erc20Approve(notary, ZorroAddress, depositSize)
   console.log('erc20 approved')
 
   const resp = await notary.addTransaction({
     type: 'INVOKE_FUNCTION',
-    contract_address: NymAddress,
+    contract_address: ZorroAddress,
     entry_point_selector: stark.getSelectorFromName('submit'),
     calldata: [cid, address],
   })
@@ -131,9 +131,7 @@ type Challenge = {
 export async function exportProfileById(
   profileId: bigint | number | string | Prisma.Decimal
 ) {
-  const nym = new Contract(NYM_ABI as Abi[], NymAddress)
-
-  const profile = (await nym.call('export_profile_by_id', {
+  const profile = (await zorro.call('export_profile_by_id', {
     profile_id: profileId.toString(16),
   })) as any as {
     profile: Profile

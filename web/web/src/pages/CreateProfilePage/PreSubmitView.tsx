@@ -81,7 +81,7 @@ const PreSubmitView = (props: {
                 <ListItem>Right hand raised</ListItem>
                 <ListItem>
                   Repeat "I solemnly swear this is my first time registering a
-                  Nym profile"
+                  Zorro profile"
                 </ListItem>
               </OrderedList>
             </FormControl>

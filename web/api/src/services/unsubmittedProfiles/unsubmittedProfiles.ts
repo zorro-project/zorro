@@ -42,7 +42,7 @@ export const updateUnsubmittedProfile = async ({ address, input }) => {
   if (pendingCount > 0) {
     await sendMessage(
       NOTARIES,
-      `${pendingCount} Nym profiles awaiting review. http://localhost:8910/unsubmitted-profiles`
+      `${pendingCount} Zorro profiles awaiting review. http://localhost:8910/unsubmitted-profiles`
     )
   }
 

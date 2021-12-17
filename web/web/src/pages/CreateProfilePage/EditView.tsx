@@ -18,9 +18,9 @@ const EditView = (props: {
     <Stack spacing="6">
       <Heading size="lg">Create Public Profile</Heading>
       <Text>
-        Your Nym profile is linked to your real identity, and each person can
-        only create a single profile. If you already have a Nym profile, switch
-        to that wallet.
+        Your Zorro profile is linked to your real identity, and each person can
+        only create a single profile. If you already have a Zorro profile,
+        switch to that wallet.
       </Text>
       {!formState.isDirty && (
         <ProfileStatus profile={props.unsubmittedProfile} />

@@ -35,7 +35,7 @@ const ProfileStatus: React.FC<{
       <Box>
         <AlertTitle>Pending Approval</AlertTitle>
         <AlertDescription fontSize="sm">
-          A notary selected by the Nym community will review your profile to
+          A notary selected by the Zorro community will review your profile to
           ensure it complies with the registry requirements.
         </AlertDescription>
       </Box>

@@ -5,7 +5,7 @@ import layout from './layout'
 export default async function sendNotaryFeedback(to: string, feedback: string) {
   const body = layout(html`
     <p>
-      Your Nym profile has been reviewed by a community notary. They requested
+      Your Zorro profile has been reviewed by a community notary. They requested
       changes before your profile is fully approved. Please review the changes
       and submit it again.
     </p>
@@ -20,6 +20,6 @@ export default async function sendNotaryFeedback(to: string, feedback: string) {
   return await transport.sendMail({
     to,
     html: body,
-    subject: 'Nym Profile Reviewed',
+    subject: 'Zorro Profile Reviewed',
   })
 }

@@ -51,7 +51,7 @@ enum StatusEnum {
   SETTLED
 }
 
-// Cache of profiles populated from the `profiles` storage var in Nym.cairo
+// Cache of profiles populated from the `profiles` storage var in zorro.cairo
 model CachedProfile {
   id Int @id
 

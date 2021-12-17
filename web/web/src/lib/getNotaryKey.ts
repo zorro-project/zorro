@@ -5,7 +5,7 @@ const getNotaryKey = (): string => {
 
   if (!key) {
     const providedKey = window.prompt(
-      'Provide the authorized private key for the Nym notary contract (eg "0x1234..."'
+      'Provide the authorized private key for the Zorro notary contract (eg "0x1234..."'
     )
     if (!providedKey) {
       alert('Error: no notary key provided')

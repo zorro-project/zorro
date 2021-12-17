@@ -5,18 +5,16 @@ import { MetaTags } from '@redwoodjs/web'
 import { Card } from 'src/components/Card'
 import getNotaryKey from 'src/lib/getNotaryKey'
 import { cairoCompatibleAdd } from 'src/lib/ipfs'
-import NYM_ADDRESS from '../../../../../starknet/deployments/goerli/nym.json'
+import { serializeCid } from '../../../../api/src/lib/serializers'
 import {
   ERC20Address,
-  erc20Approve,
   exportProfileById,
   getAllowance,
   getNumProfiles,
   NotaryAddress,
   notarySubmitProfile,
-  NymAddress,
+  ZorroAddress,
 } from '../../../../api/src/lib/starknet'
-import { serializeCid } from '../../../../api/src/lib/serializers'
 
 const ExportProfileById = () => {
   const profileId = React.useRef()
@@ -78,15 +76,15 @@ const GetNumProfiles = () => {
   )
 }
 
-const GetNotaryNymAllowance = () => {
+const GetNotaryZorroAllowance = () => {
   const [output, setOutput] = React.useState<number | null>()
   const [running, setRunning] = React.useState(false)
 
   const run = async () => {
     setRunning(true)
     try {
-      await getAllowance(NotaryAddress, NymAddress)
-      setOutput((await getAllowance(NotaryAddress, NymAddress)).toString())
+      await getAllowance(NotaryAddress, ZorroAddress)
+      setOutput((await getAllowance(NotaryAddress, ZorroAddress)).toString())
     } finally {
       setRunning(false)
     }
@@ -95,7 +93,7 @@ const GetNotaryNymAllowance = () => {
   return (
     <Card>
       <Stack spacing={4}>
-        <Heading as="h2">getAllowance(notary, nym)</Heading>
+        <Heading as="h2">erc20.allowance(notary, zorro)</Heading>
         <Button onClick={run} isLoading={running} colorScheme="blue">
           Run
         </Button>
@@ -133,13 +131,13 @@ const TestTransactionPage = () => {
       <Heading size="lg" pb="4">
         Test Transactions
       </Heading>
-      <ContractLink name="Nym" address={NymAddress} />
+      <ContractLink name="Zorro" address={ZorroAddress} />
       <ContractLink name="Notary" address={NotaryAddress} />
       <ContractLink name="ERC20" address={ERC20Address} />
       <Stack spacing={4}>
         <GetNumProfiles />
         <ExportProfileById />
-        <GetNotaryNymAllowance />
+        <GetNotaryZorroAllowance />
         <Button onClick={submitTestProfile}>
           <Text>Submit test profile</Text>
         </Button>

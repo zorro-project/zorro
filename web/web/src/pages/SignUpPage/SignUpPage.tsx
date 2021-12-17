@@ -14,22 +14,22 @@ const SignUpPage = () => {
     <Box maxW="xl" mx="auto">
       <MetaTags title="Sign Up" />
       <Heading size="lg" pb="4">
-        Sign Up for Nym
+        Sign Up for Zorro
       </Heading>
       <Text>
-        <strong>Nym</strong> is a new way to prove to Dapps that you're a real
+        <strong>Zorro</strong> is a new way to prove to Dapps that you're a real
         person, while preserving your privacy. It works like this:
       </Text>
       <OrderedList py="4" px="4">
         <ListItem>
-          First you create a public <strong>Nym profile</strong>. Your Nym
+          First you create a public <strong>Zorro profile</strong>. Your Zorro
           profile is linked to your real identity, and each person can only
           create a single profile.
         </ListItem>
         <ListItem>
           Once your profile is complete, you'll be able to create one or more{' '}
-          <strong>Nym aliases</strong>. Nym aliases are private pseudonyms you
-          can use to demonstrate that you're a real, unique human, without
+          <strong>Zorro aliases</strong>. Zorro aliases are private pseudonyms
+          you can use to demonstrate that you're a real, unique human, without
           disclosing exactly <em>which</em> human you are.
         </ListItem>
       </OrderedList>

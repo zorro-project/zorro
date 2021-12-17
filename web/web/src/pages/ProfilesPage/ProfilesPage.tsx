@@ -82,7 +82,7 @@ const ProfilesPage = () => {
     <>
       <MetaTags title="Profiles" />
       <Flex flexDir="column" height="100vh" spacing={8}>
-        <Heading as="h1">Nym Profiles</Heading>
+        <Heading as="h1">Zorro Public Profiles</Heading>
 
         <Box mx="-2" mt="6" flex={1}>
           <AutoSizer>

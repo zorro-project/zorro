@@ -7,8 +7,9 @@ export default async function sendNotaryApproved(to: string, address: string) {
     <p>Great news!</p>
 
     <p>
-      Your Nym profile has been reviewed and approved by a Nym community notary,
-      and you can now use Nym to authenticate yourself as a unique person.
+      Your Zorro profile has been reviewed and approved by a Zorro community
+      notary, and you can now use Zorro to authenticate yourself as a unique
+      person.
     </p>
 
     <p>
@@ -20,6 +21,6 @@ export default async function sendNotaryApproved(to: string, address: string) {
   return await transport.sendMail({
     to,
     html: body,
-    subject: 'Nym Profile Approved!',
+    subject: 'Zorro Profile Approved!',
   })
 }

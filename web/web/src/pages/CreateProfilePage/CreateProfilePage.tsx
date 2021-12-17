@@ -105,7 +105,7 @@ const Success = ({
     <>
       <MetaTags
         title="Create Profile"
-        description="Sign up for a Nym profile"
+        description="Sign up for a Zorro profile"
       />
 
       <SlideFade key={currentView} in={true}>
