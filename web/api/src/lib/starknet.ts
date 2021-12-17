@@ -70,7 +70,7 @@ export async function getAllowance(owner: Felt, spender: Felt) {
 
 export async function notarySubmitProfile(
   cid: Felt,
-  address: Felt,
+  ethereumAddress: Felt,
   notaryKey: Felt
 ) {
   const notary = new Signer(
@@ -89,7 +89,7 @@ export async function notarySubmitProfile(
     type: 'INVOKE_FUNCTION',
     contract_address: ZorroAddress,
     entry_point_selector: stark.getSelectorFromName('submit'),
-    calldata: [cid, address],
+    calldata: [cid, '0', ethereumAddress],
   })
   return defaultProvider.waitForTx(resp.transaction_hash)
 }
@@ -97,7 +97,8 @@ export async function notarySubmitProfile(
 // Keep in sync with profile.cairo
 type Profile = {
   cid: Felt
-  address: Felt
+  starknet_address: Felt
+  ethereum_address: Felt
   submitter_address: Felt
   submission_timestamp: Felt
   is_notarized: Felt
@@ -135,7 +136,6 @@ export async function exportProfileById(
     profile_id: profileId.toString(16),
   })) as any as {
     profile: Profile
-    challenge: Challenge
     num_profiles: string
   }
 

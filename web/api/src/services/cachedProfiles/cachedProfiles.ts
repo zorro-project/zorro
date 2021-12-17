@@ -1,6 +1,6 @@
 import { db } from 'src/lib/db'
 import { CachedProfileConnection, ProfileStatus } from 'types/graphql'
-import { ChallengeStatus } from '@prisma/client'
+import { StatusEnum } from '@prisma/client'
 
 export const cachedProfiles = async ({
   first,
@@ -35,22 +35,23 @@ export const cachedProfiles = async ({
 }
 
 export const cachedProfile = async ({ address }) =>
-  await db.cachedProfile.findFirst({ where: { address } })
+  await db.cachedProfile.findUnique({
+    where: { ethereumAddress: address as string },
+  })
 
-const CHALLENGE_STATUSES: { [enumVal: number]: ChallengeStatus } = {
-  0: 'not_challenged',
-  1: 'challenged',
-  2: 'adjudicated',
-  3: 'adjudication_opportunity_expired',
-  4: 'appealed',
-  5: 'appeal_opportunity_expired',
-  6: 'super_adjudicated',
-  7: 'super_adjudication_opportunity_expired',
-  8: 'settled',
+// Keep in sync with `StatusEnum` in `starknet/contracts/profile.cairo`
+const STATUS_ENUMS: { [enumVal: number]: StatusEnum } = {
+  0: StatusEnum.NOT_CHALLENGED,
+  1: StatusEnum.CHALLENGED,
+  2: StatusEnum.ADJUDICATION_ROUND_COMPLETED,
+  3: StatusEnum.APPEALED,
+  4: StatusEnum.APPEAL_OPPORTUNITY_EXPIRED,
+  5: StatusEnum.SUPER_ADJUDICATION_ROUND_COMPLETED,
+  6: StatusEnum.SETTLED,
 }
 
-export const parseChallengeStatus = (status: number): ChallengeStatus =>
-  CHALLENGE_STATUSES[status]
+export const parseChallengeStatus = (status: number): StatusEnum =>
+  STATUS_ENUMS[status]
 
 export const CachedProfile = {
   status: (profile): ProfileStatus => 'submitted_via_notary',

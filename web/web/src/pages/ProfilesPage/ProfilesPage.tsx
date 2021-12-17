@@ -13,7 +13,7 @@ const QUERY = gql`
       id
       edges {
         node {
-          address
+          ethereumAddress
           photoCID
           status
           submissionTimestamp

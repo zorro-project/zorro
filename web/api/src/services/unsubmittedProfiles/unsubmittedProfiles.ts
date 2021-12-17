@@ -96,14 +96,14 @@ export const addNotaryFeedback = async ({ profileId, feedback }) => {
   return true
 }
 
-export const approveProfile = async ({ profileId }) => {
+export const approveProfile = async ({ id }) => {
   const profile = await db.unsubmittedProfile.findUnique({
-    where: { id: profileId },
+    where: { id },
   })
 
   syncStarknetState(true)
 
-  // await db.unsubmittedProfile.delete({ where: { id: profileId } })
+  // await db.unsubmittedProfile.delete({ where: { id } })
 
   if (profile.email) {
     await sendNotaryApproved(profile.email, profile.address)

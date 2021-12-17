@@ -26,14 +26,14 @@ const UnsubmittedProfile: React.FC<{
   const feedbackRef = React.useRef<typeof Textarea>()
 
   const [giveFeedback] = useMutation<MutationAddNotaryFeedbackArgs>(gql`
-    mutation AddNotaryFeedback($profileId: Int!, $feedback: String!) {
-      addNotaryFeedback(profileId: $profileId, feedback: $feedback)
+    mutation AddNotaryFeedback($id: ID!, $feedback: String!) {
+      addNotaryFeedback(id: $id, feedback: $feedback)
     }
   `)
 
   const onGiveFeedback = async () => {
     await giveFeedback({
-      variables: { profileId: profile.id, feedback: feedbackRef.current.value },
+      variables: { id: profile.id, feedback: feedbackRef.current.value },
     })
 
     setReviewed(true)
@@ -43,8 +43,8 @@ const UnsubmittedProfile: React.FC<{
     ApproveProfileMutation,
     ApproveProfileMutationVariables
   >(gql`
-    mutation ApproveProfileMutation($profileId: Int!) {
-      approveProfile(profileId: $profileId)
+    mutation ApproveProfileMutation($id: ID!) {
+      approveProfile(id: $id)
     }
   `)
 
@@ -62,7 +62,7 @@ const UnsubmittedProfile: React.FC<{
     )
     console.log(submittedProfile)
 
-    // await markApproved({ variables: { profileId: profile.id } })
+    await markApproved({ variables: { id: profile.id } })
     // setReviewed(true)
   }
 

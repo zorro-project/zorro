@@ -25,11 +25,14 @@ model NotaryFeedback {
 }
 
 model UnsubmittedProfile {
-  id       Int     @id @default(autoincrement())
+  id       Int    @id @default(autoincrement())
   photoCID String
   videoCID String
-  address  String  @unique
-  email    String?
+
+  // This now represents the ethereum_address in the submitted profile.
+  // TODO: rename to ethereumAddress.
+  address String  @unique
+  email   String?
 
   unaddressedFeedbackId Int?
   UnaddressedFeedback   NotaryFeedback? @relation("unaddressedFeedback", fields: [unaddressedFeedbackId], references: [id])
@@ -57,7 +60,8 @@ model CachedProfile {
 
   // Fields stored on StarkNet:
   //  - cid : felt  # cidv1 for profile pic/video/etc
-  //  - address : felt
+  //  - starknet_address : felt
+  //  - ethereum_address : felt
   //  - submitter_address : felt
   //  - submission_timestamp : felt
   //  - is_notarized : felt
@@ -79,7 +83,8 @@ model CachedProfile {
   photoCID String?
   videoCID String?
 
-  address              String     @unique
+  starknetAddress      String     @unique
+  ethereumAddress      String     @unique
   submissionTimestamp  DateTime
   notarized            Boolean
   lastRecordedStatus   StatusEnum
@@ -90,7 +95,7 @@ model CachedProfile {
 
   adjudicationTimestamp       DateTime?
   adjudicatorEvidenceCID      String?
-  didadjudicatorVerifyProfile Boolean
+  didAdjudicatorVerifyProfile Boolean
 
   appealTimestamp                  DateTime?
   superAdjudicationTimestamp       DateTime?

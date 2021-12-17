@@ -23,9 +23,9 @@ import { STATUS_CONFIGS } from './types'
 
 const QUERY = gql`
   query ProfilePageQuery($id: ID!) {
-    cachedProfile(address: $id) {
+    cachedProfile(ethereumAddress: $id) {
       id
-      address
+      ethereumAddress
       photoCID
       videoCID
       status
@@ -39,7 +39,7 @@ const Profile = ({
 }: {
   profile: ProfilePageQuery['cachedProfile']
 }) => {
-  const { address, photoCID, videoCID, status } = profile
+  const { ethereumAddress, photoCID, videoCID, status } = profile
 
   const statusConfig = STATUS_CONFIGS[status]
 
@@ -53,7 +53,7 @@ const Profile = ({
           </BreadcrumbLink>
         </BreadcrumbItem>
         <BreadcrumbItem isCurrentPage>
-          <BreadcrumbLink>{address}</BreadcrumbLink>
+          <BreadcrumbLink>{ethereumAddress}</BreadcrumbLink>
         </BreadcrumbItem>
       </Breadcrumb>
 
@@ -62,17 +62,17 @@ const Profile = ({
           <Stack spacing="6">
             <Box>
               <Stack direction="row" align="center">
-                <Identicon size={40} account={address} />
+                <Identicon size={40} account={ethereumAddress} />
                 <Stack>
                   <Heading size="md" wordBreak="break-all">
                     <Link
                       display="flex"
                       alignItems="center"
-                      href={`https://etherscan.io/address/${address}`}
+                      href={`https://etherscan.io/address/${ethereumAddress}`}
                       isExternal
                       color="gray.600"
                     >
-                      {address}
+                      {ethereumAddress}
                       <ExternalLinkIcon ml={1} />
                     </Link>
                   </Heading>

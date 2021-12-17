@@ -33,7 +33,8 @@ CREATE TABLE "CachedProfile" (
     "CID" TEXT,
     "photoCID" TEXT,
     "videoCID" TEXT,
-    "address" TEXT NOT NULL,
+    "starknetAddress" TEXT NOT NULL,
+    "ethereumAddress" TEXT NOT NULL,
     "submissionTimestamp" TIMESTAMP(3) NOT NULL,
     "notarized" BOOLEAN NOT NULL,
     "lastRecordedStatus" "StatusEnum" NOT NULL,
@@ -43,7 +44,7 @@ CREATE TABLE "CachedProfile" (
     "ownerEvidenceCID" TEXT,
     "adjudicationTimestamp" TIMESTAMP(3),
     "adjudicatorEvidenceCID" TEXT,
-    "didadjudicatorVerifyProfile" BOOLEAN NOT NULL,
+    "didAdjudicatorVerifyProfile" BOOLEAN NOT NULL,
     "appealTimestamp" TIMESTAMP(3),
     "superAdjudicationTimestamp" TIMESTAMP(3),
     "didSuperAdjudicatorVerifyProfile" BOOLEAN NOT NULL,
@@ -60,7 +61,10 @@ CREATE INDEX "NotaryFeedback_unsubmittedProfileId_idx" ON "NotaryFeedback"("unsu
 CREATE UNIQUE INDEX "UnsubmittedProfile_address_key" ON "UnsubmittedProfile"("address");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "CachedProfile_address_key" ON "CachedProfile"("address");
+CREATE UNIQUE INDEX "CachedProfile_starknetAddress_key" ON "CachedProfile"("starknetAddress");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "CachedProfile_ethereumAddress_key" ON "CachedProfile"("ethereumAddress");
 
 -- AddForeignKey
 ALTER TABLE "NotaryFeedback" ADD CONSTRAINT "NotaryFeedback_unsubmittedProfileId_fkey" FOREIGN KEY ("unsubmittedProfileId") REFERENCES "UnsubmittedProfile"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

@@ -40,7 +40,7 @@ const ProfileCard = ({
   return (
     <Box
       as={RLink}
-      href={routes.profile({ id: profile.address })}
+      href={routes.profile({ id: profile.ethereumAddress })}
       display="flex"
       shadow="md"
       w="100%"
@@ -65,7 +65,7 @@ const ProfileCard = ({
         position="relative"
       />
       <Identicon
-        account={profile.address}
+        account={profile.ethereumAddress}
         position="absolute"
         top="2"
         right="2"

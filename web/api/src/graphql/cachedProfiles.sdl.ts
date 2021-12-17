@@ -9,7 +9,7 @@ export const schema = gql`
 
   type CachedProfile {
     id: ID!
-    address: ID!
+    ethereumAddress: ID!
     status: ProfileStatus!
     CID: String!
     photoCID: String
@@ -38,6 +38,6 @@ export const schema = gql`
     cachedProfiles(first: Int!, cursor: ID = 0): CachedProfileConnection
       @skipAuth
 
-    cachedProfile(address: ID!): CachedProfile @skipAuth
+    cachedProfile(ethereumAddress: ID!): CachedProfile @skipAuth
   }
 `
