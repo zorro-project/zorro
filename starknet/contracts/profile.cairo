@@ -5,7 +5,6 @@ from consts import consts
 
 struct Profile:
     member cid : felt  # cidv1 for profile pic/video/etc
-    member starknet_address : felt
     member ethereum_address : felt
     member submitter_address : felt
     member submission_timestamp : felt
