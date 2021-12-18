@@ -55,6 +55,7 @@ export async function erc20Approve(
     entry_point_selector: stark.getSelectorFromName('approve'),
     calldata: [spender, uintAmount.low, uintAmount.high],
   })
+  console.log('erc20 approve tx hash', resp.transaction_hash)
   return defaultProvider.waitForTx(resp.transaction_hash)
 }
 
@@ -82,15 +83,18 @@ export async function notarySubmitProfile(
   const depositSize = await getSubmissionDepositSize()
   console.log({ depositSize })
 
+  console.log('attempting erc20 approve')
   await erc20Approve(notary, ZorroAddress, depositSize)
   console.log('erc20 approved')
 
+  console.log('attempting zorro submit')
   const resp = await notary.addTransaction({
     type: 'INVOKE_FUNCTION',
     contract_address: ZorroAddress,
     entry_point_selector: stark.getSelectorFromName('submit'),
     calldata: [cid, ethereumAddress],
   })
+  console.log('zorro submit tx hash', resp.transaction_hash)
   return defaultProvider.waitForTx(resp.transaction_hash)
 }
 
