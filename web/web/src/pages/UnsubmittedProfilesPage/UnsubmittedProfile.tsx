@@ -43,7 +43,7 @@ const UnsubmittedProfile: React.FC<{
     ApproveProfileMutation,
     ApproveProfileMutationVariables
   >(gql`
-    mutation ApproveProfileMutation($id: ID!) {
+    mutation ApproveProfileMutation($id: Int!) {
       approveProfile(id: $id)
     }
   `)

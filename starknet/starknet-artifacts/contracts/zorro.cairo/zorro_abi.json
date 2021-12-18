@@ -7,88 +7,83 @@
                 "type": "felt"
             },
             {
-                "name": "starknet_address",
+                "name": "ethereum_address",
                 "offset": 1,
                 "type": "felt"
             },
             {
-                "name": "ethereum_address",
+                "name": "submitter_address",
                 "offset": 2,
                 "type": "felt"
             },
             {
-                "name": "submitter_address",
+                "name": "submission_timestamp",
                 "offset": 3,
                 "type": "felt"
             },
             {
-                "name": "submission_timestamp",
+                "name": "is_notarized",
                 "offset": 4,
                 "type": "felt"
             },
             {
-                "name": "is_notarized",
+                "name": "last_recorded_status",
                 "offset": 5,
                 "type": "felt"
             },
             {
-                "name": "last_recorded_status",
+                "name": "challenge_timestamp",
                 "offset": 6,
                 "type": "felt"
             },
             {
-                "name": "challenge_timestamp",
+                "name": "challenger_address",
                 "offset": 7,
                 "type": "felt"
             },
             {
-                "name": "challenger_address",
+                "name": "challenge_evidence_cid",
                 "offset": 8,
                 "type": "felt"
             },
             {
-                "name": "challenge_evidence_cid",
+                "name": "owner_evidence_cid",
                 "offset": 9,
                 "type": "felt"
             },
             {
-                "name": "owner_evidence_cid",
+                "name": "adjudication_timestamp",
                 "offset": 10,
                 "type": "felt"
             },
             {
-                "name": "adjudication_timestamp",
+                "name": "adjudicator_evidence_cid",
                 "offset": 11,
                 "type": "felt"
             },
             {
-                "name": "adjudicator_evidence_cid",
+                "name": "did_adjudicator_verify_profile",
                 "offset": 12,
                 "type": "felt"
             },
             {
-                "name": "did_adjudicator_verify_profile",
+                "name": "appeal_timestamp",
                 "offset": 13,
                 "type": "felt"
             },
             {
-                "name": "appeal_timestamp",
+                "name": "super_adjudication_timestamp",
                 "offset": 14,
                 "type": "felt"
             },
             {
-                "name": "super_adjudication_timestamp",
-                "offset": 15,
-                "type": "felt"
-            },
-            {
                 "name": "did_super_adjudicator_verify_profile",
-                "offset": 16,
+                "offset": 15,
                 "type": "felt"
             }
         ],
         "name": "Profile",
-        "size": 17,
+        "size": 16,
         "type": "struct"
     },
     {
@@ -170,10 +165,6 @@
         "inputs": [
             {
                 "name": "cid",
-                "type": "felt"
-            },
-            {
-                "name": "starknet_address",
                 "type": "felt"
             },
             {
@@ -452,27 +443,6 @@
                 "type": "felt"
             }
         ],
-        "name": "get_profile_by_starknet_address",
-        "outputs": [
-            {
-                "name": "profile_id",
-                "type": "felt"
-            },
-            {
-                "name": "profile",
-                "type": "Profile"
-            }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "inputs": [
-            {
-                "name": "address",
-                "type": "felt"
-            }
-        ],
         "name": "get_profile_by_ethereum_address",
         "outputs": [
             {
@@ -490,23 +460,6 @@
     {
         "inputs": [],
         "name": "get_num_profiles",
-        "outputs": [
-            {
-                "name": "res",
-                "type": "felt"
-            }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "inputs": [
-            {
-                "name": "address",
-                "type": "felt"
-            }
-        ],
-        "name": "get_is_starknet_address_verified",
         "outputs": [
             {
                 "name": "res",

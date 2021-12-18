@@ -29,22 +29,18 @@ async def _get_balance(ctx, address):
     return (await ctx.erc20.balance_of(address).call()).result.res.low
 
 
-async def _submit(ctx, account_name, cid, starknet_address, ethereum_address):
+async def _submit(ctx, account_name, cid, ethereum_address):
     await _erc20_approve(ctx, account_name, ctx.consts.SUBMISSION_DEPOSIT_SIZE)
     await ctx.execute(
         account_name,
         ctx.zorro.contract_address,
         "submit",
-        [cid, starknet_address, ethereum_address],
+        [cid, ethereum_address],
     )
 
-    getter = (
-        ctx.zorro.get_profile_by_starknet_address(starknet_address)
-        if starknet_address
-        else ctx.zorro.get_profile_by_ethereum_address(ethereum_address)
-    )
-
-    (profile_id, _) = (await getter.call()).result
+    (profile_id, _) = (
+        await ctx.zorro.get_profile_by_ethereum_address(ethereum_address).call()
+    ).result
     return profile_id
 
 
@@ -119,15 +115,10 @@ async def _maybe_settle(ctx, profile_id):
     )
 
 
-async def _get_is_verified(ctx, starknet_address, ethereum_address):
-    getter = (
-        ctx.zorro.get_is_starknet_address_verified(starknet_address)
-        if starknet_address
-        else ctx.zorro.get_is_ethereum_address_verified(ethereum_address)
-    )
-
-    (is_verified,) = (await getter.call()).result
-
+async def _get_is_verified(ctx, ethereum_address):
+    (is_verified,) = (
+        await ctx.zorro.get_is_ethereum_address_verified(ethereum_address).call()
+    ).result
     return is_verified
 
 
@@ -139,21 +130,15 @@ async def _get_is_verified(ctx, starknet_address, ethereum_address):
 class ScenarioState:
     ctx = None
     profile_id = None
-    starknet_address = None
     ethereum_address = None
 
     def __init__(self, ctx):
         self.ctx = ctx
 
-    async def submit(
-        self, via_notary=True, cid=100, starknet_address=0, ethereum_address=1234
-    ):
+    async def submit(self, via_notary=True, cid=100, ethereum_address=1234):
         submitter_name = "notary" if via_notary else "rando"
-        profile_id = await _submit(
-            self.ctx, submitter_name, cid, starknet_address, ethereum_address
-        )
+        profile_id = await _submit(self.ctx, submitter_name, cid, ethereum_address)
         self.profile_id = profile_id
-        self.starknet_address = starknet_address
         self.ethereum_address = ethereum_address
 
     async def maybe_return_submission_deposit(self):
@@ -163,9 +148,7 @@ class ScenarioState:
         await _challenge(self.ctx, "challenger", self.profile_id, evidence_cid)
 
     async def get_is_verified(self):
-        return await _get_is_verified(
-            self.ctx, self.starknet_address, self.ethereum_address
-        )
+        return await _get_is_verified(self.ctx, self.ethereum_address)
 
     # Waits one second more than the named duration by default, because
     # we don't care about about `<=`` vs `<`` when it comes to time
@@ -504,7 +487,7 @@ async def test_settle_where_challenger_loses(ctx_factory):
     await run_scenario(
         ctx,
         [
-            ("submit", dict(via_notary=True, cid=100, starknet_address=1234), VERIFIED),
+            ("submit", dict(via_notary=True, cid=100, ethereum_address=1234), VERIFIED),
             ("challenge", dict(), NOT_VERIFIED),
             ("adjudicate", dict(should_verify=1), VERIFIED),
             ("named_wait", dict(name="APPEAL_TIME_WINDOW"), VERIFIED),
@@ -528,7 +511,7 @@ async def test_settle_where_challenger_wins_deposit_from_submitter(ctx_factory):
     await run_scenario(
         ctx,
         [
-            ("submit", dict(via_notary=True, cid=100, starknet_address=1234), VERIFIED),
+            ("submit", dict(via_notary=True, cid=100, ethereum_address=1234), VERIFIED),
             ("challenge", dict(), NOT_VERIFIED),
             ("named_wait", dict(name="ADJUDICATION_TIME_WINDOW"), NOT_VERIFIED),
             ("named_wait", dict(name="APPEAL_TIME_WINDOW"), NOT_VERIFIED),
@@ -556,7 +539,7 @@ async def test_settle_where_challenger_wins_reward_from_security_pool(ctx_factor
     await run_scenario(
         ctx,
         [
-            ("submit", dict(via_notary=True, cid=100, starknet_address=1234), VERIFIED),
+            ("submit", dict(via_notary=True, cid=100, ethereum_address=1234), VERIFIED),
             ("named_wait", dict(name="PROVISIONAL_TIME_WINDOW"), VERIFIED),
             ("maybe_return_submission_deposit", dict(), VERIFIED),
             ("challenge", dict(), VERIFIED),
@@ -585,7 +568,7 @@ async def test_settle_where_challenger_would_win_reward_but_for_empty_security_p
     await run_scenario(
         ctx,
         [
-            ("submit", dict(via_notary=True, cid=100, starknet_address=1234), VERIFIED),
+            ("submit", dict(via_notary=True, cid=100, ethereum_address=1234), VERIFIED),
             ("named_wait", dict(name="PROVISIONAL_TIME_WINDOW"), VERIFIED),
             ("maybe_return_submission_deposit", dict(), VERIFIED),
             ("challenge", dict(), VERIFIED),

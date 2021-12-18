@@ -46,7 +46,6 @@ export const importProfile = async (profileId: number) => {
     // TODO: memoize this
     ...(await readCIDs(parseCid(profile.cid))),
 
-    starknetAddress: sanitizeHex(profile.starknet_address),
     ethereumAddress: sanitizeHex(profile.ethereum_address),
     submissionTimestamp: parseTimestamp(profile.submission_timestamp),
 

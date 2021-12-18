@@ -33,7 +33,6 @@ CREATE TABLE "CachedProfile" (
     "CID" TEXT,
     "photoCID" TEXT,
     "videoCID" TEXT,
-    "starknetAddress" TEXT NOT NULL,
     "ethereumAddress" TEXT NOT NULL,
     "submissionTimestamp" TIMESTAMP(3) NOT NULL,
     "notarized" BOOLEAN NOT NULL,
@@ -59,9 +58,6 @@ CREATE INDEX "NotaryFeedback_unsubmittedProfileId_idx" ON "NotaryFeedback"("unsu
 
 -- CreateIndex
 CREATE UNIQUE INDEX "UnsubmittedProfile_address_key" ON "UnsubmittedProfile"("address");
-
--- CreateIndex
-CREATE UNIQUE INDEX "CachedProfile_starknetAddress_key" ON "CachedProfile"("starknetAddress");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "CachedProfile_ethereumAddress_key" ON "CachedProfile"("ethereumAddress");

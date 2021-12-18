@@ -39,7 +39,7 @@ export const schema = gql`
       email: String!
     ): UnsubmittedProfile! @skipAuth
 
-    addNotaryFeedback(id: ID!, feedback: String!): Boolean! @skipAuth
-    approveProfile(id: ID!): Boolean! @skipAuth
+    addNotaryFeedback(id: Int!, feedback: String!): Boolean! @skipAuth
+    approveProfile(id: Int!): Boolean! @skipAuth
   }
 `
