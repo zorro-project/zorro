@@ -32,5 +32,10 @@ VS Code configuration
 # To see error messages
 
 ```
-poetry run starknet tx_status --network alpha --hash "0x4b956ab1ddfe43ed83f10c0e9ad04702e76e1a7bdf73a9f7791eb1666b97c8" --contract starknet-artifacts/contracts/zorro.cairo/zorro.json --error_message
+poetry run starknet tx_status --network alpha-goerli --hash "0x4b956ab1ddfe43ed83f10c0e9ad04702e76e1a7bdf73a9f7791eb1666b97c8" --contract starknet-artifacts/contracts/zorro.cairo/zorro.json --error_message
 ```
+
+# Updating Cairo
+
+- `poetry add cairo-lang@latest`
+- `yarn upgrade @shardlabs/starknet-hardhat-plugin --latest`

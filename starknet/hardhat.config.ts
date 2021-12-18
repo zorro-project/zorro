@@ -60,7 +60,7 @@ const config: HardhatUserConfig = {
     starknetArtifacts: "./starknet-artifacts",
   },
   cairo: {
-    version: "0.6.0",
+    venv: "./.venv",
   },
 };
 
