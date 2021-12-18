@@ -150,6 +150,10 @@ func submit{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
     assert_not_zero(cid)
     assert_not_zero(ethereum_address)
 
+    # Require that the ethereum address is unused
+    let (profile_id) = _ethereum_address_to_profile_id_map.read(ethereum_address)
+    assert profile_id = 0
+
     let (local caller_address) = get_caller_address()
     let (now) = _timestamp.read()
 
