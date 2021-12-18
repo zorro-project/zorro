@@ -89,7 +89,7 @@ export async function notarySubmitProfile(
     type: 'INVOKE_FUNCTION',
     contract_address: ZorroAddress,
     entry_point_selector: stark.getSelectorFromName('submit'),
-    calldata: [cid, '0', ethereumAddress],
+    calldata: [cid, ethereumAddress],
   })
   return defaultProvider.waitForTx(resp.transaction_hash)
 }
@@ -97,7 +97,6 @@ export async function notarySubmitProfile(
 // Keep in sync with profile.cairo
 type Profile = {
   cid: Felt
-  starknet_address: Felt
   ethereum_address: Felt
   submitter_address: Felt
   submission_timestamp: Felt
