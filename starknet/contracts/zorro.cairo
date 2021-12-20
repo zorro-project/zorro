@@ -760,13 +760,15 @@ end
 # For syncing and testing
 @view
 func export_profile_by_id{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
-        profile_id : felt) -> (profile : Profile, num_profiles : felt, status : felt):
+        profile_id : felt) -> (profile : Profile, num_profiles : felt, is_verified: felt, status : felt):
     alloc_locals
     let (profile) = get_profile_by_id(profile_id)
     let (num_profiles) = get_num_profiles()
     let (now) = _timestamp.read()
+    let (is_verified) = _get_is_verified(profile, now)
     let (status) = _get_current_status(profile, now)
-    return (profile, num_profiles, status)
+
+    return (profile, num_profiles, is_verified, status)
 end
 
 #

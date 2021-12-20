@@ -54,5 +54,9 @@ export const parseChallengeStatus = (status: number): StatusEnum =>
   STATUS_ENUMS[status]
 
 export const CachedProfile = {
-  status: (profile): ProfileStatus => 'submitted_via_notary',
+  // TODO: duplicate logic from profile.cairo#_get_current_status
+  status: (profile): ProfileStatus => 'NOT_CHALLENGED',
+
+  // TODO: duplicate logic from profile.cairo#_get_is_verified
+  isVerified: (profile): boolean => true,
 }

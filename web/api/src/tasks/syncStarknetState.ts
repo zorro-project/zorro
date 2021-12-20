@@ -8,7 +8,10 @@ import {
   parseNumber,
   parseTimestamp,
 } from 'src/lib/serializers'
-import { parseChallengeStatus } from 'src/services/cachedProfiles/cachedProfiles'
+import {
+  CachedProfile,
+  parseChallengeStatus,
+} from 'src/services/cachedProfiles/cachedProfiles'
 import { sanitizeHex } from 'starknet/dist/utils/encode'
 
 export default async function syncStarknetState(onlyNewProfiles = false) {
@@ -35,7 +38,8 @@ export default async function syncStarknetState(onlyNewProfiles = false) {
 
 export const importProfile = async (profileId: number) => {
   console.log(`Importing profile ${profileId}`)
-  const { profile, num_profiles } = await exportProfileById(profileId)
+  const exported = await exportProfileById(profileId)
+  const { profile } = exported
 
   console.log(profile)
 
@@ -91,7 +95,25 @@ export const importProfile = async (profileId: number) => {
     },
   })
 
-  return { maxId: parseNumber(num_profiles) }
+  const status = parseChallengeStatus(parseNumber(exported.status))
+  if (status !== CachedProfile.status(profileFields)) {
+    console.warn(
+      `Profile ${profileId} status mismatch. ${
+        exported.status
+      } expected, ${CachedProfile.status(profileFields)} derived`
+    )
+  }
+
+  const isVerified = parseBoolean(exported.is_verified)
+  if (isVerified !== CachedProfile.isVerified(profileFields)) {
+    console.warn(
+      `Profile ${profileId} isVerified mismatch. ${
+        exported.is_verified
+      } expected, ${CachedProfile.isVerified(profileFields)} derived`
+    )
+  }
+
+  return { maxId: parseNumber(exported.num_profiles) }
 }
 
 export const readCIDs = async (cid: CID) => {
