@@ -1,16 +1,16 @@
 import { IconProps } from '@chakra-ui/icon'
 import { FaCheck, FaGavel } from 'react-icons/fa'
-import { ProfileStatus } from 'types/graphql'
+import { StatusEnum } from 'types/graphql'
 
 type StatusConfig = { icon: any; iconColor: IconProps['color']; text: string }
 
-export const STATUS_CONFIGS: Record<ProfileStatus, StatusConfig> = {
-  submitted_via_notary: {
+export const STATUS_CONFIGS: Record<StatusEnum, StatusConfig> = {
+  NOT_CHALLENGED: {
     icon: FaCheck,
     iconColor: 'green.500',
     text: 'Approved',
   },
-  challenged: {
+  CHALLENGED: {
     icon: FaGavel,
     iconColor: 'yellow.500',
     text: 'Challenged',
