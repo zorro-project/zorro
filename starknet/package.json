@@ -13,10 +13,13 @@
 
     "//": "use this to run tests after contract code has changed.",
     "//": "caches test fixtures for use by the `test:cached` command",
-    "test": "(cd contracts && poetry run pytest --cache-clear -s -W ignore::DeprecationWarning ../test/test.py)",
+    "test:build-cache": "(cd contracts && poetry run pytest --cache-clear -s -W ignore::DeprecationWarning ../test/build_cache.py)",
 
     "//": "quickly rerun tests using cached contract fixtures",
-    "test:cached": "(cd contracts && poetry run pytest -n auto -s -W ignore::DeprecationWarning ../test/test.py)",
+    "//": "use this if you modify tests without having modified contract code or fixtures",
+    "test:use-cache": "(cd contracts && poetry run pytest -n auto -s -W ignore::DeprecationWarning ../test/test.py)",
+
+    "test": "yarn test:build-cache && yarn test:use-cache",
 
     "//": "for launching on goerli",
     "compile": "hardhat starknet-compile",

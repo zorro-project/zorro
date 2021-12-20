@@ -95,8 +95,6 @@ async def _build_copyable_deployment():
     ).result
     time_windows = (await zorro.get_time_windows().call()).result
 
-    print("Time windows!!!", time_windows)
-
     consts = SimpleNamespace(
         SUPER_ADJUDICATOR_L1_ADDRESS=SUPER_ADJUDICATOR_L1_ADDRESS,
         SUBMISSION_DEPOSIT_SIZE=submission_deposit_size,
