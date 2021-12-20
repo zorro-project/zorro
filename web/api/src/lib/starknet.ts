@@ -139,7 +139,9 @@ export async function exportProfileById(
     profile_id: profileId.toString(16),
   })) as any as {
     profile: Profile
-    num_profiles: string
+    num_profiles: Felt
+    status: Felt
+    is_verified: Felt
   }
 
   return profile

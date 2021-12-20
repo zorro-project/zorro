@@ -504,6 +504,10 @@
                 "type": "felt"
             },
             {
+                "name": "is_verified",
+                "type": "felt"
+            },
+            {
                 "name": "status",
                 "type": "felt"
             }
