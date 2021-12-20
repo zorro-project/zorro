@@ -1,16 +1,19 @@
 export const schema = gql`
-  # TODO: figure out what statuses we want to expose
-  enum ProfileStatus {
-    submitted_via_notary
-    challenged
-    deemed_valid
-    deemed_invalid
+  # Keep in sync with StatusEnum in starknet/contracts/profile.cairo
+  enum StatusEnum {
+    NOT_CHALLENGED
+    CHALLENGED
+    ADJUDICATION_ROUND_COMPLETED
+    APPEALED
+    APPEAL_OPPORTUNITY_EXPIRED
+    SUPER_ADJUDICATION_ROUND_COMPLETED
+    SETTLED
   }
 
   type CachedProfile {
     id: ID!
     ethereumAddress: ID!
-    status: ProfileStatus!
+    status: StatusEnum!
     CID: String!
     photoCID: String
     videoCID: String

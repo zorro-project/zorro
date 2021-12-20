@@ -26,7 +26,7 @@ const UnsubmittedProfile: React.FC<{
   const feedbackRef = React.useRef<typeof Textarea>()
 
   const [giveFeedback] = useMutation<MutationAddNotaryFeedbackArgs>(gql`
-    mutation AddNotaryFeedback($id: ID!, $feedback: String!) {
+    mutation AddNotaryFeedback($id: Int!, $feedback: String!) {
       addNotaryFeedback(id: $id, feedback: $feedback)
     }
   `)
