@@ -3,6 +3,7 @@ import { db } from 'src/lib/db'
 import { Prisma } from '@prisma/client'
 import { exportProfileById, getNumProfiles } from 'src/lib/starknet'
 import {
+  parseAddress,
   parseBoolean,
   parseCid,
   parseNumber,
@@ -12,7 +13,6 @@ import {
   CachedProfile,
   parseChallengeStatus,
 } from 'src/services/cachedProfiles/cachedProfiles'
-import { sanitizeHex } from 'starknet/dist/utils/encode'
 
 export default async function syncStarknetState(onlyNewProfiles = false) {
   console.log('Starting StarkNet sync')
@@ -43,14 +43,14 @@ export const importProfile = async (profileId: number) => {
 
   console.log(profile)
 
-  const profileFields: Prisma.CachedProfileCreateInput = {
+  const profileFields: Omit<Prisma.CachedProfileCreateInput, 'id'> = {
     cache: profile,
 
     CID: parseCid(profile.cid).toV1().toString(),
     // TODO: memoize this
     ...(await readCIDs(parseCid(profile.cid))),
 
-    ethereumAddress: sanitizeHex(profile.ethereum_address),
+    ethereumAddress: parseAddress(profile.ethereum_address),
     submissionTimestamp: parseTimestamp(profile.submission_timestamp),
 
     notarized: parseBoolean(profile.is_notarized),
@@ -59,7 +59,7 @@ export const importProfile = async (profileId: number) => {
       parseNumber(profile.last_recorded_status)
     ),
     challengeTimestamp: parseTimestamp(profile.challenge_timestamp),
-    challengerAddress: sanitizeHex(profile.challenger_address),
+    challengerAddress: parseAddress(profile.challenger_address),
     challengeEvidenceCID: parseCid(profile.challenge_evidence_cid)
       ?.toV1()
       .toString(),
@@ -124,3 +124,5 @@ export const readCIDs = async (cid: CID) => {
   console.log({ data })
   return { videoCID: data.video.toString(), photoCID: data.photo.toString() }
 }
+
+syncStarknetState()

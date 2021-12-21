@@ -12,12 +12,27 @@ export const schema = gql`
 
   type CachedProfile {
     id: ID!
-    ethereumAddress: ID!
+    ethereumAddress: String!
     status: StatusEnum!
+    isVerified: Boolean!
     CID: String!
     photoCID: String
     videoCID: String
+
     submissionTimestamp: DateTime!
+    notarized: Boolean!
+    challengeTimestamp: DateTime
+    challengerAddress: String
+    challengeEvidenceCID: String
+    ownerEvidenceCID: String
+
+    adjudicationTimestamp: DateTime
+    adjudicatorEvidenceCID: String
+    didAdjudicatorVerifyProfile: Boolean!
+
+    appealTimestamp: DateTime
+    superAdjudicationTimestamp: DateTime
+    didSuperAdjudicatorVerifyProfile: Boolean!
   }
 
   type PageInfo {
@@ -41,6 +56,7 @@ export const schema = gql`
     cachedProfiles(first: Int!, cursor: ID = 0): CachedProfileConnection
       @skipAuth
 
-    cachedProfile(ethereumAddress: ID!): CachedProfile @skipAuth
+    cachedProfile(id: ID!): CachedProfile @skipAuth
+    cachedProfileByEthAddress(ethereumAddress: ID!): CachedProfile @skipAuth
   }
 `

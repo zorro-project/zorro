@@ -78,7 +78,7 @@ model CachedProfile {
   cache Json @db.JsonB
 
   // Derived fields
-  CID      String?
+  CID      String
   photoCID String?
   videoCID String?
 

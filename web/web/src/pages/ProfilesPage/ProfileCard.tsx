@@ -5,11 +5,11 @@ import { Skeleton } from '@chakra-ui/skeleton'
 import { Image } from '@chakra-ui/image'
 import Identicon from 'src/components/Identicon'
 import dayjs from 'dayjs'
-import { FaCalendarCheck, FaCheck, FaGavel } from 'react-icons/fa'
+import { FaCalendarCheck, FaCheck, FaGavel, FaTimes } from 'react-icons/fa'
 import Icon, { IconProps } from '@chakra-ui/icon'
 import { routes } from '@redwoodjs/router'
-import { STATUS_CONFIGS } from '../ProfilePage/types'
 import RLink from 'src/components/RLink'
+import VerificationStatus from '../ProfilePage/VerificationStatus'
 
 const ProfileCard = ({
   profile,
@@ -35,12 +35,10 @@ const ProfileCard = ({
     )
   }
 
-  const statusConfig = STATUS_CONFIGS[profile.status]
-
   return (
     <Box
       as={RLink}
-      href={routes.profile({ id: profile.ethereumAddress })}
+      href={routes.profile({ id: profile.id })}
       display="flex"
       shadow="md"
       w="100%"
@@ -86,8 +84,13 @@ const ProfileCard = ({
           </Text>
         </Stack>
         <Stack direction="row" alignItems="center">
-          <Icon as={statusConfig.icon} color={statusConfig.iconColor} />
-          <Text fontWeight="bold">{statusConfig.text}</Text>
+          <Icon
+            as={profile.isVerified ? FaCheck : FaTimes}
+            color={profile.isVerified ? 'green.500' : 'red.500'}
+          />
+          <Text fontWeight="bold">
+            {profile.isVerified ? 'Verified' : 'Not Verified'}
+          </Text>
         </Stack>
       </Stack>
     </Box>

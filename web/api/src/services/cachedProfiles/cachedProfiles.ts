@@ -34,9 +34,14 @@ export const cachedProfiles = async ({
   }
 }
 
-export const cachedProfile = async ({ ethereumAddress }) =>
+export const cachedProfile = async ({ id }) =>
   await db.cachedProfile.findUnique({
-    where: { ethereumAddress: ethereumAddress as string },
+    where: { id: parseInt(id, 10) },
+  })
+
+export const cachedProfileByEthAddress = async ({ ethereumAddress }) =>
+  await db.cachedProfile.findUnique({
+    where: { ethereumAddress },
   })
 
 // Keep in sync with `StatusEnum` in `starknet/contracts/profile.cairo`

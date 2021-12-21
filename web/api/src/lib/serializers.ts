@@ -34,4 +34,7 @@ export const parseCid = (cid: Felt): CID | null =>
   isInitialized(cid) ? CID.decode(feltToBytes(cid)) : null
 export const serializeCid = (cid: CID) => bytesToFelt(cid.bytes)
 
+export const parseAddress = (address: Felt) =>
+  isInitialized(address) ? sanitizeHex(address) : null
+
 export const isInitialized = (felt: Felt) => felt !== '0x0'

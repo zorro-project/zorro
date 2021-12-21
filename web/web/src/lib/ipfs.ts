@@ -40,4 +40,7 @@ export const createProfileObject = async (
   components: ProfileObject
 ): Promise<CID> => cairoCompatibleAdd(JSON.stringify(components))
 
+// V1 CID to Infura URL
+export const cidToUrl = (cid: String) => `https://${cid}.ipfs.infura-ipfs.io`
+
 export default ipfsClient

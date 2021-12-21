@@ -18,6 +18,7 @@ const QUERY = gql`
           status
           submissionTimestamp
           id
+          isVerified
         }
       }
       pageInfo {
@@ -79,64 +80,62 @@ const ProfilesPage = () => {
   if (data == null) return null
 
   return (
-    <>
-      <MetaTags title="Profiles" />
-      <Flex flexDir="column" height="100vh" spacing={8}>
-        <Heading as="h1">Zorro Public Profiles</Heading>
+    <Flex flexDir="column" height="100vh" spacing={8}>
+      <MetaTags title="All Profiles" />
+      <Heading as="h1">All Profiles</Heading>
 
-        <Box mx="-2" mt="6" flex={1}>
-          <AutoSizer>
-            {({ width, height }) => {
-              const columnCount = Math.floor(width / MIN_CARD_SIZE)
-              const rowCount = Math.ceil(profilesCount / columnCount)
-              const cardSize = Math.floor(width / columnCount)
+      <Box mx="-2" mt="6" flex={1}>
+        <AutoSizer>
+          {({ width, height }) => {
+            const columnCount = Math.floor(width / MIN_CARD_SIZE)
+            const rowCount = Math.ceil(profilesCount / columnCount)
+            const cardSize = Math.floor(width / columnCount)
 
-              return (
-                <InfiniteLoader
-                  isItemLoaded={isProfileLoaded}
-                  itemCount={profilesCount}
-                  loadMoreItems={loadMore}
-                >
-                  {({ onItemsRendered, ref }) => (
-                    <FixedSizeGrid
-                      onItemsRendered={(gridProps) =>
-                        onItemsRendered({
-                          overscanStartIndex:
-                            gridProps.overscanRowStartIndex * columnCount,
-                          overscanStopIndex:
-                            gridProps.overscanRowStopIndex * columnCount,
-                          visibleStartIndex:
-                            gridProps.visibleRowStartIndex * columnCount,
-                          visibleStopIndex:
-                            gridProps.visibleRowStopIndex * columnCount,
-                        })
-                      }
-                      ref={ref}
-                      height={height}
-                      width={width}
-                      rowHeight={cardSize}
-                      columnCount={columnCount}
-                      rowCount={rowCount}
-                      columnWidth={cardSize}
-                    >
-                      {({ columnIndex, rowIndex, style }) => {
-                        const idx = rowIndex * columnCount + columnIndex
-                        if (idx >= profiles.length) return null
-                        return (
-                          <Box style={style} p="2">
-                            <ProfileCard profile={profiles[idx]} />
-                          </Box>
-                        )
-                      }}
-                    </FixedSizeGrid>
-                  )}
-                </InfiniteLoader>
-              )
-            }}
-          </AutoSizer>
-        </Box>
-      </Flex>
-    </>
+            return (
+              <InfiniteLoader
+                isItemLoaded={isProfileLoaded}
+                itemCount={profilesCount}
+                loadMoreItems={loadMore}
+              >
+                {({ onItemsRendered, ref }) => (
+                  <FixedSizeGrid
+                    onItemsRendered={(gridProps) =>
+                      onItemsRendered({
+                        overscanStartIndex:
+                          gridProps.overscanRowStartIndex * columnCount,
+                        overscanStopIndex:
+                          gridProps.overscanRowStopIndex * columnCount,
+                        visibleStartIndex:
+                          gridProps.visibleRowStartIndex * columnCount,
+                        visibleStopIndex:
+                          gridProps.visibleRowStopIndex * columnCount,
+                      })
+                    }
+                    ref={ref}
+                    height={height}
+                    width={width}
+                    rowHeight={cardSize}
+                    columnCount={columnCount}
+                    rowCount={rowCount}
+                    columnWidth={cardSize}
+                  >
+                    {({ columnIndex, rowIndex, style }) => {
+                      const idx = rowIndex * columnCount + columnIndex
+                      if (idx >= profiles.length) return null
+                      return (
+                        <Box style={style} p="2">
+                          <ProfileCard profile={profiles[idx]} />
+                        </Box>
+                      )
+                    }}
+                  </FixedSizeGrid>
+                )}
+              </InfiniteLoader>
+            )
+          }}
+        </AutoSizer>
+      </Box>
+    </Flex>
   )
 }
 

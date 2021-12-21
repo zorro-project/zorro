@@ -5,7 +5,7 @@ import { UserContextQuery, UserContextQueryVariables } from 'types/graphql'
 type UserContextType = {
   ethereumAddress?: string
   unsubmittedProfile?: UserContextQuery['unsubmittedProfile']
-  cachedProfile?: UserContextQuery['cachedProfile']
+  cachedProfile?: UserContextQuery['cachedProfileByEthAddress']
 }
 
 const UserContext = React.createContext<UserContextType>({})
@@ -28,7 +28,8 @@ export function UserContextProvider({
           address
         }
 
-        cachedProfile(ethereumAddress: $ethereumAddress) {
+        cachedProfileByEthAddress(ethereumAddress: $ethereumAddress) {
+          id
           ethereumAddress
         }
       }
@@ -45,7 +46,7 @@ export function UserContextProvider({
   const context: UserContextType = {
     ethereumAddress: ethers.account,
     unsubmittedProfile: data?.unsubmittedProfile,
-    cachedProfile: data?.cachedProfile,
+    cachedProfile: data?.cachedProfileByEthAddress,
   }
 
   return <UserContext.Provider value={context}>{children}</UserContext.Provider>

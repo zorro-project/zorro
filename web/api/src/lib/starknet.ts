@@ -1,28 +1,20 @@
+import { Prisma } from '@prisma/client'
 import {
   Abi,
   Contract,
   defaultProvider,
   ec,
-  encode,
-  hash,
   number,
-  stark,
   Signer,
-  compileCalldata,
+  stark,
 } from 'starknet'
+import { BigNumberish } from 'starknet/dist/utils/number'
+import { bnToUint256, uint256ToBN } from 'starknet/dist/utils/uint256'
 import ERC20_ADDRESS from '../../../../starknet/deployments/goerli/erc20.json'
 import NOTARY_ADDRESS from '../../../../starknet/deployments/goerli/notary.json'
 import ZORRO_ADDRESS from '../../../../starknet/deployments/goerli/zorro.json'
-import ZORRO_ABI from '../../../../starknet/starknet-artifacts/contracts/zorro.cairo/zorro_abi.json'
 import ERC20_ABI from '../../../../starknet/starknet-artifacts/contracts/openzeppelin/ERC20.cairo/ERC20_abi.json'
-import OZ_ACCOUNT_ABI from '../../../../starknet/starknet-artifacts/contracts/OpenZeppelin/Account.cairo/Account_abi.json'
-import assert from 'minimalistic-assert'
-import { mapValues } from 'lodash'
-import { Prisma } from '@prisma/client'
-import { CID } from 'ipfs-http-client'
-import { sanitizeHex } from 'starknet/dist/utils/encode'
-import { BigNumberish, toBN } from 'starknet/dist/utils/number'
-import { bnToUint256, Uint256, uint256ToBN } from 'starknet/dist/utils/uint256'
+import ZORRO_ABI from '../../../../starknet/starknet-artifacts/contracts/zorro.cairo/zorro_abi.json'
 
 type Felt = string
 
