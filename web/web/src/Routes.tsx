@@ -18,6 +18,7 @@ const Routes = () => {
         <Route path="/profiles/{id}" page={ProfilePage} name="profile" />
         <Route path="/unsubmitted-profiles" page={UnsubmittedProfilesPage} name="unsubmittedProfiles" />
         <Route path="/sign-up" page={SignUpPage} name="signUp" />
+        <Route path="/sign-up/snapshot/{snapshotSpaceId}/{snapshotVoterAddress}" page={SignUpPage} name="signUp" />
         <Route path="/create-profile" page={CreateProfilePage} name="createProfile" />
         <Route path="/test-transaction" page={TestTransactionPage} name="testTransaction" />
         <Route notfound page={NotFoundPage} />

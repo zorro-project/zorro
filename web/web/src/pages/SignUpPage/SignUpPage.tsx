@@ -3,11 +3,33 @@ import { Box, Heading, ListItem, OrderedList, Text } from '@chakra-ui/layout'
 import { Redirect, routes } from '@redwoodjs/router'
 import { MetaTags } from '@redwoodjs/web'
 import { useEthers } from '@usedapp/core'
+import { useEffect } from 'react'
 import ConnectButton from 'src/components/ConnectButton/ConnectButton'
 import ipfsClient from 'src/lib/ipfs'
 
-const SignUpPage = () => {
+import {
+  save as saveIntendedConnection,
+  load as loadIntendedConnection,
+} from '../../lib/intendedConnectionStorage'
+
+const SignUpPage = ({ snapshotSpaceId, snapshotVoterAddress }) => {
   const { account } = useEthers()
+
+  useEffect(() => {
+    if (snapshotSpaceId && snapshotVoterAddress) {
+      console.log(
+        'Saving intended connection:',
+        snapshotSpaceId,
+        snapshotVoterAddress
+      )
+      saveIntendedConnection({
+        type: 'snapshot',
+        spaceId: snapshotSpaceId,
+        voterAddress: snapshotVoterAddress,
+      })
+    }
+  }, [])
+
   if (account != null) return <Redirect to={routes.createProfile()} />
 
   return (

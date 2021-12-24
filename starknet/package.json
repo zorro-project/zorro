@@ -11,12 +11,11 @@
     "//": "useful for catching syntax errors while developing",
     "watch": "(cd contracts && find . -name '*.cairo' | entr poetry run starknet-compile zorro.cairo)",
 
-    "//": "use this to run tests after contract code has changed.",
-    "//": "caches test fixtures for use by the `test:cached` command",
+    "//": "caches test fixtures for use by the `test:use-cache` command",
     "test:build-cache": "(cd contracts && poetry run pytest --cache-clear -s -W ignore::DeprecationWarning ../test/build_cache.py)",
 
-    "//": "quickly rerun tests using cached contract fixtures",
-    "//": "use this if you modify tests without having modified contract code or fixtures",
+    "//": "run tests using cache built by test:build-cache",
+    "//": "use if tests have changed but contract code has not changed",
     "test:use-cache": "(cd contracts && poetry run pytest -n auto -s -W ignore::DeprecationWarning ../test/test.py)",
 
     "test": "yarn test:build-cache && yarn test:use-cache",
