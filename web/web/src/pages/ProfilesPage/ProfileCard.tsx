@@ -18,7 +18,7 @@ const ProfileCard = ({
     | ArrayElement<Cached_Profiles['cachedProfiles']['edges']>['node']
     | null
 }) => {
-  const photoUrl = useDataFieldUrl(profile?.photoCID)
+  const photoUrl = useDataFieldUrl(profile?.photoCid)
 
   if (!profile) {
     return (

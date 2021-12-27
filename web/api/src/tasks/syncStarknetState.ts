@@ -1,4 +1,3 @@
-import {CID} from 'ipfs-http-client'
 import {db} from 'src/lib/db'
 import {Prisma} from '@prisma/client'
 import {exportProfileById, getNumProfiles} from 'src/lib/starknet'
@@ -46,9 +45,9 @@ export const importProfile = async (profileId: number) => {
   const profileFields: Omit<Prisma.CachedProfileCreateInput, 'id'> = {
     cache: profile,
 
-    CID: parseCid(profile.cid).toV1().toString(),
+    cid: parseCid(profile.cid).toV1().toString(),
     // TODO: memoize this
-    ...(await readCIDs(parseCid(profile.cid))),
+    ...(await readCids(parseCid(profile.cid))),
 
     ethereumAddress: parseAddress(profile.ethereum_address),
     submissionTimestamp: parseTimestamp(profile.submission_timestamp),
@@ -60,15 +59,15 @@ export const importProfile = async (profileId: number) => {
     ),
     challengeTimestamp: parseTimestamp(profile.challenge_timestamp),
     challengerAddress: parseAddress(profile.challenger_address),
-    challengeEvidenceCID: parseCid(profile.challenge_evidence_cid)
+    challengeEvidenceCid: parseCid(profile.challenge_evidence_cid)
       ?.toV1()
       .toString(),
-    ownerEvidenceCID: parseCid(profile.adjudicator_evidence_cid)
+    ownerEvidenceCid: parseCid(profile.adjudicator_evidence_cid)
       ?.toV1()
       .toString(),
 
     adjudicationTimestamp: parseTimestamp(profile.adjudication_timestamp),
-    adjudicatorEvidenceCID: parseCid(profile.adjudicator_evidence_cid)
+    adjudicatorEvidenceCid: parseCid(profile.adjudicator_evidence_cid)
       ?.toV1()
       .toString(),
     didAdjudicatorVerifyProfile: parseBoolean(
@@ -116,13 +115,13 @@ export const importProfile = async (profileId: number) => {
   return {maxId: parseNumber(exported.num_profiles)}
 }
 
-export const readCIDs = async (cid: CID) => {
+export const readCids = async (cid: cid) => {
   const data = await (
     await fetch(`https://${cid.toV1().toString()}.ipfs.infura-ipfs.io`)
   ).json()
 
   console.log({data})
-  return {videoCID: data.video.toString(), photoCID: data.photo.toString()}
+  return {videoCid: data.video.toString(), photoCid: data.photo.toString()}
 }
 
 syncStarknetState()

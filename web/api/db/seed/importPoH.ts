@@ -46,13 +46,13 @@ export default async function importPoH(): Promise<Partial<CachedProfile>[]> {
 
     for (const profile of data.submissions) {
       const address = profile.id
-      const regCID = profile.requests[0].evidence[0].URI.split('/')[2]
+      const regCid = profile.requests[0].evidence[0].URI.split('/')[2]
       const regJSON = await (
-        await fetch(`https://ipfs.kleros.io/ipfs/${regCID}/registration.json`)
+        await fetch(`https://ipfs.kleros.io/ipfs/${regCid}/registration.json`)
       ).json()
-      const fileCID = regJSON.fileURI.split('/')[2]
+      const fileCid = regJSON.fileURI.split('/')[2]
       const fileJSON = await (
-        await fetch(`https://ipfs.kleros.io/ipfs/${fileCID}/file.json`)
+        await fetch(`https://ipfs.kleros.io/ipfs/${fileCid}/file.json`)
       ).json()
 
       const status = rwc([
@@ -65,9 +65,9 @@ export default async function importPoH(): Promise<Partial<CachedProfile>[]> {
       const normalizedProfile = {
         address,
         status,
-        CID: fileCID,
-        photoCID: fileJSON.photo.replace('/ipfs/', ''),
-        videoCID: fileJSON.video.replace('/ipfs/', ''),
+        cid: fileCid,
+        photoCid: fileJSON.photo.replace('/ipfs/', ''),
+        videoCid: fileJSON.video.replace('/ipfs/', ''),
       }
       fs.appendFileSync(CACHE_FILE, JSON.stringify(normalizedProfile) + '\n')
     }

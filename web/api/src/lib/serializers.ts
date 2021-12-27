@@ -12,7 +12,7 @@ export const parseTimestamp = (timestamp: Felt) =>
   parseInt(timestamp) > 0 ? new Date(parseInt(timestamp)) : null
 
 export const bytesToFelt = (bytes: Uint8Array) => {
-  assert(bytes.length <= 31, 'Error: CIDs on Cairo must be 31 bytes')
+  assert(bytes.length <= 31, 'Error: cids on Cairo must be 31 bytes')
 
   return (
     '0x' +

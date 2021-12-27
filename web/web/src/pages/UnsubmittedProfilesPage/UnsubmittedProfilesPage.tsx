@@ -11,8 +11,8 @@ const UnsubmittedProfilesPage = () => {
     query UnsubmittedProfilesQuery {
       unsubmittedProfiles(pendingReview: true) {
         id
-        photoCID
-        videoCID
+        photoCid
+        videoCid
         address
       }
     }
