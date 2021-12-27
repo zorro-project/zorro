@@ -1,9 +1,8 @@
 const KEY = 'INTENDED_CONNECTION'
 
 export type IntendedConnection = {
-  type: 'snapshot'
-  spaceId: string
-  voterAddress: string
+  purposeIdentifier: string // e.g. 'citydao'
+  externalAddress: string
 }
 
 export function save(target: IntendedConnection) {
@@ -11,7 +10,7 @@ export function save(target: IntendedConnection) {
   return localStorage.setItem(KEY, JSON.stringify(target))
 }
 
-export function load() {
+export function load(): IntendedConnection | null {
   const value = localStorage.getItem(KEY)
   return value === null ? null : JSON.parse(value)
 }

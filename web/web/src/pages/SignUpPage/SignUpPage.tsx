@@ -12,21 +12,12 @@ import {
   load as loadIntendedConnection,
 } from '../../lib/intendedConnectionStorage'
 
-const SignUpPage = ({ snapshotSpaceId, snapshotVoterAddress }) => {
+const SignUpPage = ({ purposeIdentifier, externalAddress }) => {
   const { account } = useEthers()
 
   useEffect(() => {
-    if (snapshotSpaceId && snapshotVoterAddress) {
-      console.log(
-        'Saving intended connection:',
-        snapshotSpaceId,
-        snapshotVoterAddress
-      )
-      saveIntendedConnection({
-        type: 'snapshot',
-        spaceId: snapshotSpaceId,
-        voterAddress: snapshotVoterAddress,
-      })
+    if (purposeIdentifier && externalAddress) {
+      saveIntendedConnection({ purposeIdentifier, externalAddress })
     }
   }, [])
 
