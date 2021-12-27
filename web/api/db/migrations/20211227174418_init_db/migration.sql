@@ -30,7 +30,7 @@ CREATE TABLE "UnsubmittedProfile" (
 CREATE TABLE "CachedProfile" (
     "id" INTEGER NOT NULL,
     "cache" JSONB NOT NULL,
-    "CID" TEXT,
+    "CID" TEXT NOT NULL,
     "photoCID" TEXT,
     "videoCID" TEXT,
     "ethereumAddress" TEXT NOT NULL,
@@ -53,6 +53,19 @@ CREATE TABLE "CachedProfile" (
     CONSTRAINT "CachedProfile_pkey" PRIMARY KEY ("id")
 );
 
+-- CreateTable
+CREATE TABLE "Connection" (
+    "id" SERIAL NOT NULL,
+    "profileId" INTEGER NOT NULL,
+    "purposeIdentifier" TEXT NOT NULL,
+    "externalAddress" TEXT NOT NULL,
+    "signature" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "Connection_pkey" PRIMARY KEY ("id")
+);
+
 -- CreateIndex
 CREATE INDEX "NotaryFeedback_unsubmittedProfileId_idx" ON "NotaryFeedback"("unsubmittedProfileId");
 
@@ -62,8 +75,14 @@ CREATE UNIQUE INDEX "UnsubmittedProfile_address_key" ON "UnsubmittedProfile"("ad
 -- CreateIndex
 CREATE UNIQUE INDEX "CachedProfile_ethereumAddress_key" ON "CachedProfile"("ethereumAddress");
 
+-- CreateIndex
+CREATE UNIQUE INDEX "Connection_profileId_purposeIdentifier_key" ON "Connection"("profileId", "purposeIdentifier");
+
 -- AddForeignKey
 ALTER TABLE "NotaryFeedback" ADD CONSTRAINT "NotaryFeedback_unsubmittedProfileId_fkey" FOREIGN KEY ("unsubmittedProfileId") REFERENCES "UnsubmittedProfile"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "UnsubmittedProfile" ADD CONSTRAINT "UnsubmittedProfile_unaddressedFeedbackId_fkey" FOREIGN KEY ("unaddressedFeedbackId") REFERENCES "NotaryFeedback"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Connection" ADD CONSTRAINT "Connection_profileId_fkey" FOREIGN KEY ("profileId") REFERENCES "CachedProfile"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

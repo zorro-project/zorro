@@ -102,4 +102,22 @@ model CachedProfile {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  connections Connection[]
+}
+
+
+model Connection {
+  id Int @id @default(autoincrement()) 
+
+  profileId Int
+  purposeIdentifier String
+  externalAddress String
+  signature String // signature from profile owner
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  cachedProfile CachedProfile @relation(fields: [profileId], references: [id])
+  @@unique([ profileId, purposeIdentifier ])
 }

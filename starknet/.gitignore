@@ -5,7 +5,7 @@ __pycache__
 .venv/
 node_modules/
 
-todos.md
+todos.txt
 logic.md
 kleros.md
 
