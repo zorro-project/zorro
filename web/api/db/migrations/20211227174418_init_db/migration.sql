@@ -55,6 +55,7 @@ CREATE TABLE "CachedProfile" (
 
 -- CreateTable
 CREATE TABLE "Connection" (
+    "id" SERIAL NOT NULL,
     "profileId" INTEGER NOT NULL,
     "purposeIdentifier" TEXT NOT NULL,
     "externalAddress" TEXT NOT NULL,
@@ -62,7 +63,7 @@ CREATE TABLE "Connection" (
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
-    CONSTRAINT "Connection_pkey" PRIMARY KEY ("profileId","purposeIdentifier")
+    CONSTRAINT "Connection_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateIndex
@@ -73,6 +74,9 @@ CREATE UNIQUE INDEX "UnsubmittedProfile_address_key" ON "UnsubmittedProfile"("ad
 
 -- CreateIndex
 CREATE UNIQUE INDEX "CachedProfile_ethereumAddress_key" ON "CachedProfile"("ethereumAddress");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Connection_profileId_purposeIdentifier_key" ON "Connection"("profileId", "purposeIdentifier");
 
 -- AddForeignKey
 ALTER TABLE "NotaryFeedback" ADD CONSTRAINT "NotaryFeedback_unsubmittedProfileId_fkey" FOREIGN KEY ("unsubmittedProfileId") REFERENCES "UnsubmittedProfile"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

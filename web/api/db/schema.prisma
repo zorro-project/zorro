@@ -108,7 +108,7 @@ model CachedProfile {
 
 
 model Connection {
-  @@id([ profileId, purposeIdentifier ])
+  id Int @id @default(autoincrement()) 
 
   profileId Int
   purposeIdentifier String
@@ -119,4 +119,5 @@ model Connection {
   updatedAt DateTime @updatedAt
 
   cachedProfile CachedProfile @relation(fields: [profileId], references: [id])
+  @@unique([ profileId, purposeIdentifier ])
 }
