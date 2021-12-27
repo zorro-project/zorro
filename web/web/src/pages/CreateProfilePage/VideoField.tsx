@@ -17,14 +17,14 @@ import {
   useDisclosure,
   UseDisclosureReturn,
 } from '@chakra-ui/react'
-import { useState } from 'react'
-import { useController, useFormContext } from 'react-hook-form'
+import {useState} from 'react'
+import {useController, useFormContext} from 'react-hook-form'
 import ReactPlayer from 'react-player'
 import Webcam from 'react-webcam'
-import { VideoBox } from 'src/components/SquareBox'
-import { dataUrlToBlob } from 'src/lib/util'
-import { useFilePicker } from 'use-file-picker'
-import { SignupFieldValues } from './types'
+import {VideoBox} from 'src/components/SquareBox'
+import {dataUrlToBlob} from 'src/lib/util'
+import {useFilePicker} from 'use-file-picker'
+import {SignupFieldValues} from './types'
 
 const VideoModal = (props: {
   modalCtrl: UseDisclosureReturn
@@ -35,11 +35,11 @@ const VideoModal = (props: {
 
   const [candidateVid, setCandidateVid] = useState<Blob | null>(null)
 
-  const [openFileSelector, { filesContent }] = useFilePicker({
+  const [openFileSelector, {filesContent}] = useFilePicker({
     readAs: 'DataURL',
     accept: 'video/*',
     multiple: true,
-    limitFilesConfig: { max: 1 },
+    limitFilesConfig: {max: 1},
   })
 
   React.useEffect(() => {
@@ -56,7 +56,7 @@ const VideoModal = (props: {
     mediaRecorderRef.current = new MediaRecorder(webcamRef.current.stream, {
       mimeType: 'video/webm',
     })
-    mediaRecorderRef.current.addEventListener('dataavailable', ({ data }) => {
+    mediaRecorderRef.current.addEventListener('dataavailable', ({data}) => {
       // Create a copy of the blob with the mime type set to 'video/webm'.
       // Without this at least on MacOS/Chrome I get a mime type of
       // video/x-matroska;codecs=avc1,opus, which Infura refuses to accept
@@ -116,7 +116,7 @@ const VideoModal = (props: {
                   width="100%"
                 >
                   <Webcam
-                    videoConstraints={{ facingMode: 'user' }}
+                    videoConstraints={{facingMode: 'user'}}
                     audio
                     muted
                     ref={webcamRef}
@@ -187,11 +187,11 @@ const VideoModal = (props: {
 const VideoField = () => {
   const modalControl = useDisclosure()
 
-  const { control } = useFormContext<SignupFieldValues>()
-  const { field } = useController({
+  const {control} = useFormContext<SignupFieldValues>()
+  const {field} = useController({
     name: 'videoCID',
     control,
-    rules: { required: true },
+    rules: {required: true},
   })
 
   return (

@@ -1,12 +1,12 @@
-import { Box, BoxProps } from '@chakra-ui/react'
+import {Box, BoxProps} from '@chakra-ui/react'
 import Jazzicon from '@metamask/jazzicon'
-import { useEffect, useRef } from 'react'
+import {useEffect, useRef} from 'react'
 
 type Props = {
   account: string
   size?: number
 } & BoxProps
-const Identicon = ({ account, size = 16, ...props }: Props) => {
+const Identicon = ({account, size = 16, ...props}: Props) => {
   const ref = useRef<HTMLDivElement>()
 
   useEffect(() => {

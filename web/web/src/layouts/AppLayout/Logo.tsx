@@ -1,5 +1,5 @@
-import { Icon, Stack, StackProps, Text } from '@chakra-ui/react'
-import { FaMask } from 'react-icons/fa'
+import {Icon, Stack, StackProps, Text} from '@chakra-ui/react'
+import {FaMask} from 'react-icons/fa'
 
 const Logo = (props: StackProps) => {
   return (

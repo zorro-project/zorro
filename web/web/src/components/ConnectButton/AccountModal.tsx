@@ -1,4 +1,4 @@
-import { ExternalLinkIcon } from '@chakra-ui/icons'
+import {ExternalLinkIcon} from '@chakra-ui/icons'
 import {
   Button,
   Flex,
@@ -11,7 +11,7 @@ import {
   ModalOverlay,
   Text,
 } from '@chakra-ui/react'
-import { useEthers } from '@usedapp/core'
+import {useEthers} from '@usedapp/core'
 import Identicon from 'src/components/Identicon'
 
 type Props = {
@@ -19,8 +19,8 @@ type Props = {
   onClose: any
 }
 
-export default function AccountModal({ isOpen, onClose }: Props) {
-  const { account, deactivate } = useEthers()
+export default function AccountModal({isOpen, onClose}: Props) {
+  const {account, deactivate} = useEthers()
 
   function handleDeactivateAccount() {
     // Deactivate is kinda broken right now unfortunately. After refreshing the

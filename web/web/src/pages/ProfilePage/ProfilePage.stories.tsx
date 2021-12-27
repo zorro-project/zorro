@@ -1,7 +1,7 @@
 import ProfilePage from './ProfilePage'
-import { ProfilePageQuery, ProfilePageQueryVariables } from 'types/graphql'
-import { merge } from 'lodash'
-import { PartialDeep } from 'type-fest'
+import {ProfilePageQuery, ProfilePageQueryVariables} from 'types/graphql'
+import {merge} from 'lodash'
+import {PartialDeep} from 'type-fest'
 
 const baseMock: ProfilePageQuery = {
   cachedProfile: {
@@ -80,13 +80,13 @@ const superAdjudicationRoundCompletedMock: ProfilePageQuery = merge(
 const settledMock: ProfilePageQuery = merge(
   {},
   superAdjudicationRoundCompletedMock,
-  { cachedProfile: { status: 'SETTLED' } }
+  {cachedProfile: {status: 'SETTLED'}}
 )
 
 const mockQuery = (response: ProfilePageQuery) => {
   mockGraphQLQuery(
     'ProfilePageQuery',
-    (variables: ProfilePageQueryVariables, { ctx, req }): ProfilePageQuery =>
+    (variables: ProfilePageQueryVariables, {ctx, req}): ProfilePageQuery =>
       response
   )
 }
@@ -121,4 +121,4 @@ export const Settled = () => {
   return <ProfilePage id="12345" />
 }
 
-export default { title: 'Pages/ProfilePage' }
+export default {title: 'Pages/ProfilePage'}

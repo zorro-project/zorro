@@ -1,18 +1,18 @@
-import { Button, ButtonGroup } from '@chakra-ui/button'
-import { FormControl, FormHelperText, FormLabel } from '@chakra-ui/form-control'
-import { Heading, Stack, StackDivider, Text } from '@chakra-ui/layout'
-import { useFormContext } from 'react-hook-form'
-import { Card } from 'src/components/Card'
+import {Button, ButtonGroup} from '@chakra-ui/button'
+import {FormControl, FormHelperText, FormLabel} from '@chakra-ui/form-control'
+import {Heading, Stack, StackDivider, Text} from '@chakra-ui/layout'
+import {useFormContext} from 'react-hook-form'
+import {Card} from 'src/components/Card'
 import PhotoField from 'src/pages/CreateProfilePage/PhotoField'
 import VideoField from 'src/pages/CreateProfilePage/VideoField'
-import { FindUnsubmittedProfileQuery } from 'types/graphql'
+import {FindUnsubmittedProfileQuery} from 'types/graphql'
 import ProfileStatus from './ProfileStatus'
 
 const EditView = (props: {
   onContinue: () => void
   unsubmittedProfile: FindUnsubmittedProfileQuery['unsubmittedProfile']
 }) => {
-  const { formState } = useFormContext()
+  const {formState} = useFormContext()
 
   return (
     <Stack spacing="6">
@@ -28,7 +28,7 @@ const EditView = (props: {
       <Card>
         <Stack divider={<StackDivider />} spacing="8">
           <Stack
-            direction={{ base: 'column', md: 'row' }}
+            direction={{base: 'column', md: 'row'}}
             alignItems="center"
             width="full"
             spacing="4"
@@ -42,7 +42,7 @@ const EditView = (props: {
             <PhotoField />
           </Stack>
           <Stack
-            direction={{ base: 'column', md: 'row' }}
+            direction={{base: 'column', md: 'row'}}
             alignItems="center"
             width="full"
             spacing="4"

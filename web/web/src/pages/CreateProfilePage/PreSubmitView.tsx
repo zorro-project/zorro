@@ -1,5 +1,5 @@
-import { Button, ButtonGroup } from '@chakra-ui/button'
-import { FormControl } from '@chakra-ui/form-control'
+import {Button, ButtonGroup} from '@chakra-ui/button'
+import {FormControl} from '@chakra-ui/form-control'
 import {
   Box,
   Heading,
@@ -9,21 +9,18 @@ import {
   StackDivider,
   Text,
 } from '@chakra-ui/layout'
-import { CircularProgress } from '@chakra-ui/progress'
-import { useEthers } from '@usedapp/core'
+import {CircularProgress} from '@chakra-ui/progress'
+import {useEthers} from '@usedapp/core'
 import React from 'react'
-import { useFormContext } from 'react-hook-form'
-import { Card } from 'src/components/Card'
+import {useFormContext} from 'react-hook-form'
+import {Card} from 'src/components/Card'
 import Identicon from 'src/components/Identicon'
-import { PhotoBox, VideoBox } from 'src/components/SquareBox'
-import { SignupFieldValues } from 'src/pages/CreateProfilePage/types'
+import {PhotoBox, VideoBox} from 'src/components/SquareBox'
+import {SignupFieldValues} from 'src/pages/CreateProfilePage/types'
 
-const PreSubmitView = (props: {
-  submitProgress: number
-  onEdit: () => void
-}) => {
-  const { account } = useEthers()
-  const { watch, formState } = useFormContext<SignupFieldValues>()
+const PreSubmitView = (props: {submitProgress: number; onEdit: () => void}) => {
+  const {account} = useEthers()
+  const {watch, formState} = useFormContext<SignupFieldValues>()
 
   return (
     <Stack spacing="6">
@@ -47,7 +44,7 @@ const PreSubmitView = (props: {
           </Box>
 
           <Stack
-            direction={{ base: 'column', md: 'row' }}
+            direction={{base: 'column', md: 'row'}}
             alignItems="center"
             width="full"
             spacing="4"
@@ -68,7 +65,7 @@ const PreSubmitView = (props: {
             <PhotoBox photo={watch('photoCID')} width="36" shadow="lg" />
           </Stack>
           <Stack
-            direction={{ base: 'column', md: 'row' }}
+            direction={{base: 'column', md: 'row'}}
             alignItems="center"
             width="full"
             spacing="4"

@@ -1,9 +1,9 @@
-import { Alert, AlertDescription, AlertIcon } from '@chakra-ui/alert'
-import { Box, Heading, ListItem, OrderedList, Text } from '@chakra-ui/layout'
-import { Redirect, routes } from '@redwoodjs/router'
-import { MetaTags } from '@redwoodjs/web'
-import { useEthers } from '@usedapp/core'
-import { useEffect } from 'react'
+import {Alert, AlertDescription, AlertIcon} from '@chakra-ui/alert'
+import {Box, Heading, ListItem, OrderedList, Text} from '@chakra-ui/layout'
+import {Redirect, routes} from '@redwoodjs/router'
+import {MetaTags} from '@redwoodjs/web'
+import {useEthers} from '@usedapp/core'
+import {useEffect} from 'react'
 import ConnectButton from 'src/components/ConnectButton/ConnectButton'
 import ipfsClient from 'src/lib/ipfs'
 
@@ -12,12 +12,12 @@ import {
   load as loadIntendedConnection,
 } from '../../lib/intendedConnectionStorage'
 
-const SignUpPage = ({ purposeIdentifier, externalAddress }) => {
-  const { account } = useEthers()
+const SignUpPage = ({purposeIdentifier, externalAddress}) => {
+  const {account} = useEthers()
 
   useEffect(() => {
     if (purposeIdentifier && externalAddress) {
-      saveIntendedConnection({ purposeIdentifier, externalAddress })
+      saveIntendedConnection({purposeIdentifier, externalAddress})
     }
   }, [])
 

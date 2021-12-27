@@ -1,4 +1,4 @@
-import { ExternalLinkIcon } from '@chakra-ui/icons'
+import {ExternalLinkIcon} from '@chakra-ui/icons'
 import {
   AccordionButton,
   Heading,
@@ -13,11 +13,11 @@ import {
   Tr,
 } from '@chakra-ui/react'
 import dayjs from 'dayjs'
-import { IconType } from 'react-icons'
-import { BsFillArrowUpRightSquareFill } from 'react-icons/bs'
-import { FaCalendarPlus, FaExclamationTriangle, FaGavel } from 'react-icons/fa'
-import { cidToUrl } from 'src/lib/ipfs'
-import { ProfilePageQuery } from 'types/graphql'
+import {IconType} from 'react-icons'
+import {BsFillArrowUpRightSquareFill} from 'react-icons/bs'
+import {FaCalendarPlus, FaExclamationTriangle, FaGavel} from 'react-icons/fa'
+import {cidToUrl} from 'src/lib/ipfs'
+import {ProfilePageQuery} from 'types/graphql'
 
 const Entry: React.FC<{
   icon: IconType
@@ -41,7 +41,7 @@ const Entry: React.FC<{
 
 const History: React.FC<{
   profile: ProfilePageQuery['cachedProfile']
-}> = ({ profile }) => (
+}> = ({profile}) => (
   <Stack>
     <Heading size="md" textAlign="center">
       Profile History

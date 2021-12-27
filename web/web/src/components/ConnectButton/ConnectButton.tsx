@@ -1,11 +1,5 @@
-import {
-  Button,
-  Stack,
-  Text,
-  useDisclosure,
-  ButtonProps,
-} from '@chakra-ui/react'
-import { useEthers } from '@usedapp/core'
+import {Button, Stack, Text, useDisclosure, ButtonProps} from '@chakra-ui/react'
+import {useEthers} from '@usedapp/core'
 import AccountModal from './AccountModal'
 import Identicon from 'src/components/Identicon'
 import UserContext from 'src/layouts/UserContext'

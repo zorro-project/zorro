@@ -1,19 +1,19 @@
-import { Button, ButtonGroup } from '@chakra-ui/button'
-import { FormControl, FormHelperText, FormLabel } from '@chakra-ui/form-control'
-import { Heading, Stack } from '@chakra-ui/layout'
-import { Input } from '@chakra-ui/react'
-import { Form, useForm } from '@redwoodjs/forms'
-import { useMutation } from '@redwoodjs/web'
+import {Button, ButtonGroup} from '@chakra-ui/button'
+import {FormControl, FormHelperText, FormLabel} from '@chakra-ui/form-control'
+import {Heading, Stack} from '@chakra-ui/layout'
+import {Input} from '@chakra-ui/react'
+import {Form, useForm} from '@redwoodjs/forms'
+import {useMutation} from '@redwoodjs/web'
 import React from 'react'
-import { Card } from 'src/components/Card'
-import { FindUnsubmittedProfileQuery } from 'types/graphql'
+import {Card} from 'src/components/Card'
+import {FindUnsubmittedProfileQuery} from 'types/graphql'
 import ProfileStatus from './ProfileStatus'
 
 const PendingApprovalView = (props: {
   onEdit: () => void
   unsubmittedProfile: FindUnsubmittedProfileQuery['unsubmittedProfile']
 }) => {
-  const methods = useForm<{ email: string }>({
+  const methods = useForm<{email: string}>({
     defaultValues: {
       email: props.unsubmittedProfile?.hasEmail ? '***@***.***' : null,
     },

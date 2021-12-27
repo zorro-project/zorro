@@ -1,13 +1,13 @@
-import { Cached_Profiles, ProfileStatus } from 'types/graphql'
-import { ArrayElement, useDataFieldUrl } from 'src/lib/util'
-import { Box, Text, Stack } from '@chakra-ui/layout'
-import { Skeleton } from '@chakra-ui/skeleton'
-import { Image } from '@chakra-ui/image'
+import {Cached_Profiles, ProfileStatus} from 'types/graphql'
+import {ArrayElement, useDataFieldUrl} from 'src/lib/util'
+import {Box, Text, Stack} from '@chakra-ui/layout'
+import {Skeleton} from '@chakra-ui/skeleton'
+import {Image} from '@chakra-ui/image'
 import Identicon from 'src/components/Identicon'
 import dayjs from 'dayjs'
-import { FaCalendarCheck, FaCheck, FaGavel, FaTimes } from 'react-icons/fa'
-import Icon, { IconProps } from '@chakra-ui/icon'
-import { routes } from '@redwoodjs/router'
+import {FaCalendarCheck, FaCheck, FaGavel, FaTimes} from 'react-icons/fa'
+import Icon, {IconProps} from '@chakra-ui/icon'
+import {routes} from '@redwoodjs/router'
 import RLink from 'src/components/RLink'
 import VerificationStatus from '../ProfilePage/VerificationStatus'
 
@@ -38,7 +38,7 @@ const ProfileCard = ({
   return (
     <Box
       as={RLink}
-      href={routes.profile({ id: profile.id })}
+      href={routes.profile({id: profile.id})}
       display="flex"
       shadow="md"
       w="100%"

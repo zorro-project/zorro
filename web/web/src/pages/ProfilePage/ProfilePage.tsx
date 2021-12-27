@@ -1,29 +1,17 @@
-import { Accordion, AccordionItem, AccordionPanel } from '@chakra-ui/accordion'
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-} from '@chakra-ui/breadcrumb'
+import {Accordion, AccordionItem, AccordionPanel} from '@chakra-ui/accordion'
+import {Breadcrumb, BreadcrumbItem, BreadcrumbLink} from '@chakra-ui/breadcrumb'
 import Icon from '@chakra-ui/icon'
-import { ExternalLinkIcon } from '@chakra-ui/icons'
-import {
-  Box,
-  Divider,
-  Flex,
-  Heading,
-  Link,
-  Stack,
-  Text,
-} from '@chakra-ui/layout'
-import { routes } from '@redwoodjs/router'
-import { CellSuccessProps, createCell, MetaTags } from '@redwoodjs/web'
+import {ExternalLinkIcon} from '@chakra-ui/icons'
+import {Box, Divider, Flex, Heading, Link, Stack, Text} from '@chakra-ui/layout'
+import {routes} from '@redwoodjs/router'
+import {CellSuccessProps, createCell, MetaTags} from '@redwoodjs/web'
 import dayjs from 'dayjs'
 import React from 'react'
-import { FaCalendarPlus, FaCheck, FaEthereum, FaTimes } from 'react-icons/fa'
-import { Card } from 'src/components/Card'
+import {FaCalendarPlus, FaCheck, FaEthereum, FaTimes} from 'react-icons/fa'
+import {Card} from 'src/components/Card'
 import Identicon from 'src/components/Identicon'
-import { PhotoBox, VideoBox } from 'src/components/SquareBox'
-import { ProfilePageQuery } from 'types/graphql'
+import {PhotoBox, VideoBox} from 'src/components/SquareBox'
+import {ProfilePageQuery} from 'types/graphql'
 import NotFoundPage from '../NotFoundPage/NotFoundPage'
 import ChallengePanel from './ChallengePanel'
 import History from './History'
@@ -58,12 +46,8 @@ const QUERY = gql`
   }
 `
 
-const Profile = ({
-  profile,
-}: {
-  profile: ProfilePageQuery['cachedProfile']
-}) => {
-  const { ethereumAddress, photoCID, videoCID, status } = profile
+const Profile = ({profile}: {profile: ProfilePageQuery['cachedProfile']}) => {
+  const {ethereumAddress, photoCID, videoCID, status} = profile
 
   return (
     <>
@@ -129,11 +113,11 @@ const Profile = ({
   )
 }
 
-const Success = ({ cachedProfile }: CellSuccessProps<ProfilePageQuery>) =>
+const Success = ({cachedProfile}: CellSuccessProps<ProfilePageQuery>) =>
   cachedProfile ? <Profile profile={cachedProfile} /> : <NotFoundPage />
 
-const ProfilePageCell = createCell({ QUERY, Success })
+const ProfilePageCell = createCell({QUERY, Success})
 
-const ProfilePage = ({ id }) => <ProfilePageCell id={id} />
+const ProfilePage = ({id}) => <ProfilePageCell id={id} />
 
 export default ProfilePage

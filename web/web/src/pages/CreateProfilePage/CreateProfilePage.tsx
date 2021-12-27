@@ -1,14 +1,14 @@
-import { SlideFade, Stack } from '@chakra-ui/react'
-import { Form } from '@redwoodjs/forms'
-import { Redirect, routes } from '@redwoodjs/router'
+import {SlideFade, Stack} from '@chakra-ui/react'
+import {Form} from '@redwoodjs/forms'
+import {Redirect, routes} from '@redwoodjs/router'
 import {
   CellSuccessProps,
   createCell,
   MetaTags,
   useMutation,
 } from '@redwoodjs/web'
-import { useEthers } from '@usedapp/core'
-import { SubmitHandler, useForm } from 'react-hook-form'
+import {useEthers} from '@usedapp/core'
+import {SubmitHandler, useForm} from 'react-hook-form'
 import ipfsClient from 'src/lib/ipfs'
 import EditView from 'src/pages/CreateProfilePage/EditView'
 import {
@@ -18,7 +18,7 @@ import {
 } from 'types/graphql'
 import PendingApprovalView from './PendingApprovalView'
 import PreSubmitView from './PreSubmitView'
-import { SignupFieldValues } from './types'
+import {SignupFieldValues} from './types'
 
 type CellProps = FindUnsubmittedProfileQueryVariables
 
@@ -160,7 +160,7 @@ const SignUpCell = createCell<CellProps>({
 })
 
 const SignUpPage = () => {
-  const { account } = useEthers()
+  const {account} = useEthers()
   if (account == null) return <Redirect to={routes.signUp()} />
 
   return <SignUpCell account={account} />

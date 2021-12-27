@@ -1,13 +1,13 @@
-import { Heading } from '@chakra-ui/layout'
-import { Table, Thead, Tr, Th, Tbody } from '@chakra-ui/react'
-import { Link, routes } from '@redwoodjs/router'
-import { MetaTags, useQuery } from '@redwoodjs/web'
-import { Card } from 'src/components/Card'
-import { UnsubmittedProfilesQuery } from 'types/graphql'
+import {Heading} from '@chakra-ui/layout'
+import {Table, Thead, Tr, Th, Tbody} from '@chakra-ui/react'
+import {Link, routes} from '@redwoodjs/router'
+import {MetaTags, useQuery} from '@redwoodjs/web'
+import {Card} from 'src/components/Card'
+import {UnsubmittedProfilesQuery} from 'types/graphql'
 import UnsubmittedProfile from './UnsubmittedProfile'
 
 const UnsubmittedProfilesPage = () => {
-  const { data } = useQuery<UnsubmittedProfilesQuery>(gql`
+  const {data} = useQuery<UnsubmittedProfilesQuery>(gql`
     query UnsubmittedProfilesQuery {
       unsubmittedProfiles(pendingReview: true) {
         id

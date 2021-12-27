@@ -7,7 +7,7 @@
 // 'src/pages/HomePage/HomePage.js'         -> HomePage
 // 'src/pages/Admin/BooksPage/BooksPage.js' -> AdminBooksPage
 
-import { Route, Router, Set } from '@redwoodjs/router'
+import {Route, Router, Set} from '@redwoodjs/router'
 import AppLayout from './layouts/AppLayout/AppLayout'
 
 const Routes = () => {

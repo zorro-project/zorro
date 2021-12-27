@@ -18,13 +18,13 @@ import {
   useDisclosure,
   UseDisclosureReturn,
 } from '@chakra-ui/react'
-import { useState } from 'react'
-import { useController, useFormContext } from 'react-hook-form'
+import {useState} from 'react'
+import {useController, useFormContext} from 'react-hook-form'
 import Webcam from 'react-webcam'
-import { PhotoBox } from 'src/components/SquareBox'
-import { dataUrlToBlob } from 'src/lib/util'
-import { useFilePicker } from 'use-file-picker'
-import { SignupFieldValues } from './types'
+import {PhotoBox} from 'src/components/SquareBox'
+import {dataUrlToBlob} from 'src/lib/util'
+import {useFilePicker} from 'use-file-picker'
+import {SignupFieldValues} from './types'
 
 const PhotoModal = (props: {
   modalCtrl: UseDisclosureReturn
@@ -33,11 +33,11 @@ const PhotoModal = (props: {
   const [webcamActive, setWebcamActive] = useState<boolean>(false)
   const [candidatePic, setCandidatePic] = useState<Blob | null>(null)
 
-  const [openFileSelector, { filesContent }] = useFilePicker({
+  const [openFileSelector, {filesContent}] = useFilePicker({
     readAs: 'DataURL',
     accept: 'image/*',
     multiple: true,
-    limitFilesConfig: { max: 1 },
+    limitFilesConfig: {max: 1},
   })
 
   React.useEffect(() => {
@@ -99,7 +99,7 @@ const PhotoModal = (props: {
                   width="100%"
                 >
                   <Webcam
-                    videoConstraints={{ facingMode: 'user' }}
+                    videoConstraints={{facingMode: 'user'}}
                     screenshotFormat="image/webp"
                     ref={webcamRef}
                   />
@@ -151,11 +151,11 @@ const PhotoModal = (props: {
 const PhotoField = () => {
   const modalControl = useDisclosure()
 
-  const { control } = useFormContext<SignupFieldValues>()
-  const { field } = useController({
+  const {control} = useFormContext<SignupFieldValues>()
+  const {field} = useController({
     name: 'photoCID',
     control,
-    rules: { required: true },
+    rules: {required: true},
   })
 
   return (

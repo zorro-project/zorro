@@ -1,4 +1,4 @@
-import { CloseIcon, HamburgerIcon } from '@chakra-ui/icons'
+import {CloseIcon, HamburgerIcon} from '@chakra-ui/icons'
 import {
   Box,
   Collapse,
@@ -10,8 +10,8 @@ import {
   useColorModeValue,
   useDisclosure,
 } from '@chakra-ui/react'
-import { routes, useMatch } from '@redwoodjs/router'
-import { BsGrid, BsPersonBadge, BsPersonPlus } from 'react-icons/bs'
+import {routes, useMatch} from '@redwoodjs/router'
+import {BsGrid, BsPersonBadge, BsPersonPlus} from 'react-icons/bs'
 import ConnectButton from 'src/components/ConnectButton/ConnectButton'
 import RLink from 'src/components/RLink'
 import UserContext from '../UserContext'
@@ -24,7 +24,7 @@ type NavItem = {
 }
 
 const DesktopNavItem = (props: NavItem) => {
-  const { icon, label, href = '#' } = props
+  const {icon, label, href = '#'} = props
   const active = useMatch(href).match
 
   return (
@@ -54,7 +54,7 @@ const DesktopNavItem = (props: NavItem) => {
   )
 }
 
-const DesktopNav = ({ navItems }: { navItems: Array<NavItem> }) => (
+const DesktopNav = ({navItems}: {navItems: Array<NavItem>}) => (
   <Stack direction={'row'} spacing={4}>
     {navItems.map((navItem) => (
       <DesktopNavItem key={navItem.label} {...navItem} />
@@ -62,11 +62,11 @@ const DesktopNav = ({ navItems }: { navItems: Array<NavItem> }) => (
   </Stack>
 )
 
-const MobileNav = ({ navItems }: { navItems: Array<NavItem> }) => (
+const MobileNav = ({navItems}: {navItems: Array<NavItem>}) => (
   <Stack
     bg={useColorModeValue('white', 'gray.800')}
     p={4}
-    display={{ md: 'none' }}
+    display={{md: 'none'}}
   >
     {navItems.map((navItem) => (
       <DesktopNavItem key={navItem.label} {...navItem} />
@@ -75,7 +75,7 @@ const MobileNav = ({ navItems }: { navItems: Array<NavItem> }) => (
 )
 
 const NavBar = () => {
-  const { isOpen, onToggle } = useDisclosure()
+  const {isOpen, onToggle} = useDisclosure()
   const user = React.useContext(UserContext)
 
   const navItems: Array<NavItem> = [
@@ -89,7 +89,7 @@ const NavBar = () => {
   if (user.cachedProfile) {
     navItems.push({
       label: 'My Profile',
-      href: routes.profile({ id: user.cachedProfile.id }),
+      href: routes.profile({id: user.cachedProfile.id}),
       icon: BsPersonBadge,
     })
   } else if (user.unsubmittedProfile) {
@@ -112,17 +112,17 @@ const NavBar = () => {
         bg={useColorModeValue('white', 'gray.800')}
         color={useColorModeValue('gray.600', 'white')}
         minH={'60px'}
-        py={{ base: 2 }}
-        px={{ base: 4 }}
+        py={{base: 2}}
+        px={{base: 4}}
         borderBottom={1}
         borderStyle={'solid'}
         borderColor={useColorModeValue('gray.200', 'gray.900')}
         align={'center'}
       >
         <Flex
-          flex={{ base: 1, md: 'auto' }}
-          ml={{ base: -2 }}
-          display={{ base: 'flex', md: 'none' }}
+          flex={{base: 1, md: 'auto'}}
+          ml={{base: -2}}
+          display={{base: 'flex', md: 'none'}}
         >
           <IconButton
             onClick={onToggle}
@@ -133,9 +133,9 @@ const NavBar = () => {
             aria-label={'Toggle Navigation'}
           />
         </Flex>
-        <Flex flex={{ base: 1 }} justify={{ base: 'center', md: 'start' }}>
-          <Logo display={{ base: 'none', md: 'flex' }} />
-          <Flex display={{ base: 'none', md: 'flex' }} ml={10}>
+        <Flex flex={{base: 1}} justify={{base: 'center', md: 'start'}}>
+          <Logo display={{base: 'none', md: 'flex'}} />
+          <Flex display={{base: 'none', md: 'flex'}} ml={10}>
             <DesktopNav navItems={navItems} />
           </Flex>
         </Flex>

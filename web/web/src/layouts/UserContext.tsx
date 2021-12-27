@@ -1,6 +1,6 @@
-import { useLazyQuery } from '@apollo/client'
-import { useEthers } from '@usedapp/core'
-import { UserContextQuery, UserContextQueryVariables } from 'types/graphql'
+import {useLazyQuery} from '@apollo/client'
+import {useEthers} from '@usedapp/core'
+import {UserContextQuery, UserContextQueryVariables} from 'types/graphql'
 
 type UserContextType = {
   ethereumAddress?: string
@@ -10,14 +10,10 @@ type UserContextType = {
 
 const UserContext = React.createContext<UserContextType>({})
 
-export function UserContextProvider({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+export function UserContextProvider({children}: {children: React.ReactNode}) {
   const ethers = useEthers()
 
-  const [queryUser, { data }] = useLazyQuery<
+  const [queryUser, {data}] = useLazyQuery<
     UserContextQuery,
     UserContextQueryVariables
   >(
@@ -34,12 +30,12 @@ export function UserContextProvider({
         }
       }
     `,
-    { variables: { ethereumAddress: ethers.account } }
+    {variables: {ethereumAddress: ethers.account}}
   )
 
   React.useEffect(() => {
     if (ethers.account) {
-      queryUser({ variables: { ethereumAddress: ethers.account } })
+      queryUser({variables: {ethereumAddress: ethers.account}})
     }
   }, [ethers.account])
 

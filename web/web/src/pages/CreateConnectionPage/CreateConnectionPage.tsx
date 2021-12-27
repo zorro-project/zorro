@@ -1,12 +1,12 @@
-import { Button } from '@chakra-ui/react'
-import { Alert, AlertDescription, AlertIcon } from '@chakra-ui/alert'
-import { Box, Heading, ListItem, OrderedList, Text } from '@chakra-ui/layout'
-import { Redirect, routes } from '@redwoodjs/router'
-import { useMutation } from '@redwoodjs/web'
-import { useEthers } from '@usedapp/core'
-import { useEffect } from 'react'
+import {Button} from '@chakra-ui/react'
+import {Alert, AlertDescription, AlertIcon} from '@chakra-ui/alert'
+import {Box, Heading, ListItem, OrderedList, Text} from '@chakra-ui/layout'
+import {Redirect, routes} from '@redwoodjs/router'
+import {useMutation} from '@redwoodjs/web'
+import {useEthers} from '@usedapp/core'
+import {useEffect} from 'react'
 
-import { CreateConnectionMutation } from 'types/graphql'
+import {CreateConnectionMutation} from 'types/graphql'
 
 import {
   load as loadIntendedConnection,
@@ -47,7 +47,7 @@ const connect = async (
 }
 
 const CreateConnectionPage = () => {
-  const { library: provider, account } = useEthers()
+  const {library: provider, account} = useEthers()
   //console.log('ethers result', result)
 
   const intendedConnection = loadIntendedConnection()

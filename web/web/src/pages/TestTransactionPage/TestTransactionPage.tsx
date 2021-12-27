@@ -1,11 +1,11 @@
-import { Button } from '@chakra-ui/button'
-import { Input } from '@chakra-ui/input'
-import { Box, Heading, Link, Stack, Text } from '@chakra-ui/layout'
-import { MetaTags } from '@redwoodjs/web'
-import { Card } from 'src/components/Card'
+import {Button} from '@chakra-ui/button'
+import {Input} from '@chakra-ui/input'
+import {Box, Heading, Link, Stack, Text} from '@chakra-ui/layout'
+import {MetaTags} from '@redwoodjs/web'
+import {Card} from 'src/components/Card'
 import getNotaryKey from 'src/lib/getNotaryKey'
-import { cairoCompatibleAdd } from 'src/lib/ipfs'
-import { serializeCid } from '../../../../api/src/lib/serializers'
+import {cairoCompatibleAdd} from 'src/lib/ipfs'
+import {serializeCid} from '../../../../api/src/lib/serializers'
 import {
   ERC20Address,
   exportProfileById,
@@ -103,7 +103,7 @@ const GetNotaryZorroAllowance = () => {
   )
 }
 
-const ContractLink = ({ name, address }) => (
+const ContractLink = ({name, address}) => (
   <Text>
     {name} Contract:{' '}
     <Link isExternal href={`https://goerli.voyager.online/contract/${address}`}>

@@ -1,10 +1,10 @@
-import { Box, Flex, Heading } from '@chakra-ui/layout'
-import { MetaTags, useQuery } from '@redwoodjs/web'
+import {Box, Flex, Heading} from '@chakra-ui/layout'
+import {MetaTags, useQuery} from '@redwoodjs/web'
 import React from 'react'
 import AutoSizer from 'react-virtualized-auto-sizer'
-import { FixedSizeGrid } from 'react-window'
+import {FixedSizeGrid} from 'react-window'
 import InfiniteLoader from 'react-window-infinite-loader'
-import { CachedProfilesQuery } from 'types/graphql'
+import {CachedProfilesQuery} from 'types/graphql'
 import ProfileCard from './ProfileCard'
 
 const QUERY = gql`
@@ -33,9 +33,9 @@ const QUERY = gql`
 const MIN_CARD_SIZE = 200
 
 const ProfilesPage = () => {
-  const { data, loading, fetchMore } = useQuery<CachedProfilesQuery>(QUERY, {
+  const {data, loading, fetchMore} = useQuery<CachedProfilesQuery>(QUERY, {
     notifyOnNetworkStatusChange: true,
-    variables: { cursor: null },
+    variables: {cursor: null},
   })
 
   const loadMore = React.useCallback(
@@ -48,7 +48,7 @@ const ProfilesPage = () => {
         },
         updateQuery: (
           previousResult,
-          { fetchMoreResult }
+          {fetchMoreResult}
         ): CachedProfilesQuery => {
           const newEdges = fetchMoreResult.cachedProfiles.edges
           const pageInfo = fetchMoreResult.cachedProfiles.pageInfo
@@ -71,7 +71,7 @@ const ProfilesPage = () => {
     [fetchMore, data?.cachedProfiles?.pageInfo?.endCursor]
   )
 
-  const profiles = data?.cachedProfiles?.edges?.map(({ node }) => node)
+  const profiles = data?.cachedProfiles?.edges?.map(({node}) => node)
   const hasNextPage = data?.cachedProfiles?.pageInfo?.hasNextPage
 
   const profilesCount = data?.cachedProfiles?.count
@@ -86,7 +86,7 @@ const ProfilesPage = () => {
 
       <Box mx="-2" mt="6" flex={1}>
         <AutoSizer>
-          {({ width, height }) => {
+          {({width, height}) => {
             const columnCount = Math.floor(width / MIN_CARD_SIZE)
             const rowCount = Math.ceil(profilesCount / columnCount)
             const cardSize = Math.floor(width / columnCount)
@@ -97,7 +97,7 @@ const ProfilesPage = () => {
                 itemCount={profilesCount}
                 loadMoreItems={loadMore}
               >
-                {({ onItemsRendered, ref }) => (
+                {({onItemsRendered, ref}) => (
                   <FixedSizeGrid
                     onItemsRendered={(gridProps) =>
                       onItemsRendered({
@@ -119,7 +119,7 @@ const ProfilesPage = () => {
                     rowCount={rowCount}
                     columnWidth={cardSize}
                   >
-                    {({ columnIndex, rowIndex, style }) => {
+                    {({columnIndex, rowIndex, style}) => {
                       const idx = rowIndex * columnCount + columnIndex
                       if (idx >= profiles.length) return null
                       return (

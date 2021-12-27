@@ -1,6 +1,6 @@
-import { AspectRatio, AspectRatioProps, Box } from '@chakra-ui/layout'
-import { Image } from '@chakra-ui/image'
-import { DataFieldType, useDataFieldUrl } from 'src/lib/util'
+import {AspectRatio, AspectRatioProps, Box} from '@chakra-ui/layout'
+import {Image} from '@chakra-ui/image'
+import {DataFieldType, useDataFieldUrl} from 'src/lib/util'
 import ReactPlayer from 'react-player'
 
 const SquareBox = (props: AspectRatioProps) => (
@@ -20,7 +20,7 @@ export default SquareBox
 export const PhotoBox = ({
   photo,
   ...props
-}: AspectRatioProps & { photo: DataFieldType }) => {
+}: AspectRatioProps & {photo: DataFieldType}) => {
   const photoUrl = useDataFieldUrl(photo)
 
   return (
@@ -41,7 +41,7 @@ export const PhotoBox = ({
 export const VideoBox = ({
   video,
   ...props
-}: AspectRatioProps & { video: DataFieldType }) => {
+}: AspectRatioProps & {video: DataFieldType}) => {
   const videoUrl = useDataFieldUrl(video)
 
   return (

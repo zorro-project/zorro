@@ -1,15 +1,10 @@
-import {
-  Alert,
-  AlertIcon,
-  AlertTitle,
-  AlertDescription,
-} from '@chakra-ui/alert'
-import { Box, Text } from '@chakra-ui/layout'
-import { FindUnsubmittedProfileQuery } from 'types/graphql'
+import {Alert, AlertIcon, AlertTitle, AlertDescription} from '@chakra-ui/alert'
+import {Box, Text} from '@chakra-ui/layout'
+import {FindUnsubmittedProfileQuery} from 'types/graphql'
 
 const ProfileStatus: React.FC<{
   profile: FindUnsubmittedProfileQuery['unsubmittedProfile'] | null
-}> = ({ profile }) => {
+}> = ({profile}) => {
   if (!profile) return null
 
   if (profile.UnaddressedFeedback) {
