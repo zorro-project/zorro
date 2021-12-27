@@ -1,6 +1,6 @@
 import assert from 'minimalistic-assert'
-import { sanitizeHex } from 'starknet/dist/utils/encode'
-import { CID } from 'ipfs-http-client'
+import {sanitizeHex} from 'starknet/dist/utils/encode'
+import {CID} from 'ipfs-http-client'
 
 type Felt = string
 

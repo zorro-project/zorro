@@ -1,6 +1,6 @@
-import { readCIDs } from './syncStarknetState'
-import { Prisma } from '@prisma/client'
-import { parseCid } from 'src/lib/starknet'
+import {readCIDs} from './syncStarknetState'
+import {Prisma} from '@prisma/client'
+import {parseCid} from 'src/lib/starknet'
 
 describe('readCIDs', () => {
   test('correctly parses a CID', async () => {

@@ -1,5 +1,5 @@
 import importPoH from 'api/db/seed/importPoH'
-import { db } from 'api/src/lib/db'
+import {db} from 'api/src/lib/db'
 
 /* eslint-disable no-console */
 
@@ -33,18 +33,18 @@ export default async () => {
 
     console.log('Seeding notary feedback')
     const profile = await db.unsubmittedProfile.findUnique({
-      where: { address: '0x334230242D318b5CA159fc38E07dC1248B7b35e4' },
+      where: {address: '0x334230242D318b5CA159fc38E07dC1248B7b35e4'},
     })
     const feedback = await db.notaryFeedback.create({
       data: {
-        UnsubmittedProfile: { connect: { id: profile.id } },
+        UnsubmittedProfile: {connect: {id: profile.id}},
         feedback: "You don't say the full required phrase in your video",
       },
     })
 
     await db.unsubmittedProfile.update({
-      where: { id: feedback.unsubmittedProfileId },
-      data: { unaddressedFeedbackId: feedback.id },
+      where: {id: feedback.unsubmittedProfileId},
+      data: {unaddressedFeedbackId: feedback.id},
     })
 
     // TODO: how are we going to seed actual profiles? Push them to StarkNet first I guess?

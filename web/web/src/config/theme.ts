@@ -1,4 +1,4 @@
-import { extendTheme } from '@chakra-ui/react'
+import {extendTheme} from '@chakra-ui/react'
 import RLink from 'src/components/RLink'
 
 const theme = extendTheme({
@@ -7,7 +7,7 @@ const theme = extendTheme({
       as: RLink, // TODO: not sure if this is actually working
       variants: {
         // you can name it whatever you want
-        primary: ({ colorScheme = 'blue' }) => ({
+        primary: ({colorScheme = 'blue'}) => ({
           color: `${colorScheme}.500`,
           _hover: {
             color: `${colorScheme}.400`,

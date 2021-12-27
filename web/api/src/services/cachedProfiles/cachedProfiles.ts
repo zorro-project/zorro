@@ -1,14 +1,14 @@
-import { db } from 'src/lib/db'
-import { CachedProfileConnection, ProfileStatus } from 'types/graphql'
-import { StatusEnum } from '@prisma/client'
+import {db} from 'src/lib/db'
+import {CachedProfileConnection, ProfileStatus} from 'types/graphql'
+import {StatusEnum} from '@prisma/client'
 
 export const cachedProfiles = async ({
   first,
   cursor,
 }): Promise<CachedProfileConnection> => {
   const profiles = await db.cachedProfile.findMany({
-    cursor: cursor ? { id: parseInt(cursor, 10) } : undefined,
-    orderBy: { id: 'desc' },
+    cursor: cursor ? {id: parseInt(cursor, 10)} : undefined,
+    orderBy: {id: 'desc'},
     take: first,
     skip: cursor ? 1 : 0,
   })
@@ -19,7 +19,7 @@ export const cachedProfiles = async ({
   }))
 
   const lastCursor = (
-    await db.cachedProfile.aggregate({ _min: { id: true } })
+    await db.cachedProfile.aggregate({_min: {id: true}})
   )._min.id.toString()
   const endCursor = edges[edges.length - 1].cursor
 
@@ -34,18 +34,18 @@ export const cachedProfiles = async ({
   }
 }
 
-export const cachedProfile = async ({ id }) =>
+export const cachedProfile = async ({id}) =>
   await db.cachedProfile.findUnique({
-    where: { id: parseInt(id, 10) },
+    where: {id: parseInt(id, 10)},
   })
 
-export const cachedProfileByEthAddress = async ({ ethereumAddress }) =>
+export const cachedProfileByEthAddress = async ({ethereumAddress}) =>
   await db.cachedProfile.findUnique({
-    where: { ethereumAddress },
+    where: {ethereumAddress},
   })
 
 // Keep in sync with `StatusEnum` in `starknet/contracts/profile.cairo`
-const STATUS_ENUMS: { [enumVal: number]: StatusEnum } = {
+const STATUS_ENUMS: {[enumVal: number]: StatusEnum} = {
   0: StatusEnum.NOT_CHALLENGED,
   1: StatusEnum.CHALLENGED,
   2: StatusEnum.ADJUDICATION_ROUND_COMPLETED,

@@ -1,7 +1,7 @@
 // See https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/constructor
 // for options.
 
-import { PrismaClient } from '@prisma/client'
+import {PrismaClient} from '@prisma/client'
 
 import {
   emitLogLevels,
@@ -9,7 +9,7 @@ import {
   LogLevel,
 } from '@redwoodjs/api/logger'
 
-import { logger } from './logger'
+import {logger} from './logger'
 
 const logLevels: LogLevel[] =
   process.env.NODE_ENV == 'production'

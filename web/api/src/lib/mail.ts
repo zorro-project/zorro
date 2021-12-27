@@ -1,5 +1,5 @@
-import { htmlToText } from 'nodemailer-html-to-text'
-import { hostname } from 'os'
+import {htmlToText} from 'nodemailer-html-to-text'
+import {hostname} from 'os'
 
 import nodemailer from 'nodemailer'
 

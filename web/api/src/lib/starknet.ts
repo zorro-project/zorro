@@ -1,4 +1,4 @@
-import { Prisma } from '@prisma/client'
+import {Prisma} from '@prisma/client'
 import {
   Abi,
   Contract,
@@ -8,8 +8,8 @@ import {
   Signer,
   stark,
 } from 'starknet'
-import { BigNumberish } from 'starknet/dist/utils/number'
-import { bnToUint256, uint256ToBN } from 'starknet/dist/utils/uint256'
+import {BigNumberish} from 'starknet/dist/utils/number'
+import {bnToUint256, uint256ToBN} from 'starknet/dist/utils/uint256'
 import ERC20_ADDRESS from '../../../../starknet/deployments/goerli/erc20.json'
 import NOTARY_ADDRESS from '../../../../starknet/deployments/goerli/notary.json'
 import ZORRO_ADDRESS from '../../../../starknet/deployments/goerli/zorro.json'
@@ -73,7 +73,7 @@ export async function notarySubmitProfile(
   )
 
   const depositSize = await getSubmissionDepositSize()
-  console.log({ depositSize })
+  console.log({depositSize})
 
   console.log('attempting erc20 approve')
   await erc20Approve(notary, ZorroAddress, depositSize)
@@ -127,9 +127,9 @@ type Challenge = {
 export async function exportProfileById(
   profileId: bigint | number | string | Prisma.Decimal
 ) {
-  const profile = (await zorro.call('export_profile_by_id', {
+  const profile = ((await zorro.call('export_profile_by_id', {
     profile_id: profileId.toString(16),
-  })) as any as {
+  })) as any) as {
     profile: Profile
     num_profiles: Felt
     status: Felt

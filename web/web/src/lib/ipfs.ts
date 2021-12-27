@@ -1,5 +1,5 @@
-import { create, CID } from 'ipfs-http-client'
-import { assert } from './util'
+import {create, CID} from 'ipfs-http-client'
+import {assert} from './util'
 
 const auth =
   'Basic ' +
@@ -23,7 +23,7 @@ export async function cairoCompatibleAdd(data: string | Blob): Promise<CID> {
 
   // The CID v1 adds 4 bytes of overhead to the hash size, so we need to
   // limit our hash to 27 bytes to fit within the 31-byte Cairo felt size.
-  const newBlock = await ipfsClient.block.put(block, { mhlen: 27 })
+  const newBlock = await ipfsClient.block.put(block, {mhlen: 27})
 
   assert(newBlock.bytes.length === 31, 'Error: CIDs on Cairo must be 31 bytes')
   await ipfsClient.pin.add(newBlock)

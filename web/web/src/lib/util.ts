@@ -20,8 +20,9 @@ export const dataFieldToUrl: (value: DataFieldType) => string | undefined = (
 export const useDataFieldUrl = (value: DataFieldType) =>
   React.useMemo(() => dataFieldToUrl(value), [value])
 
-export type ArrayElement<ArrayType extends readonly unknown[]> =
-  ArrayType extends readonly (infer ElementType)[] ? ElementType : never
+export type ArrayElement<
+  ArrayType extends readonly unknown[]
+> = ArrayType extends readonly (infer ElementType)[] ? ElementType : never
 
 export const assert = (condition: boolean, message: string) => {
   if (!condition) throw new Error(message)

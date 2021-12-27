@@ -1,4 +1,4 @@
-import { create } from 'ipfs-http-client'
+import {create} from 'ipfs-http-client'
 
 const auth =
   'Basic ' +

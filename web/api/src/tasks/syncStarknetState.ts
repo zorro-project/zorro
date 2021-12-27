@@ -1,7 +1,7 @@
-import { CID } from 'ipfs-http-client'
-import { db } from 'src/lib/db'
-import { Prisma } from '@prisma/client'
-import { exportProfileById, getNumProfiles } from 'src/lib/starknet'
+import {CID} from 'ipfs-http-client'
+import {db} from 'src/lib/db'
+import {Prisma} from '@prisma/client'
+import {exportProfileById, getNumProfiles} from 'src/lib/starknet'
 import {
   parseAddress,
   parseBoolean,
@@ -21,14 +21,14 @@ export default async function syncStarknetState(onlyNewProfiles = false) {
 
   if (onlyNewProfiles) {
     currentId =
-      (await db.cachedProfile.aggregate({ _max: { id: true } }))._max.id ??
+      (await db.cachedProfile.aggregate({_max: {id: true}}))._max.id ??
       currentId
   }
 
   currentId = currentId + 1
 
   while (currentId <= maxId) {
-    ;({ maxId } = await importProfile(currentId))
+    ;({maxId} = await importProfile(currentId))
 
     currentId = currentId + 1
   }
@@ -39,7 +39,7 @@ export default async function syncStarknetState(onlyNewProfiles = false) {
 export const importProfile = async (profileId: number) => {
   console.log(`Importing profile ${profileId}`)
   const exported = await exportProfileById(profileId)
-  const { profile } = exported
+  const {profile} = exported
 
   console.log(profile)
 
@@ -85,7 +85,7 @@ export const importProfile = async (profileId: number) => {
   }
 
   await db.cachedProfile.upsert({
-    where: { id: profileId },
+    where: {id: profileId},
     create: {
       id: profileId,
       ...profileFields,
@@ -113,7 +113,7 @@ export const importProfile = async (profileId: number) => {
     )
   }
 
-  return { maxId: parseNumber(exported.num_profiles) }
+  return {maxId: parseNumber(exported.num_profiles)}
 }
 
 export const readCIDs = async (cid: CID) => {
@@ -121,8 +121,8 @@ export const readCIDs = async (cid: CID) => {
     await fetch(`https://${cid.toV1().toString()}.ipfs.infura-ipfs.io`)
   ).json()
 
-  console.log({ data })
-  return { videoCID: data.video.toString(), photoCID: data.photo.toString() }
+  console.log({data})
+  return {videoCID: data.video.toString(), photoCID: data.photo.toString()}
 }
 
 syncStarknetState()

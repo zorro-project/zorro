@@ -1,6 +1,6 @@
-import type { CachedProfile } from '@prisma/client'
+import type {CachedProfile} from '@prisma/client'
 import fs from 'fs'
-import { gql, request } from 'graphql-request'
+import {gql, request} from 'graphql-request'
 import fetch from 'node-fetch'
 import path from 'path'
 import rwc from 'random-weighted-choice'
@@ -23,7 +23,7 @@ const query = gql`
         orderBy: creationTime
         orderDirection: desc
         first: 1
-        where: { registration: true }
+        where: {registration: true}
       ) {
         evidence(orderBy: creationTime, first: 1) {
           URI
@@ -56,10 +56,10 @@ export default async function importPoH(): Promise<Partial<CachedProfile>[]> {
       ).json()
 
       const status = rwc([
-        { id: 'submitted_via_notary', weight: 10 },
-        { id: 'challenged', weight: 2 },
-        { id: 'deemed_valid', weight: 1 },
-        { id: 'deemed_invalid', weight: 1 },
+        {id: 'submitted_via_notary', weight: 10},
+        {id: 'challenged', weight: 2},
+        {id: 'deemed_valid', weight: 1},
+        {id: 'deemed_invalid', weight: 1},
       ])
 
       const normalizedProfile = {

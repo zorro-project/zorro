@@ -1,7 +1,7 @@
 import * as React from 'react'
 
-import { ChakraProvider } from '@chakra-ui/react'
-import { AppBackground } from '../src/layouts/AppLayout/AppLayout'
+import {ChakraProvider} from '@chakra-ui/react'
+import {AppBackground} from '../src/layouts/AppLayout/AppLayout'
 import theme from '../src/config/theme'
 
 const withChakra = (StoryFn) => (
