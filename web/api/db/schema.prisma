@@ -26,8 +26,8 @@ model NotaryFeedback {
 
 model UnsubmittedProfile {
   id       Int    @id @default(autoincrement())
-  photoCID String
-  videoCID String
+  photoCid String
+  videoCid String
 
   // This now represents the ethereum_address in the submitted profile.
   // TODO: rename to ethereumAddress.
@@ -78,9 +78,9 @@ model CachedProfile {
   cache Json @db.JsonB
 
   // Derived fields
-  CID      String
-  photoCID String?
-  videoCID String?
+  cid      String
+  photoCid String?
+  videoCid String?
 
   ethereumAddress      String     @unique
   submissionTimestamp  DateTime
@@ -88,11 +88,11 @@ model CachedProfile {
   lastRecordedStatus   StatusEnum
   challengeTimestamp   DateTime?
   challengerAddress    String?
-  challengeEvidenceCID String?
-  ownerEvidenceCID     String?
+  challengeEvidenceCid String?
+  ownerEvidenceCid     String?
 
   adjudicationTimestamp       DateTime?
-  adjudicatorEvidenceCID      String?
+  adjudicatorEvidenceCid      String?
   didAdjudicatorVerifyProfile Boolean
 
   appealTimestamp                  DateTime?

@@ -153,7 +153,7 @@ const PhotoField = () => {
 
   const {control} = useFormContext<SignupFieldValues>()
   const {field} = useController({
-    name: 'photoCID',
+    name: 'photoCid',
     control,
     rules: {required: true},
   })

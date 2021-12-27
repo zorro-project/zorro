@@ -62,7 +62,7 @@ const PreSubmitView = (props: {submitProgress: number; onEdit: () => void}) => {
                 </ListItem>
               </OrderedList>
             </FormControl>
-            <PhotoBox photo={watch('photoCID')} width="36" shadow="lg" />
+            <PhotoBox photo={watch('photoCid')} width="36" shadow="lg" />
           </Stack>
           <Stack
             direction={{base: 'column', md: 'row'}}
@@ -83,7 +83,7 @@ const PreSubmitView = (props: {submitProgress: number; onEdit: () => void}) => {
               </OrderedList>
             </FormControl>
             <VideoBox
-              video={watch('videoCID')}
+              video={watch('videoCid')}
               width="36"
               borderRadius="lg"
               shadow="lg"

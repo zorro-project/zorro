@@ -9,17 +9,17 @@ const baseMock: ProfilePageQuery = {
     ethereumAddress: '0x334230242d318b5ca159fc38e07dc1248b7b35e4',
     status: 'NOT_CHALLENGED',
     isVerified: true,
-    CID: 'bafybeg4qt5n7szznmtbsr63bs3aaik23vrc2ptuctm5bmgqynq',
-    photoCID: 'bafybeicxoq24v5sxcz4myt5kx35kluclpoqhsfb2qdf5oevfuklprux2em',
-    videoCID: 'bafybeiaxvwuj72kcknxm5ofryao4pkqpks5qtadrakzcw743jqruli5zku',
+    cid: 'bafybeg4qt5n7szznmtbsr63bs3aaik23vrc2ptuctm5bmgqynq',
+    photoCid: 'bafybeicxoq24v5sxcz4myt5kx35kluclpoqhsfb2qdf5oevfuklprux2em',
+    videoCid: 'bafybeiaxvwuj72kcknxm5ofryao4pkqpks5qtadrakzcw743jqruli5zku',
     submissionTimestamp: '2021-01-02T10:17:36.789Z',
     notarized: true,
     challengeTimestamp: null,
     challengerAddress: null,
-    challengeEvidenceCID: null,
-    ownerEvidenceCID: null,
+    challengeEvidenceCid: null,
+    ownerEvidenceCid: null,
     adjudicationTimestamp: null,
-    adjudicatorEvidenceCID: null,
+    adjudicatorEvidenceCid: null,
     didAdjudicatorVerifyProfile: false,
     appealTimestamp: null,
     superAdjudicationTimestamp: null,
@@ -34,7 +34,7 @@ const challengedMock: ProfilePageQuery = merge({}, baseMock, {
     isVerified: false,
     challengeTimestamp: '2021-05-02T10:17:36.789Z',
     ethereumAddress: '0xe07dc1248b7b35e4334230242d318b5ca159fc38',
-    challengeEvidenceCID: 'bafybeg4qt5n7szznmtbsr63bs3aaik23vrc2ptuctm5bmgqynq',
+    challengeEvidenceCid: 'bafybeg4qt5n7szznmtbsr63bs3aaik23vrc2ptuctm5bmgqynq',
   },
 })
 
@@ -45,7 +45,7 @@ const adjudicationRoundCompletedMock: ProfilePageQuery = merge(
     cachedProfile: {
       status: 'ADJUDICATION_ROUND_COMPLETED',
       adjudicationTimestamp: '2021-05-02T11:17:36.789Z',
-      adjudicationEvidenceCID:
+      adjudicationEvidencecid:
         'bafybeg4qt5n7szznmtbsr63bs3aaik23vrc2ptuctm5bmgqynq',
       didAdjudicatorVerifyProfile: true,
       isVerified: true,

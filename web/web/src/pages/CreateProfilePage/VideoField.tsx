@@ -189,7 +189,7 @@ const VideoField = () => {
 
   const {control} = useFormContext<SignupFieldValues>()
   const {field} = useController({
-    name: 'videoCID',
+    name: 'videoCid',
     control,
     rules: {required: true},
   })

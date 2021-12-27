@@ -23,20 +23,20 @@ const QUERY = gql`
       ethereumAddress
       status
       isVerified
-      CID
-      photoCID
-      videoCID
+      cid
+      photoCid
+      videoCid
 
       ethereumAddress
       submissionTimestamp
       notarized
       challengeTimestamp
       challengerAddress
-      challengeEvidenceCID
-      ownerEvidenceCID
+      challengeEvidenceCid
+      ownerEvidenceCid
 
       adjudicationTimestamp
-      adjudicatorEvidenceCID
+      adjudicatorEvidenceCid
       didAdjudicatorVerifyProfile
 
       appealTimestamp
@@ -47,7 +47,7 @@ const QUERY = gql`
 `
 
 const Profile = ({profile}: {profile: ProfilePageQuery['cachedProfile']}) => {
-  const {ethereumAddress, photoCID, videoCID, status} = profile
+  const {ethereumAddress, photoCid, videoCid, status} = profile
 
   return (
     <>
@@ -99,10 +99,10 @@ const Profile = ({profile}: {profile: ProfilePageQuery['cachedProfile']}) => {
             </Heading>
             <Stack direction="row" spacing="4">
               <Box flex="1">
-                <PhotoBox photo={photoCID} />
+                <PhotoBox photo={photoCid} />
               </Box>
               <Box flex="1">
-                <VideoBox video={videoCID} />
+                <VideoBox video={videoCid} />
               </Box>
             </Stack>
             <History profile={profile} />

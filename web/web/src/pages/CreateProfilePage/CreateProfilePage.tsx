@@ -30,8 +30,8 @@ const Success = ({
   const methods = useForm<SignupFieldValues>({
     mode: 'onChange',
     defaultValues: {
-      photoCID: unsubmittedProfile?.photoCID,
-      videoCID: unsubmittedProfile?.videoCID,
+      photoCid: unsubmittedProfile?.photoCid,
+      videoCid: unsubmittedProfile?.videoCid,
     },
   })
   const [currentView, setCurrentView] = React.useState<
@@ -56,38 +56,38 @@ const Success = ({
       const reportProgress = (bytes: number) =>
         setSubmitProgress(
           (100 * bytes) /
-            ((data.photoCID instanceof Blob ? data.photoCID.size : 0) +
-              (data.videoCID instanceof Blob ? data.videoCID.size : 0))
+            ((data.photoCid instanceof Blob ? data.photoCid.size : 0) +
+              (data.videoCid instanceof Blob ? data.videoCid.size : 0))
         )
 
-      const photoCID =
-        data.photoCID instanceof Blob
+      const photoCid =
+        data.photoCid instanceof Blob
           ? (
-              await ipfsClient.add(data.photoCID as Blob, {
+              await ipfsClient.add(data.photoCid as Blob, {
                 progress: reportProgress,
               })
             ).cid
               .toV1()
               .toString()
-          : data.photoCID
+          : data.photoCid
 
-      const videoCID =
-        data.videoCID instanceof Blob
+      const videoCid =
+        data.videoCid instanceof Blob
           ? (
-              await ipfsClient.add(data.videoCID as Blob, {
+              await ipfsClient.add(data.videoCid as Blob, {
                 progress: reportProgress,
               })
             ).cid
               .toV1()
               .toString()
-          : data.videoCID
+          : data.videoCid
 
       await updateMutation({
         variables: {
           address: account,
           input: {
-            photoCID,
-            videoCID,
+            photoCid,
+            videoCid,
             email: data.email,
           },
         },
@@ -146,8 +146,8 @@ const SignUpCell = createCell<CellProps>({
   QUERY: gql`
     query FindUnsubmittedProfileQuery($account: ID!) {
       unsubmittedProfile(address: $account) {
-        photoCID
-        videoCID
+        photoCid
+        videoCid
         hasEmail
         address
         UnaddressedFeedback {
