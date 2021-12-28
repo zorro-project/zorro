@@ -1,5 +1,5 @@
 export type SignupFieldValues = {
-  photoCID: Blob | string
-  videoCID: Blob | string
+  photoCid: Blob | string
+  videoCid: Blob | string
   email: string
 }

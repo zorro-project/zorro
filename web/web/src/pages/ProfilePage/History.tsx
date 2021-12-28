@@ -61,7 +61,7 @@ const History: React.FC<{
           title="Challenged"
           timestamp={profile.challengeTimestamp}
           description={
-            <Link href={cidToUrl(profile.challengeEvidenceCID)} isExternal>
+            <Link href={cidToUrl(profile.challengeEvidenceCid)} isExternal>
               Challenger evidence
               <ExternalLinkIcon ml={1} />
             </Link>
@@ -80,7 +80,7 @@ const History: React.FC<{
                   : 'Unverified'}
               </strong>{' '}
               (
-              <Link href={cidToUrl(profile.adjudicatorEvidenceCID)} isExternal>
+              <Link href={cidToUrl(profile.adjudicatorEvidenceCid)} isExternal>
                 Evidence
                 <ExternalLinkIcon ml={1} />
               </Link>

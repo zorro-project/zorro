@@ -52,7 +52,7 @@ const UnsubmittedProfile: React.FC<{
     // setSubmitting(true)
 
     const cid = await cairoCompatibleAdd(
-      JSON.stringify({photo: profile.photoCID, video: profile.videoCID})
+      JSON.stringify({photo: profile.photoCid, video: profile.videoCid})
     )
 
     const submittedProfile = await notarySubmitProfile(
@@ -81,10 +81,10 @@ const UnsubmittedProfile: React.FC<{
         </Text>
       </Td>
       <Td>
-        <PhotoBox photo={profile.photoCID} width="36" />
+        <PhotoBox photo={profile.photoCid} width="36" />
       </Td>
       <Td>
-        <VideoBox video={profile.videoCID} width="36" />
+        <VideoBox video={profile.videoCid} width="36" />
       </Td>
       <Td>
         <Stack>

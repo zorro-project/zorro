@@ -15,19 +15,19 @@ export const schema = gql`
     ethereumAddress: String!
     status: StatusEnum!
     isVerified: Boolean!
-    CID: String!
-    photoCID: String
-    videoCID: String
+    cid: String!
+    photoCid: String
+    videoCid: String
 
     submissionTimestamp: DateTime!
     notarized: Boolean!
     challengeTimestamp: DateTime
     challengerAddress: String
-    challengeEvidenceCID: String
-    ownerEvidenceCID: String
+    challengeEvidenceCid: String
+    ownerEvidenceCid: String
 
     adjudicationTimestamp: DateTime
-    adjudicatorEvidenceCID: String
+    adjudicatorEvidenceCid: String
     didAdjudicatorVerifyProfile: Boolean!
 
     appealTimestamp: DateTime

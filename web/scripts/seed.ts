@@ -11,18 +11,18 @@ export default async () => {
     await db.unsubmittedProfile.createMany({
       data: [
         {
-          photoCID:
+          photoCid:
             'bafybeicxoq24v5sxcz4myt5kx35kluclpoqhsfb2qdf5oevfuklprux2em',
-          videoCID:
+          videoCid:
             'bafybeiaxvwuj72kcknxm5ofryao4pkqpks5qtadrakzcw743jqruli5zku',
           address: '0x334230242D318b5CA159fc38E07dC1248B7b35e4',
           email: null,
           unaddressedFeedbackId: null,
         },
         {
-          photoCID:
+          photoCid:
             'bafybeif63s5tuz2awex7qkmeki4wby25j4ifraa5lziyn3ifx75rv77qc4',
-          videoCID:
+          videoCid:
             'bafybeidadw2rw23ikkrhk7ehcxlaydyor27rslzbubony3qvvgmvt7bww4',
           address: '0x327e8AE4F9D6Cca061EE8C05dC728b9545c2AC78',
           email: 'test@test.com',
