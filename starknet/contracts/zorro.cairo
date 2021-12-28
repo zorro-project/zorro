@@ -760,7 +760,8 @@ end
 # For syncing and testing
 @view
 func export_profile_by_id{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
-        profile_id : felt) -> (profile : Profile, num_profiles : felt, is_verified: felt, status : felt):
+        profile_id : felt) -> (
+        profile : Profile, num_profiles : felt, is_verified : felt, status : felt):
     alloc_locals
     let (profile) = get_profile_by_id(profile_id)
     let (num_profiles) = get_num_profiles()
@@ -820,5 +821,62 @@ func _test_advance_clock{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_p
     assert is_in_test_mode = 1
     let (now) = _timestamp.read()
     _timestamp.write(now + duration)
+    return ()
+end
+
+@external
+func _test_add_seed_profiles{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}():
+    let (is_in_test_mode) = _is_in_test_mode.read()
+    assert is_in_test_mode = 1
+
+    # Prevent griefers from screwing around if we're deployed in test mode on
+    # a public testnet
+    assert_caller_is_admin()
+
+    _test_add_seed_profile(
+        Profile(
+        cid=2540330837585055780539510783934115607915723316677950747298602475656452204,
+        ethereum_address=12304345,
+        submitter_address=23452345,
+        submission_timestamp=2345,
+        is_notarized=1,
+        last_recorded_status=StatusEnum.NOT_CHALLENGED,
+        challenge_timestamp=0,
+        challenger_address=0,
+        challenge_evidence_cid=0,
+        owner_evidence_cid=0,
+        adjudication_timestamp=0,
+        adjudicator_evidence_cid=0,
+        did_adjudicator_verify_profile=0,
+        appeal_timestamp=0,
+        super_adjudication_timestamp=0,
+        did_super_adjudicator_verify_profile=0
+        ))
+
+    return ()
+end
+
+func _test_add_seed_profile{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
+        profile : Profile) -> ():
+    assert_not_zero(profile.cid)
+    assert_not_zero(profile.ethereum_address)
+
+    # Require that the ethereum address is unused
+    let (profile_id) = _ethereum_address_to_profile_id_map.read(profile.ethereum_address)
+    assert profile_id = 0
+
+    let (now) = _timestamp.read()
+
+    # Increase deposit balance to simulate receipt of submission deposit
+    let (deposit_balance) = _deposit_balance.read()
+    _deposit_balance.write(deposit_balance + consts.SUBMISSION_DEPOSIT_SIZE)
+
+    let (num_profiles) = _num_profiles.read()
+    let profile_id = num_profiles + 1
+    _num_profiles.write(profile_id)
+
+    _ethereum_address_to_profile_id_map.write(profile.ethereum_address, profile_id)
+    _profiles.write(profile_id, profile)
+
     return ()
 end

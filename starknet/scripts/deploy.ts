@@ -29,7 +29,8 @@ async function main(): Promise<void> {
     const network = await signer.provider.getNetwork();
     NETWORK = network.name;
   }
-  console.log(`Deploying on ${NETWORK}`);
+  const isInTestMode = NETWORK == "goerli";
+  console.log(`Deploying on ${NETWORK} (isInTestMode=${isInTestMode ? 1 : 0})`);
 
   if (!fs.existsSync(`./deployments/${NETWORK}`)) {
     fs.mkdirSync(`./deployments/${NETWORK}`, { recursive: true });
@@ -64,7 +65,7 @@ async function main(): Promise<void> {
   const zorroDeployPromise = deployL2(
     "zorro",
     {
-      is_in_test_mode: 0,
+      is_in_test_mode: isInTestMode ? 1 : 0,
       admin_address: getAddressString(admin),
       notary_address: getAddressString(notary),
       adjudicator_address: getAddressString(adjudicator),
@@ -75,6 +76,24 @@ async function main(): Promise<void> {
   );
 
   await Promise.all([transferPromise, transferPromise2, zorroDeployPromise]);
+
+  if (isInTestMode) {
+    console.log("Sending money to the Zorro contract");
+    // If we're doing a test deployment, give some money to the Zorro contract
+    // so that it can afford `settle`ments associated with test seeded contracts
+    const zorro = await zorroDeployPromise;
+    const p1 = callFrom(
+      erc20,
+      "transfer",
+      [getAddressString(zorro), "300", "0"],
+      minter
+    );
+
+    console.log("Seeding contract with fake profiles");
+    const p2 = callFrom(zorro, "_test_add_seed_profiles", [], admin);
+
+    await Promise.all([p1, p2]);
+  }
 }
 
 async function deployL2(name: string, calldata: any = {}, saveName?: string) {

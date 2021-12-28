@@ -525,5 +525,11 @@
         "name": "_test_advance_clock",
         "outputs": [],
         "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "_test_add_seed_profiles",
+        "outputs": [],
+        "type": "function"
     }
 ]
