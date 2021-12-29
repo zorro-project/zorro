@@ -20,6 +20,7 @@ from profile import (
     Profile, StatusEnum, _get_current_status, _get_did_adjudication_occur,
     _get_did_super_adjudication_occur, _get_is_in_provisional_time_window, _get_is_verified,
     _get_dict_from_profile, _get_profile_from_dict)
+from seed_profiles import _get_seed_profiles
 
 #
 # Storage vars
@@ -752,29 +753,22 @@ func _test_add_seed_profiles{pedersen_ptr : HashBuiltin*, range_check_ptr, sysca
     let (is_in_test_mode) = _is_in_test_mode.read()
     assert is_in_test_mode = 1
 
-    # Prevent griefers from screwing around if we're deployed in test mode on
-    # a public testnet
-    assert_caller_is_admin()
+    let (profiles_len : felt, profiles : Profile*) = _get_seed_profiles()
+    _test_add_seed_profiles_inner(0, profiles_len, profiles)
 
-    _test_add_seed_profile(
-        Profile(
-        cid=2540330837585055780539510783934115607915723316677950747298602475656452204,
-        ethereum_address=12304345,
-        submitter_address=23452345,
-        submission_timestamp=2345,
-        is_notarized=1,
-        last_recorded_status=StatusEnum.NOT_CHALLENGED,
-        challenge_timestamp=0,
-        challenger_address=0,
-        challenge_evidence_cid=0,
-        owner_evidence_cid=0,
-        adjudication_timestamp=0,
-        adjudicator_evidence_cid=0,
-        did_adjudicator_verify_profile=0,
-        appeal_timestamp=0,
-        super_adjudication_timestamp=0,
-        did_super_adjudicator_verify_profile=0
-        ))
+    return ()
+end
+
+func _test_add_seed_profiles_inner{
+        pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
+        n : felt, profiles_len : felt, profiles : Profile*):
+    if n == profiles_len:
+        return ()
+    end
+
+    _test_add_seed_profile(profiles[n])
+    
+    _test_add_seed_profiles_inner(n + 1, profiles_len, profiles)
 
     return ()
 end
