@@ -1,6 +1,6 @@
-import {db} from 'src/lib/db'
 import {Prisma} from '@prisma/client'
-import {exportProfileById, getNumProfiles} from 'src/lib/starknet'
+import {CID} from 'ipfs-http-client'
+import {db} from 'src/lib/db'
 import {
   parseAddress,
   parseBoolean,
@@ -8,6 +8,7 @@ import {
   parseNumber,
   parseTimestamp,
 } from 'src/lib/serializers'
+import {exportProfileById, getNumProfiles} from 'src/lib/starknet'
 import {
   CachedProfile,
   parseChallengeStatus,
@@ -27,7 +28,7 @@ export default async function syncStarknetState(onlyNewProfiles = false) {
   currentId = currentId + 1
 
   while (currentId <= maxId) {
-    ;({maxId} = await importProfile(currentId))
+    const {maxId} = await importProfile(currentId)
 
     currentId = currentId + 1
   }
@@ -115,13 +116,16 @@ export const importProfile = async (profileId: number) => {
   return {maxId: parseNumber(exported.num_profiles)}
 }
 
-export const readCids = async (cid: cid) => {
-  const data = await (
-    await fetch(`https://${cid.toV1().toString()}.ipfs.infura-ipfs.io`)
-  ).json()
+export const readCids = async (cid: CID) => {
+  try {
+    const data = await (
+      await fetch(`https://${cid.toV1().toString()}.ipfs.infura-ipfs.io`)
+    ).json()
 
-  console.log({data})
-  return {videoCid: data.video.toString(), photoCid: data.photo.toString()}
+    return {videoCid: data.video.toString(), photoCid: data.photo.toString()}
+  } finally {
+    return {videoCid: null, photoCid: null}
+  }
 }
 
 syncStarknetState()
