@@ -7,10 +7,11 @@ export const schema = gql`
   }
 
   type Query {
-    connection(
+    getVerifiedExternalAddresses(
       purposeIdentifier: String!
-      externalAddress: String!
-    ): Connection @skipAuth
+      externalAddresses: [String!]!
+      snapshot: String
+    ): [String!]! @skipAuth
   }
 
   input CreateConnectionInput {
