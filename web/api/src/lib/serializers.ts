@@ -34,7 +34,11 @@ export const parseCid = (cid: Felt): CID | null =>
   isInitialized(cid) ? CID.decode(feltToBytes(cid)) : null
 export const serializeCid = (cid: CID) => bytesToFelt(cid.bytes)
 
-export const parseAddress = (address: Felt) =>
-  isInitialized(address) ? sanitizeHex(address) : null
+export const canonicalizeHex = (hex: string) =>
+  sanitizeHex(hex.replace(/^0x0*/, '')).toLowerCase()
 
-export const isInitialized = (felt: Felt) => felt !== '0x0'
+// Parses an address into an even-length hex string with 0 or 1 leading 0s.
+export const parseAddress = (address: Felt) =>
+  isInitialized(address) ? canonicalizeHex(address) : null
+
+export const isInitialized = (felt: Felt) => felt && felt !== '0x0'
