@@ -584,3 +584,16 @@ async def test_settle_where_challenger_would_win_reward_but_for_empty_security_p
     assert deltas["challenger"] == 0
     assert deltas["zorro"] == 0
     assert deltas["zorro_security_pool"] == 0
+
+@pytest.mark.asyncio
+async def test_adding_seed_profiles(
+    ctx_factory,
+):
+    ctx = ctx_factory()
+
+    await ctx.zorro._test_add_seed_profiles().invoke()
+
+    (num_profiles,) = (
+        await ctx.zorro.get_num_profiles().call()
+    ).result
+    assert num_profiles > 0
