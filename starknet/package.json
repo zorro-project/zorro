@@ -23,7 +23,7 @@
     "//": "for launching on goerli",
     "compile": "hardhat starknet-compile",
     "deploy": "hardhat run ./scripts/deploy.ts --network goerli",
-    "launch": "yarn compile && yarn deploy && git add deployments/ && git add starknet-artifacts/",
+    "launch": "yarn compile && yarn deploy",
 
     "//": "useful for generating a keypair to put in the `.env` file",
     "generate-insecure-keypair": "ts-node scripts/generate-insecure-keypair.ts"
