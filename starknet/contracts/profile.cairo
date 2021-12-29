@@ -1,5 +1,8 @@
+from starkware.cairo.common.alloc import alloc
 from starkware.cairo.common.math_cmp import is_le
 from starkware.cairo.common.cairo_builtins import HashBuiltin
+from starkware.cairo.common.default_dict import default_dict_new
+from starkware.cairo.common.dict import dict_write, dict_read, dict_update, DictAccess
 
 from consts import consts
 
@@ -223,4 +226,76 @@ func _get_is_verified{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr 
     end
 
     return (0)
+end
+
+func _get_dict_from_profile(profile : Profile) -> (res : DictAccess*):
+    let ptr : felt* = &profile
+    let (dict_ptr) = default_dict_new(0)
+    with dict_ptr:
+        dict_write(0, [ptr + 0])
+        dict_write(1, [ptr + 1])
+        dict_write(2, [ptr + 2])
+        dict_write(3, [ptr + 3])
+        dict_write(4, [ptr + 4])
+        dict_write(5, [ptr + 5])
+        dict_write(6, [ptr + 6])
+        dict_write(7, [ptr + 7])
+        dict_write(8, [ptr + 8])
+        dict_write(9, [ptr + 9])
+        dict_write(10, [ptr + 10])
+        dict_write(11, [ptr + 11])
+        dict_write(12, [ptr + 12])
+        dict_write(13, [ptr + 13])
+        dict_write(14, [ptr + 14])
+        dict_write(15, [ptr + 15])
+        assert Profile.SIZE = 16 # ensure this gets updated if Profile expands
+    end
+
+    # Note: we skip default_dict_finalize() because we don't actually rely
+    # on the default value.
+
+    return (dict_ptr)
+end
+
+func _get_profile_from_dict(dict_ptr : DictAccess*) -> (profile : Profile):
+    with dict_ptr:
+        let (v0) = dict_read(0)
+        let (v1) = dict_read(1)
+        let (v2) = dict_read(2)
+        let (v3) = dict_read(3)
+        let (v4) = dict_read(4)
+        let (v5) = dict_read(5)
+        let (v6) = dict_read(6)
+        let (v7) = dict_read(7)
+        let (v8) = dict_read(8)
+        let (v9) = dict_read(9)
+        let (v10) = dict_read(10)
+        let (v11) = dict_read(11)
+        let (v12) = dict_read(12)
+        let (v13) = dict_read(13)
+        let (v14) = dict_read(14)
+        let (v15) = dict_read(15)
+        assert Profile.SIZE = 16 # ensure this gets updated if Profile expands
+    end
+
+    let mem : felt* = alloc()
+    assert mem[0] = v0
+    assert mem[1] = v1
+    assert mem[2] = v2
+    assert mem[3] = v3
+    assert mem[4] = v4
+    assert mem[5] = v5
+    assert mem[6] = v6
+    assert mem[7] = v7
+    assert mem[8] = v8
+    assert mem[9] = v9
+    assert mem[10] = v10
+    assert mem[11] = v11
+    assert mem[12] = v12
+    assert mem[13] = v13
+    assert mem[14] = v14
+    assert mem[15] = v15
+    assert Profile.SIZE = 16 # ensure this gets updated if Profile expands
+    let profile = cast(mem, Profile*)
+    return ([profile])
 end

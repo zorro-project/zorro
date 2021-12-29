@@ -10,6 +10,7 @@ from starkware.cairo.common.registers import get_fp_and_pc
 from starkware.cairo.common.signature import verify_ecdsa_signature
 from starkware.cairo.common.uint256 import Uint256
 from starkware.starknet.common.syscalls import get_caller_address, get_contract_address
+from starkware.cairo.common.dict import dict_write, dict_read, dict_update, DictAccess
 
 from OpenZeppelin.IERC20 import IERC20
 
@@ -17,7 +18,8 @@ from utils import assert_is_boolean, get_is_equal
 from consts import consts
 from profile import (
     Profile, StatusEnum, _get_current_status, _get_did_adjudication_occur,
-    _get_did_super_adjudication_occur, _get_is_in_provisional_time_window, _get_is_verified)
+    _get_did_super_adjudication_occur, _get_is_in_provisional_time_window, _get_is_verified,
+    _get_dict_from_profile, _get_profile_from_dict)
 
 #
 # Storage vars
@@ -207,26 +209,12 @@ func notarize{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}
     let (status) = _get_current_status(profile, now)
     assert status = StatusEnum.NOT_CHALLENGED
 
-    _profiles.write(
-        profile_id,
-        Profile(
-        cid=profile.cid,
-        ethereum_address=profile.ethereum_address,
-        submitter_address=profile.submitter_address,
-        submission_timestamp=profile.submission_timestamp,
-        is_notarized=1,  # Changed
-        last_recorded_status=profile.last_recorded_status,
-        challenge_timestamp=profile.challenge_timestamp,
-        challenger_address=profile.challenger_address,
-        challenge_evidence_cid=profile.challenge_evidence_cid,
-        owner_evidence_cid=profile.owner_evidence_cid,
-        adjudication_timestamp=profile.adjudication_timestamp,
-        adjudicator_evidence_cid=profile.adjudicator_evidence_cid,
-        did_adjudicator_verify_profile=profile.did_adjudicator_verify_profile,
-        appeal_timestamp=profile.appeal_timestamp,
-        super_adjudication_timestamp=profile.super_adjudication_timestamp,
-        did_super_adjudicator_verify_profile=profile.did_super_adjudicator_verify_profile
-        ))
+    let (dict_ptr) = _get_dict_from_profile(profile)
+    with dict_ptr:
+        dict_write(Profile.is_notarized, 1)
+    end
+    let (new_profile) = _get_profile_from_dict(dict_ptr)
+    _profiles.write(profile_id, new_profile)
 
     return ()
 end
@@ -310,26 +298,12 @@ func submit_evidence{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr :
     # Can only submit evidence while status is `challenged` (i.e. before adjudication)
     assert status = StatusEnum.CHALLENGED
 
-    _profiles.write(
-        profile_id,
-        Profile(
-        cid=profile.cid,
-        ethereum_address=profile.ethereum_address,
-        submitter_address=profile.submitter_address,
-        submission_timestamp=profile.submission_timestamp,
-        is_notarized=profile.is_notarized,
-        last_recorded_status=profile.last_recorded_status,
-        challenge_timestamp=profile.challenge_timestamp,
-        challenger_address=profile.challenger_address,
-        challenge_evidence_cid=profile.challenge_evidence_cid,
-        owner_evidence_cid=evidence_cid,  # Changed
-        adjudication_timestamp=profile.adjudication_timestamp,
-        adjudicator_evidence_cid=profile.adjudicator_evidence_cid,
-        did_adjudicator_verify_profile=profile.did_adjudicator_verify_profile,
-        appeal_timestamp=profile.appeal_timestamp,
-        super_adjudication_timestamp=profile.super_adjudication_timestamp,
-        did_super_adjudicator_verify_profile=profile.did_super_adjudicator_verify_profile
-        ))
+    let (dict_ptr) = _get_dict_from_profile(profile)
+    with dict_ptr:
+        dict_write(Profile.owner_evidence_cid, evidence_cid)
+    end
+    let (new_profile) = _get_profile_from_dict(dict_ptr)
+    _profiles.write(profile_id, new_profile)
 
     return ()
 end
@@ -348,26 +322,15 @@ func adjudicate{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt
     let (status) = _get_current_status(profile, now)
     assert status = StatusEnum.CHALLENGED
 
-    _profiles.write(
-        profile_id,
-        Profile(
-        cid=profile.cid,
-        ethereum_address=profile.ethereum_address,
-        submitter_address=profile.submitter_address,
-        submission_timestamp=profile.submission_timestamp,
-        is_notarized=profile.is_notarized,
-        last_recorded_status=StatusEnum.ADJUDICATION_ROUND_COMPLETED,  # Changed
-        challenge_timestamp=profile.challenge_timestamp,
-        challenger_address=profile.challenger_address,
-        challenge_evidence_cid=profile.challenge_evidence_cid,
-        owner_evidence_cid=profile.owner_evidence_cid,
-        adjudication_timestamp=now,  # Changed
-        adjudicator_evidence_cid=evidence_cid,  # Changed
-        did_adjudicator_verify_profile=should_verify_profile,  # Changed
-        appeal_timestamp=profile.appeal_timestamp,
-        super_adjudication_timestamp=profile.super_adjudication_timestamp,
-        did_super_adjudicator_verify_profile=profile.did_super_adjudicator_verify_profile
-        ))
+    let (dict_ptr) = _get_dict_from_profile(profile)
+    with dict_ptr:
+        dict_write(Profile.last_recorded_status, StatusEnum.ADJUDICATION_ROUND_COMPLETED)
+        dict_write(Profile.adjudication_timestamp, now)
+        dict_write(Profile.adjudicator_evidence_cid, evidence_cid)
+        dict_write(Profile.did_adjudicator_verify_profile, should_verify_profile)
+    end
+    let (new_profile) = _get_profile_from_dict(dict_ptr)
+    _profiles.write(profile_id, new_profile)
 
     return ()
 end
@@ -386,26 +349,13 @@ func appeal{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
     let (status) = _get_current_status(profile, now)
     assert (status - StatusEnum.ADJUDICATION_ROUND_COMPLETED) = 0
 
-    _profiles.write(
-        profile_id,
-        Profile(
-        cid=profile.cid,
-        ethereum_address=profile.ethereum_address,
-        submitter_address=profile.submitter_address,
-        submission_timestamp=profile.submission_timestamp,
-        is_notarized=profile.is_notarized,
-        last_recorded_status=StatusEnum.APPEALED,  # Changed
-        challenge_timestamp=profile.challenge_timestamp,
-        challenger_address=profile.challenger_address,
-        challenge_evidence_cid=profile.challenge_evidence_cid,
-        owner_evidence_cid=profile.owner_evidence_cid,
-        adjudication_timestamp=profile.adjudication_timestamp,
-        adjudicator_evidence_cid=profile.adjudicator_evidence_cid,
-        did_adjudicator_verify_profile=profile.did_adjudicator_verify_profile,
-        appeal_timestamp=now,  # Changed
-        super_adjudication_timestamp=profile.super_adjudication_timestamp,
-        did_super_adjudicator_verify_profile=profile.did_super_adjudicator_verify_profile
-        ))
+    let (dict_ptr) = _get_dict_from_profile(profile)
+    with dict_ptr:
+        dict_write(Profile.last_recorded_status, StatusEnum.APPEALED)
+        dict_write(Profile.appeal_timestamp, now)
+    end
+    let (new_profile) = _get_profile_from_dict(dict_ptr)
+    _profiles.write(profile_id, new_profile)
 
     return ()
 end
@@ -425,26 +375,14 @@ func super_adjudicate{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr 
     let (status) = _get_current_status(profile, now)
     assert status = StatusEnum.APPEALED
 
-    _profiles.write(
-        profile_id,
-        Profile(
-        cid=profile.cid,
-        ethereum_address=profile.ethereum_address,
-        submitter_address=profile.submitter_address,
-        submission_timestamp=profile.submission_timestamp,
-        is_notarized=profile.is_notarized,
-        last_recorded_status=StatusEnum.SUPER_ADJUDICATION_ROUND_COMPLETED,  # Changed
-        challenge_timestamp=profile.challenge_timestamp,
-        challenger_address=profile.challenger_address,
-        challenge_evidence_cid=profile.challenge_evidence_cid,
-        owner_evidence_cid=profile.owner_evidence_cid,
-        adjudication_timestamp=profile.adjudication_timestamp,
-        adjudicator_evidence_cid=profile.adjudicator_evidence_cid,
-        did_adjudicator_verify_profile=profile.did_adjudicator_verify_profile,
-        appeal_timestamp=profile.appeal_timestamp,
-        super_adjudication_timestamp=now,  # Changed
-        did_super_adjudicator_verify_profile=should_verify_profile  # Changed
-        ))
+    let (dict_ptr) = _get_dict_from_profile(profile)
+    with dict_ptr:
+        dict_write(Profile.last_recorded_status, StatusEnum.SUPER_ADJUDICATION_ROUND_COMPLETED)
+        dict_write(Profile.super_adjudication_timestamp, now)
+        dict_write(Profile.did_super_adjudicator_verify_profile, should_verify_profile)
+    end
+    let (new_profile) = _get_profile_from_dict(dict_ptr)
+    _profiles.write(profile_id, new_profile)
 
     maybe_settle(profile_id)
 
@@ -511,27 +449,12 @@ func maybe_settle{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : fe
         _maybe_give_security_bounty(profile.challenger_address, challenge_reward_size)
     end
 
-    # Set `last_recorded_status` to `SETTLED`
-    _profiles.write(
-        profile_id,
-        Profile(
-        cid=profile.cid,
-        ethereum_address=profile.ethereum_address,
-        submitter_address=profile.submitter_address,
-        submission_timestamp=profile.submission_timestamp,
-        is_notarized=profile.is_notarized,
-        last_recorded_status=StatusEnum.SETTLED,  # Changed
-        challenge_timestamp=profile.challenge_timestamp,
-        challenger_address=profile.challenger_address,
-        challenge_evidence_cid=profile.challenge_evidence_cid,
-        owner_evidence_cid=profile.owner_evidence_cid,
-        adjudication_timestamp=profile.adjudication_timestamp,
-        adjudicator_evidence_cid=profile.adjudicator_evidence_cid,
-        did_adjudicator_verify_profile=profile.did_adjudicator_verify_profile,
-        appeal_timestamp=profile.appeal_timestamp,
-        super_adjudication_timestamp=profile.super_adjudication_timestamp,
-        did_super_adjudicator_verify_profile=profile.did_super_adjudicator_verify_profile
-        ))
+    let (dict_ptr) = _get_dict_from_profile(profile)
+    with dict_ptr:
+        dict_write(Profile.last_recorded_status, StatusEnum.SETTLED)
+    end
+    let (new_profile) = _get_profile_from_dict(dict_ptr)
+    _profiles.write(profile_id, new_profile)
 
     return ()
 end
