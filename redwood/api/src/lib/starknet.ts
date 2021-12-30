@@ -14,42 +14,45 @@ import {bnToUint256, uint256ToBN} from 'starknet/dist/utils/uint256'
 import ERC20_ABI from '../../../../starknet/starknet-artifacts/contracts/openzeppelin/ERC20.cairo/ERC20_abi.json'
 import ZORRO_ABI from '../../../../starknet/starknet-artifacts/contracts/zorro.cairo/zorro_abi.json'
 
+const CHAIN_DEPLOYMENT = process.env.CHAIN_DEPLOYMENT
+
+const maybeRequireContract = (chainDeployment, name) => {
+  try {
+    return require(`../../../../starknet/chain-deployments/${chainDeployment}/${name}.json`)
+  } catch (e) {
+    return null
+  }
+}
+
 const chainDeployments = {
   development: {
-    erc20:
-      require('../../../../starknet/chain-deployments/development/erc20.json')
-        .address,
-    notary:
-      require('../../../../starknet/chain-deployments/development/notary.json')
-        .address,
-    zorro:
-      require('../../../../starknet/chain-deployments/development/zorro.json')
-        .address,
+    erc20: maybeRequireContract('development', 'erc20'),
+    notary: maybeRequireContract('development', 'notary'),
+    zorro: maybeRequireContract('development', 'zorro'),
   },
   production: {
-    erc20:
-      require('../../../../starknet/chain-deployments/production/erc20.json')
-        .address,
-    notary:
-      require('../../../../starknet/chain-deployments/production/notary.json')
-        .address,
-    zorro:
-      require('../../../../starknet/chain-deployments/production/zorro.json')
-        .address,
+    erc20: maybeRequireContract('production', 'erc20'),
+    notary: maybeRequireContract('production', 'notary'),
+    zorro: maybeRequireContract('production', 'zorro'),
   },
 }
 
-const CHAIN_DEPLOYMENT = process.env.CHAIN_DEPLOYMENT
 if (!(CHAIN_DEPLOYMENT in chainDeployments)) {
-  throw new Error(`Missing on-chain deployment ${CHAIN_DEPLOYMENT}`)
+  throw new Error(`'${CHAIN_DEPLOYMENT}' is not an expected chain deployment'`)
 }
-const addresses = chainDeployments[CHAIN_DEPLOYMENT]
+const chainDeployment = chainDeployments[CHAIN_DEPLOYMENT]
+
+if (!chainDeployment.zorro) {
+  throw new Error(
+    `Missing chain deployment '${CHAIN_DEPLOYMENT}'. Try using 'yarn deploy' inside the 'starknet/' dir`
+  )
+}
 
 type Felt = string
 
-export const ERC20Address = addresses.erc20
-export const NotaryAddress = addresses.notary
-export const ZorroAddress = addresses.zorro
+export const ERC20Address = chainDeployment.erc20.address
+export const NotaryAddress = chainDeployment.notary.address
+export const ZorroAddress = chainDeployment.zorro.address
 const zorro = new Contract(ZORRO_ABI as Abi[], ZorroAddress)
 
 export const getNumProfiles = async () => {
