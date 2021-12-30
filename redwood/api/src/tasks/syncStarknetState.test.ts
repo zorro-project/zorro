@@ -1,6 +1,5 @@
+import {parseCid} from 'src/lib/serializers'
 import {readCids} from './syncStarknetState'
-import {Prisma} from '@prisma/client'
-import {parseCid} from 'src/lib/starknet'
 
 describe('readCids', () => {
   test('correctly parses a cid', async () => {
@@ -14,5 +13,3 @@ describe('readCids', () => {
     })
   })
 })
-
-// describe('')

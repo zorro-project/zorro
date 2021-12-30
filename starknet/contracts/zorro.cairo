@@ -772,9 +772,7 @@ func _dev_add_seed_profiles_inner{
     end
 
     _dev_add_seed_profile(profiles[n])
-    _dev_add_seed_profiles_inner(n + 1, profiles_len, profiles)
-
-    return ()
+    return _dev_add_seed_profiles_inner(n=n + 1, profiles_len=profiles_len, profiles=profiles)
 end
 
 func _dev_add_seed_profile{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(

@@ -33,6 +33,14 @@ export default async function syncStarknetState(onlyNewProfiles = false) {
     currentId = currentId + 1
   }
 
+  // Remove cached profiles with an id > than the largest one on StarkNet
+  // This should only matter in development; in production profiles are
+  // never deleted or reset.
+
+  await db.cachedProfile.deleteMany({
+    where: {id: {gt: maxId}},
+  })
+
   console.log('sync complete')
 }
 
@@ -123,9 +131,8 @@ export const readCids = async (cid: CID) => {
     ).json()
 
     return {videoCid: data.video.toString(), photoCid: data.photo.toString()}
-  } finally {
+  } catch (e) {
+    console.log(`Failed to read CID ${cid.toV1().toString()}`)
     return {videoCid: null, photoCid: null}
   }
 }
-
-syncStarknetState()
