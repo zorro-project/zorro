@@ -2,29 +2,17 @@ import { ethers } from "ethers";
 import fs from "fs";
 import { StarknetContract } from "hardhat/types/runtime";
 
-const DEPLOYMENTS_DIR = `deployments`;
+export const CHAIN_DEPLOYMENTS_DIR = "./chain-deployments";
 const MASK_250 = BigInt(2 ** 250 - 1);
-
-export function getAddress(contract: string, target: string) {
-  try {
-    return JSON.parse(
-      fs.readFileSync(`./deployments/${target}/${contract}.json`).toString()
-    ).address;
-  } catch (err) {
-    throw Error(
-      `${contract} deployment on ${target} not found, run 'yarn deploy:${target}'`
-    );
-  }
-}
 
 export function save(
   name: string,
   contract: any,
   network: string,
-  target: string
+  deployment: string
 ) {
   fs.writeFileSync(
-    `${DEPLOYMENTS_DIR}/${target}/${name}.json`,
+    `${CHAIN_DEPLOYMENTS_DIR}/${deployment}/${name}.json`,
     JSON.stringify({
       network,
       address: contract.address,

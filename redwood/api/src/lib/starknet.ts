@@ -14,30 +14,36 @@ import {bnToUint256, uint256ToBN} from 'starknet/dist/utils/uint256'
 import ERC20_ABI from '../../../../starknet/starknet-artifacts/contracts/openzeppelin/ERC20.cairo/ERC20_abi.json'
 import ZORRO_ABI from '../../../../starknet/starknet-artifacts/contracts/zorro.cairo/zorro_abi.json'
 
-const deployments = {
+const chainDeployments = {
   development: {
-    erc20: require('../../../../starknet/deployments/development/erc20.json')
-      .address,
-    notary: require('../../../../starknet/deployments/development/notary.json')
-      .address,
-    zorro: require('../../../../starknet/deployments/development/zorro.json')
-      .address,
+    erc20:
+      require('../../../../starknet/chain-deployments/development/erc20.json')
+        .address,
+    notary:
+      require('../../../../starknet/chain-deployments/development/notary.json')
+        .address,
+    zorro:
+      require('../../../../starknet/chain-deployments/development/zorro.json')
+        .address,
   },
   production: {
-    erc20: require('../../../../starknet/deployments/production/erc20.json')
-      .address,
-    notary: require('../../../../starknet/deployments/production/notary.json')
-      .address,
-    zorro: require('../../../../starknet/deployments/production/zorro.json')
-      .address,
+    erc20:
+      require('../../../../starknet/chain-deployments/production/erc20.json')
+        .address,
+    notary:
+      require('../../../../starknet/chain-deployments/production/notary.json')
+        .address,
+    zorro:
+      require('../../../../starknet/chain-deployments/production/zorro.json')
+        .address,
   },
 }
 
-const tier = process.env.TIER
-if (!(tier in deployments)) {
-  throw new Error(`Missing deployment for tier ${tier}`)
+const CHAIN_DEPLOYMENT = process.env.CHAIN_DEPLOYMENT
+if (!(CHAIN_DEPLOYMENT in chainDeployments)) {
+  throw new Error(`Missing on-chain deployment ${CHAIN_DEPLOYMENT}`)
 }
-const addresses = deployments[tier]
+const addresses = chainDeployments[CHAIN_DEPLOYMENT]
 
 type Felt = string
 

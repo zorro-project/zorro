@@ -13,4 +13,4 @@ kleros.md
 cache/
 artifacts/
 starknet-artifacts/
-deployments/development/
+chain-deployments/development/

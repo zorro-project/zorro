@@ -23,8 +23,8 @@
     "compile": "hardhat starknet-compile",
 
     "//": "for now, both development and production run on the goerli network",
-    "deploy": "yarn compile && env TIER=development DEV_MODE=1 hardhat run ./scripts/deploy.ts --network goerli",
-    "deploy:production": "yarn compile && env TIER=production hardhat run ./scripts/deploy.ts --network goerli",
+    "deploy": "yarn compile && env CHAIN_DEPLOYMENT=development DEV_MODE=1 hardhat run ./scripts/deploy.ts --network goerli",
+    "deploy:production": "yarn compile && env CHAIN_DEPLOYMENT=production hardhat run ./scripts/deploy.ts --network goerli",
 
     "//": "useful for generating a keypair to put in the `.env` file",
     "generate-insecure-keypair": "ts-node scripts/generate-insecure-keypair.ts"

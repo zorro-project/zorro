@@ -3,7 +3,7 @@
 import fs from "fs";
 import hre from "hardhat";
 import { ec } from "starknet";
-import { callFrom, save, getRequiredEnv } from "./utils";
+import { callFrom, save, getRequiredEnv, CHAIN_DEPLOYMENTS_DIR } from "./utils";
 
 //const L1_GOERLI_DAI_ADDRESS = "0x11fE4B6AE13d2a6055C8D9cF65c55bac32B5d844";
 //const L1_GOERLI_STARKNET_ADDRESS = "0x5e6229F2D4d977d20A50219E521dE6Dd694d45cc";
@@ -21,7 +21,7 @@ function getAddressString(contract: any) {
   return BigInt(contract.address).toString();
 }
 
-const TIER = getRequiredEnv("TIER"); // e.g. development, staging, production
+const CHAIN_DEPLOYMENT = getRequiredEnv("CHAIN_DEPLOYMENT"); // e.g. development, staging, production
 const DEV_MODE = !!process.env.DEV_MODE;
 let NETWORK: string;
 
@@ -32,13 +32,15 @@ async function main(): Promise<void> {
     NETWORK = network.name;
   }
   console.log(
-    `Deploying to '${TIER}' tier on '${NETWORK}' network (DEV_MODE=${
+    `Deploying to '${CHAIN_DEPLOYMENT}' on the '${NETWORK}' network (DEV_MODE=${
       DEV_MODE ? 1 : 0
     })`
   );
 
-  if (!fs.existsSync(`./deployments/${TIER}`)) {
-    fs.mkdirSync(`./deployments/${TIER}`, { recursive: true });
+  if (!fs.existsSync(`${CHAIN_DEPLOYMENTS_DIR}/${CHAIN_DEPLOYMENT}`)) {
+    fs.mkdirSync(`${CHAIN_DEPLOYMENTS_DIR}/${CHAIN_DEPLOYMENT}`, {
+      recursive: true,
+    });
   }
 
   const [admin, notary, adjudicator, challenger, minter] = await Promise.all([
@@ -105,7 +107,7 @@ async function deployL2(name: string, calldata: any = {}, saveName?: string) {
   console.log(`Deploying: ${name}${(saveName && "/" + saveName) || ""}...`);
   const contractFactory = await hre.starknet.getContractFactory(name);
   const contract = await contractFactory.deploy(calldata);
-  save(saveName || name, contract, hre.network.name, TIER);
+  save(saveName || name, contract, hre.network.name, CHAIN_DEPLOYMENT);
   return contract;
 }
 
@@ -113,7 +115,7 @@ async function deployL1(name: string, calldata: any = [], saveName?: string) {
   console.log(`Deploying: ${name}${(saveName && "/" + saveName) || ""}`);
   const contractFactory = await hre.ethers.getContractFactory(name);
   const contract = await contractFactory.deploy(...calldata);
-  save(saveName || name, contract, hre.network.name, TIER);
+  save(saveName || name, contract, hre.network.name, CHAIN_DEPLOYMENT);
   await contract.deployed();
   return contract;
 }
