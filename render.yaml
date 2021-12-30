@@ -15,15 +15,13 @@ services:
         value: 16
     routes:
       - type: redirect
+        source: /
+        destination: https://github.com/zorro-project/
+      - type: redirect
         source: /*
         destination: https://github.com/zorro-project/
       - type: rewrite
         source: /.redwood/functions/*
-        #####
-        # NOTE: replace destination api url after first deploy to Render
-        # example:
-        #   destination: https://myredwoodproject-api.onrender.com/*
-        #####
         destination: https://zorro.xyz/*
       # - type: rewrite
       #   source: /*
