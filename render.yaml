@@ -19,7 +19,7 @@ services:
         destination: https://zorro.xyz/*
       - type: rewrite
         source: /*
-        destination: /redirect-to-github.html
+        destination: /index.html
 
   - name: redwood-api
     type: web
