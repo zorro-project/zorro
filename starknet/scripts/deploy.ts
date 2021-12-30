@@ -3,7 +3,7 @@
 import fs from "fs";
 import hre from "hardhat";
 import { ec } from "starknet";
-import { callFrom, getAddress, save, getRequiredEnv } from "./utils";
+import { callFrom, save, getRequiredEnv } from "./utils";
 
 //const L1_GOERLI_DAI_ADDRESS = "0x11fE4B6AE13d2a6055C8D9cF65c55bac32B5d844";
 //const L1_GOERLI_STARKNET_ADDRESS = "0x5e6229F2D4d977d20A50219E521dE6Dd694d45cc";
@@ -21,6 +21,8 @@ function getAddressString(contract: any) {
   return BigInt(contract.address).toString();
 }
 
+const TIER = getRequiredEnv("TIER"); // e.g. development, staging, production
+const DEV_MODE = !!process.env.DEV_MODE;
 let NETWORK: string;
 
 async function main(): Promise<void> {
@@ -29,11 +31,14 @@ async function main(): Promise<void> {
     const network = await signer.provider.getNetwork();
     NETWORK = network.name;
   }
-  const isInTestMode = NETWORK == "goerli";
-  console.log(`Deploying on ${NETWORK} (isInTestMode=${isInTestMode ? 1 : 0})`);
+  console.log(
+    `Deploying to '${TIER}' tier on '${NETWORK}' network (DEV_MODE=${
+      DEV_MODE ? 1 : 0
+    })`
+  );
 
-  if (!fs.existsSync(`./deployments/${NETWORK}`)) {
-    fs.mkdirSync(`./deployments/${NETWORK}`, { recursive: true });
+  if (!fs.existsSync(`./deployments/${TIER}`)) {
+    fs.mkdirSync(`./deployments/${TIER}`, { recursive: true });
   }
 
   const [admin, notary, adjudicator, challenger, minter] = await Promise.all([
@@ -65,7 +70,7 @@ async function main(): Promise<void> {
   const zorroDeployPromise = deployL2(
     "zorro",
     {
-      is_in_test_mode: isInTestMode ? 1 : 0,
+      is_in_dev_mode: DEV_MODE ? 1 : 0,
       admin_address: getAddressString(admin),
       notary_address: getAddressString(notary),
       adjudicator_address: getAddressString(adjudicator),
@@ -77,7 +82,7 @@ async function main(): Promise<void> {
 
   await Promise.all([transferPromise, transferPromise2, zorroDeployPromise]);
 
-  if (isInTestMode) {
+  if (DEV_MODE) {
     console.log("Sending money to the Zorro contract");
     // If we're doing a test deployment, give some money to the Zorro contract
     // so that it can afford `settle`ments associated with test seeded contracts
@@ -90,7 +95,7 @@ async function main(): Promise<void> {
     );
 
     console.log("Seeding contract with fake profiles");
-    const p2 = callFrom(zorro, "_test_add_seed_profiles", [], admin);
+    const p2 = callFrom(zorro, "_dev_add_seed_profiles", [], admin);
 
     await Promise.all([p1, p2]);
   }
@@ -100,7 +105,7 @@ async function deployL2(name: string, calldata: any = {}, saveName?: string) {
   console.log(`Deploying: ${name}${(saveName && "/" + saveName) || ""}...`);
   const contractFactory = await hre.starknet.getContractFactory(name);
   const contract = await contractFactory.deploy(calldata);
-  save(saveName || name, contract, hre.network.name);
+  save(saveName || name, contract, hre.network.name, TIER);
   return contract;
 }
 
@@ -108,7 +113,7 @@ async function deployL1(name: string, calldata: any = [], saveName?: string) {
   console.log(`Deploying: ${name}${(saveName && "/" + saveName) || ""}`);
   const contractFactory = await hre.ethers.getContractFactory(name);
   const contract = await contractFactory.deploy(...calldata);
-  save(saveName || name, contract, hre.network.name);
+  save(saveName || name, contract, hre.network.name, TIER);
   await contract.deployed();
   return contract;
 }

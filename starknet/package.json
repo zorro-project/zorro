@@ -5,7 +5,7 @@
   "scripts": {
     "//": "Fun fact! the '//' key in will never be used by npm and is reserved for commenting.",
 
-    "//": "starknet-devnet isn't used yet, but probably will be at some point",
+    "//": "starknet-devnet isn't used yet because it doesn't support L1<>L2 messages yet",
     "starknet-devnet": "poetry run starknet-devnet",
 
     "//": "useful for catching syntax errors while developing",
@@ -20,10 +20,11 @@
 
     "test": "yarn test:build-cache && yarn test:use-cache",
 
-    "//": "for launching on goerli",
     "compile": "hardhat starknet-compile",
-    "deploy": "hardhat run ./scripts/deploy.ts --network goerli",
-    "launch": "yarn compile && yarn deploy",
+
+    "//": "for now, both development and production run on the goerli network",
+    "deploy": "yarn compile && env TIER=development DEV_MODE=1 hardhat run ./scripts/deploy.ts --network goerli",
+    "deploy:production": "yarn compile && env TIER=production hardhat run ./scripts/deploy.ts --network goerli",
 
     "//": "useful for generating a keypair to put in the `.env` file",
     "generate-insecure-keypair": "ts-node scripts/generate-insecure-keypair.ts"

@@ -27,7 +27,7 @@ from seed_profiles import _get_seed_profiles
 #
 
 @storage_var
-func _is_in_test_mode() -> (res : felt):
+func _is_in_dev_mode() -> (res : felt):
 end
 
 # Temporary: will be replaced by syscall / clock contract
@@ -92,9 +92,9 @@ end
 
 @constructor
 func constructor{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
-        is_in_test_mode : felt, admin_address : felt, notary_address : felt,
+        is_in_dev_mode : felt, admin_address : felt, notary_address : felt,
         adjudicator_address : felt, super_adjudicator_l1_address : felt, token_address : felt):
-    _is_in_test_mode.write(is_in_test_mode)
+    _is_in_dev_mode.write(is_in_dev_mode)
     _admin_address.write(admin_address)
     _notary_address.write(notary_address)
     _adjudicator_address.write(adjudicator_address)
@@ -734,46 +734,50 @@ func assert_caller_is_admin{pedersen_ptr : HashBuiltin*, range_check_ptr, syscal
     return ()
 end
 
+func assert_is_in_dev_mode{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}():
+    let (is_in_dev_mode) = _is_in_dev_mode.read()
+    assert is_in_dev_mode = 1
+    return ()
+end
+
 #
-# Test hooks
+# Dev hooks
 #
 
 @external
-func _test_advance_clock{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
+func _dev_advance_clock{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
         duration):
-    let (is_in_test_mode) = _is_in_test_mode.read()
-    assert is_in_test_mode = 1
+    assert_is_in_dev_mode()
+
     let (now) = _timestamp.read()
     _timestamp.write(now + duration)
     return ()
 end
 
 @external
-func _test_add_seed_profiles{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}():
-    let (is_in_test_mode) = _is_in_test_mode.read()
-    assert is_in_test_mode = 1
+func _dev_add_seed_profiles{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}():
+    assert_is_in_dev_mode()
 
     let (profiles_len : felt, profiles : Profile*) = _get_seed_profiles()
-    _test_add_seed_profiles_inner(0, profiles_len, profiles)
+    _dev_add_seed_profiles_inner(0, profiles_len, profiles)
 
     return ()
 end
 
-func _test_add_seed_profiles_inner{
+func _dev_add_seed_profiles_inner{
         pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
         n : felt, profiles_len : felt, profiles : Profile*):
     if n == profiles_len:
         return ()
     end
 
-    _test_add_seed_profile(profiles[n])
-    
-    _test_add_seed_profiles_inner(n + 1, profiles_len, profiles)
+    _dev_add_seed_profile(profiles[n])
+    _dev_add_seed_profiles_inner(n + 1, profiles_len, profiles)
 
     return ()
 end
 
-func _test_add_seed_profile{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
+func _dev_add_seed_profile{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
         profile : Profile) -> ():
     assert_not_zero(profile.cid)
     assert_not_zero(profile.ethereum_address)

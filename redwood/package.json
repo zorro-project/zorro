@@ -9,7 +9,7 @@
   },
   "scripts": {
     "db:reset": "rm -rf api/db/migrations/ && echo 'y' | yarn rw prisma migrate dev --name init_db && yarn rw prisma db seed",
-    "dev": "rw dev"
+    "dev": "env TIER=development rw dev"
   },
   "devDependencies": {
     "@redwoodjs/core": "^1.0.0-rc.4"

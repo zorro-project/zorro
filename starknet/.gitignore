@@ -13,5 +13,4 @@ kleros.md
 cache/
 artifacts/
 starknet-artifacts/
-deployments/localhost
-deployments/goerli
+deployments/development/

@@ -5,31 +5,28 @@ import { StarknetContract } from "hardhat/types/runtime";
 const DEPLOYMENTS_DIR = `deployments`;
 const MASK_250 = BigInt(2 ** 250 - 1);
 
-export function getAddress(contract: string, network: string) {
+export function getAddress(contract: string, target: string) {
   try {
     return JSON.parse(
-      fs.readFileSync(`./deployments/${network}/${contract}.json`).toString()
+      fs.readFileSync(`./deployments/${target}/${contract}.json`).toString()
     ).address;
   } catch (err) {
     throw Error(
-      `${contract} deployment on ${network} not found, run 'yarn deploy:${network}'`
+      `${contract} deployment on ${target} not found, run 'yarn deploy:${target}'`
     );
   }
 }
 
-export function getAccounts(network: string) {
-  const files = fs.readdirSync(`./deployments/${network}`);
-  return files
-    .filter((file) => file.slice(0, 7) === "account")
-    .map((file) => {
-      return file.split("-")[1].split(".")[0];
-    });
-}
-
-export function save(name: string, contract: any, network: string) {
+export function save(
+  name: string,
+  contract: any,
+  network: string,
+  target: string
+) {
   fs.writeFileSync(
-    `${DEPLOYMENTS_DIR}/${network}/${name}.json`,
+    `${DEPLOYMENTS_DIR}/${target}/${name}.json`,
     JSON.stringify({
+      network,
       address: contract.address,
     })
   );
@@ -71,7 +68,7 @@ function flatten(calldata: any): any[] {
 export function getRequiredEnv(key: string): string {
   const value = process.env[key];
   if (!value) {
-    throw new Error(`Please provide ${key} in .env file`);
+    throw new Error(`Please provide ${key} as an env var`);
   }
 
   return value;

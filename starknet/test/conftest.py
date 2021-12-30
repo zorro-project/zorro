@@ -78,7 +78,7 @@ async def _build_copyable_deployment():
     zorro = await starknet.deploy(
         contract_def=defs.zorro,
         constructor_calldata=[
-            1,  # is_in_test_mode
+            1,  # is_in_dev_mode
             accounts.admin.contract_address,
             accounts.notary.contract_address,
             accounts.adjudicator.contract_address,

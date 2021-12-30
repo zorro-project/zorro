@@ -89,7 +89,7 @@
     {
         "inputs": [
             {
-                "name": "is_in_test_mode",
+                "name": "is_in_dev_mode",
                 "type": "felt"
             },
             {
@@ -522,13 +522,13 @@
                 "type": "felt"
             }
         ],
-        "name": "_test_advance_clock",
+        "name": "_dev_advance_clock",
         "outputs": [],
         "type": "function"
     },
     {
         "inputs": [],
-        "name": "_test_add_seed_profiles",
+        "name": "_dev_add_seed_profiles",
         "outputs": [],
         "type": "function"
     }

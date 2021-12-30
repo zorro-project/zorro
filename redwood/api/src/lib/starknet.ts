@@ -10,17 +10,40 @@ import {
 } from 'starknet'
 import {BigNumberish} from 'starknet/dist/utils/number'
 import {bnToUint256, uint256ToBN} from 'starknet/dist/utils/uint256'
-import ERC20_ADDRESS from '../../../../starknet/deployments/goerli/erc20.json'
-import NOTARY_ADDRESS from '../../../../starknet/deployments/goerli/notary.json'
-import ZORRO_ADDRESS from '../../../../starknet/deployments/goerli/zorro.json'
+
 import ERC20_ABI from '../../../../starknet/starknet-artifacts/contracts/openzeppelin/ERC20.cairo/ERC20_abi.json'
 import ZORRO_ABI from '../../../../starknet/starknet-artifacts/contracts/zorro.cairo/zorro_abi.json'
 
+const deployments = {
+  development: {
+    erc20: require('../../../../starknet/deployments/development/erc20.json')
+      .address,
+    notary: require('../../../../starknet/deployments/development/notary.json')
+      .address,
+    zorro: require('../../../../starknet/deployments/development/zorro.json')
+      .address,
+  },
+  production: {
+    erc20: require('../../../../starknet/deployments/production/erc20.json')
+      .address,
+    notary: require('../../../../starknet/deployments/production/notary.json')
+      .address,
+    zorro: require('../../../../starknet/deployments/production/zorro.json')
+      .address,
+  },
+}
+
+const tier = process.env.TIER
+if (!(tier in deployments)) {
+  throw new Error(`Missing deployment for tier ${tier}`)
+}
+const addresses = deployments[tier]
+
 type Felt = string
 
-export const ZorroAddress = ZORRO_ADDRESS.address
-export const NotaryAddress = NOTARY_ADDRESS.address
-export const ERC20Address = ERC20_ADDRESS.address
+export const ERC20Address = addresses.erc20
+export const NotaryAddress = addresses.notary
+export const ZorroAddress = addresses.zorro
 const zorro = new Contract(ZORRO_ABI as Abi[], ZorroAddress)
 
 export const getNumProfiles = async () => {
@@ -127,9 +150,9 @@ type Challenge = {
 export async function exportProfileById(
   profileId: bigint | number | string | Prisma.Decimal
 ) {
-  const profile = ((await zorro.call('export_profile_by_id', {
+  const profile = (await zorro.call('export_profile_by_id', {
     profile_id: profileId.toString(16),
-  })) as any) as {
+  })) as any as {
     profile: Profile
     num_profiles: Felt
     status: Felt
