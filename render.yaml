@@ -15,7 +15,7 @@ services:
         value: 16
     routes:
       - type: redirect
-        source: /
+        source: /*
         destination: https://github.com/zorro-project/
       - type: rewrite
         source: /.redwood/functions/*
@@ -24,10 +24,10 @@ services:
         # example:
         #   destination: https://myredwoodproject-api.onrender.com/*
         #####
-        destination: replace_with_api_url/*
-      - type: rewrite
-        source: /*
-        destination: /index.html
+        destination: https://zorro.xyz/*
+      # - type: rewrite
+      #   source: /*
+      #   destination: /index.html
 
   - name: redwood-api
     type: web
