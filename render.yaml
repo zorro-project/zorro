@@ -5,7 +5,7 @@
 #####
 
 services:
-  - name: redwood-web
+  - name: production-web
     type: web
     env: static
     buildCommand: cd redwood && yarn install --frozen-lockfile && yarn rw deploy render web
@@ -21,7 +21,7 @@ services:
         source: /*
         destination: /index.html
 
-  - name: redwood-api
+  - name: production-api
     type: web
     env: node
     region: oregon
@@ -32,9 +32,9 @@ services:
         value: 16
       - key: DATABASE_URL
         fromDatabase:
-          name: redwood-db
+          name: production-db
           property: connectionString
 
 databases:
-  - name: redwood-db
+  - name: production-db
     region: oregon
