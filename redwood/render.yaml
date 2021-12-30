@@ -8,14 +8,14 @@ services:
   - name: redwood-web
     type: web
     env: static
-    buildCommand: cd redwood && yarn rw deploy render web
+    buildCommand: cd redwood && yarn install --frozen-lockfile &&  yarn rw deploy render web
     staticPublishPath: ./redwood/web/dist
     envVars:
       - key: NODE_VERSION
         value: 16
     routes:
       - type: rewrite
-        source: ./redwood/.redwood/functions/*
+        source: /.redwood/functions/*
         #####
         # NOTE: replace destination api url after first deploy to Render
         # example:
