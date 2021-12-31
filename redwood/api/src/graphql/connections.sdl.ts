@@ -6,11 +6,13 @@ export const schema = gql`
     signature: String!
   }
 
+  scalar Snapshot
+
   type Query {
     getVerifiedExternalAddresses(
       purposeIdentifier: String!
       externalAddresses: [String!]!
-      snapshot: String
+      snapshot: Snapshot
     ): [String!]! @skipAuth
   }
 
