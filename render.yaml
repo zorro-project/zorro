@@ -20,6 +20,8 @@ services:
       - type: rewrite
         source: /*
         destination: /index.html
+    domains:
+      - zorro.xyz
 
   - name: production-api
     type: web
@@ -34,6 +36,8 @@ services:
         fromDatabase:
           name: production-db
           property: connectionString
+    domains:
+      - api.zorro.xyz
 
 databases:
   - name: production-db
