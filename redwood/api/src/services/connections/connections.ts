@@ -1,7 +1,10 @@
 import ethers from 'ethers'
 import {result} from 'lodash'
 import {db} from 'src/lib/db'
-import {CachedProfile} from 'src/services/cachedProfiles/cachedProfiles'
+import {
+  CachedProfile,
+  isVerified,
+} from 'src/services/cachedProfiles/cachedProfiles'
 
 export const connection = async ({purposeIdentifier, externalAddress}) => {
   return db.connection.findFirst({
@@ -26,7 +29,7 @@ export const getVerifiedExternalAddresses = async ({
   })
 
   return connections
-    .filter((connection) => CachedProfile.isVerified(connection.cachedProfile))
+    .filter((connection) => isVerified(connection.cachedProfile))
     .map((connection) => connection.externalAddress)
 }
 

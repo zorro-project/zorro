@@ -1,11 +1,11 @@
+import {StatusEnum, CachedProfile as PrismaCachedProfile} from '@prisma/client'
 import {db} from 'src/lib/db'
-import {CachedProfileConnection, ProfileStatus} from 'types/graphql'
-import {StatusEnum} from '@prisma/client'
+import {importProfile} from 'src/tasks/syncStarknetState'
+import {CachedProfileConnection} from 'types/graphql'
+import dayjs from 'dayjs'
+import {ContractCache} from '../contractCache/contractCache'
 
-export const cachedProfiles = async ({
-  first,
-  cursor,
-}): Promise<CachedProfileConnection> => {
+export const cachedProfiles = async ({first, cursor}) => {
   const profiles = await db.cachedProfile.findMany({
     cursor: cursor ? {id: parseInt(cursor, 10)} : undefined,
     orderBy: {id: 'desc'},
@@ -34,10 +34,14 @@ export const cachedProfiles = async ({
   }
 }
 
-export const cachedProfile = async ({id}) =>
-  await db.cachedProfile.findUnique({
+export const cachedProfile = async ({id, resync}) => {
+  if (resync) await importProfile(parseInt(id, 10))
+
+  const profile = await db.cachedProfile.findUnique({
     where: {id: parseInt(id, 10)},
   })
+  return profile
+}
 
 export const cachedProfileByEthAddress = async ({ethereumAddress}) =>
   await db.cachedProfile.findUnique({
@@ -58,10 +62,110 @@ const STATUS_ENUMS: {[enumVal: number]: StatusEnum} = {
 export const parseChallengeStatus = (status: number): StatusEnum =>
   STATUS_ENUMS[status]
 
-export const CachedProfile = {
-  // TODO: duplicate logic from profile.cairo#_get_current_status
-  status: (profile): ProfileStatus => 'NOT_CHALLENGED',
+// Keep in sync with profile.cairo#_get_current_status
 
-  // TODO: duplicate logic from profile.cairo#_get_is_verified
-  isVerified: (profile): boolean => true,
+export const currentStatus = (
+  profile: Pick<
+    PrismaCachedProfile,
+    | 'lastRecordedStatus'
+    | 'challengeTimestamp'
+    | 'adjudicationTimestamp'
+    | 'appealTimestamp'
+  >,
+  now = new Date()
+): StatusEnum => {
+  if (profile.lastRecordedStatus === StatusEnum.NOT_CHALLENGED) {
+    return StatusEnum.NOT_CHALLENGED
+  } else if (profile.lastRecordedStatus === StatusEnum.CHALLENGED) {
+    const timePassed = dayjs(now).diff(profile.challengeTimestamp, 'seconds')
+    const hasAppealOpportunityExpired =
+      ContractCache.adjudicationTimeWindow + ContractCache.appealTimeWindow <
+      timePassed
+    if (hasAppealOpportunityExpired)
+      return StatusEnum.APPEAL_OPPORTUNITY_EXPIRED
+
+    const hasAdjudicationOpportunityExpired =
+      ContractCache.adjudicationTimeWindow < timePassed
+    if (hasAdjudicationOpportunityExpired)
+      return StatusEnum.ADJUDICATION_ROUND_COMPLETED
+
+    return StatusEnum.CHALLENGED
+  } else if (
+    profile.lastRecordedStatus === StatusEnum.ADJUDICATION_ROUND_COMPLETED
+  ) {
+    const timePassed = dayjs(now).diff(profile.adjudicationTimestamp, 'seconds')
+
+    const hasAppealOpportunityExpired =
+      ContractCache.appealTimeWindow < timePassed
+    if (hasAppealOpportunityExpired)
+      return StatusEnum.APPEAL_OPPORTUNITY_EXPIRED
+
+    return StatusEnum.ADJUDICATION_ROUND_COMPLETED
+  } else if (profile.lastRecordedStatus === StatusEnum.APPEALED) {
+    const timePassed = dayjs(now).diff(profile.appealTimestamp, 'seconds')
+
+    const hasSuperAdjudicationOpportunityExpired =
+      ContractCache.superAdjudicationTimeWindow < timePassed
+    if (hasSuperAdjudicationOpportunityExpired)
+      return StatusEnum.SUPER_ADJUDICATION_ROUND_COMPLETED
+
+    return StatusEnum.APPEALED
+  } else if (
+    profile.lastRecordedStatus === StatusEnum.SUPER_ADJUDICATION_ROUND_COMPLETED
+  ) {
+    return StatusEnum.SUPER_ADJUDICATION_ROUND_COMPLETED
+  } else if (profile.lastRecordedStatus === StatusEnum.SETTLED) {
+    return StatusEnum.SETTLED
+  } else {
+    throw new Error(`Unknown profile status: ${profile.lastRecordedStatus}`)
+  }
+}
+
+// Keep in sync with profile.cairo#get_is_in_provisional_time_window
+const isInProvisionalTimeWindow = (
+  profile: Pick<PrismaCachedProfile, 'submissionTimestamp'>,
+  now = new Date()
+): boolean => {
+  const timePassed = dayjs(now).diff(profile.submissionTimestamp, 'seconds')
+  return timePassed < ContractCache.provisionalTimeWindow
+}
+
+// Keep in sync with profile.cairo#_get_is_verified
+export const isVerified = (
+  profile: Pick<
+    PrismaCachedProfile,
+    | 'lastRecordedStatus'
+    | 'notarized'
+    | 'challengeTimestamp'
+    | 'superAdjudicationTimestamp'
+    | 'didAdjudicatorVerifyProfile'
+    | 'didSuperAdjudicatorVerifyProfile'
+    | 'adjudicationTimestamp'
+    | 'appealTimestamp'
+    | 'submissionTimestamp'
+  >,
+  now = new Date()
+): boolean => {
+  const status = currentStatus(profile, now)
+  if (status == StatusEnum.NOT_CHALLENGED) {
+    const isProvisional = isInProvisionalTimeWindow(profile, now)
+    return profile.notarized || !isProvisional
+  } else if (status == StatusEnum.CHALLENGED) {
+    const isPresumedInnocent =
+      dayjs(profile.challengeTimestamp).diff(
+        profile.challengeTimestamp,
+        'seconds'
+      ) < ContractCache.provisionalTimeWindow
+    return isPresumedInnocent
+  } else if (profile.superAdjudicationTimestamp != null) {
+    return profile.didSuperAdjudicatorVerifyProfile
+  } else if (profile.adjudicationTimestamp != null) {
+    return profile.didAdjudicatorVerifyProfile
+  } else return false
+}
+
+export const CachedProfile = {
+  currentStatus: (_args, {root}) => currentStatus(root),
+  isInProvisionalTimeWindow: (_args, {root}) => isInProvisionalTimeWindow(root),
+  isVerified: (_args, {root}) => isVerified(root),
 }
