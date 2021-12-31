@@ -6,6 +6,7 @@ import {
   ec,
   number,
   Signer,
+  SignerInterface,
   stark,
 } from 'starknet'
 import {BigNumberish} from 'starknet/dist/utils/number'
@@ -77,7 +78,7 @@ export async function getChallengeDepositSize(timestamp = new Date()) {
 }
 
 export async function erc20Approve(
-  owner: Signer,
+  owner: SignerInterface,
   spender: Felt,
   amount: BigNumberish
 ) {
@@ -110,7 +111,7 @@ export async function erc20GetBalanceOf(owner: Felt) {
 }
 
 export async function erc20Mint(
-  signer: Signer,
+  signer: SignerInterface,
   owner: Felt,
   amount: BigNumberish
 ) {
@@ -156,7 +157,7 @@ export async function notarySubmitProfile(
 }
 
 export async function submitChallenge(
-  challenger: Signer,
+  challenger: SignerInterface,
   profileId: Felt,
   evidenceCid: Felt
 ) {

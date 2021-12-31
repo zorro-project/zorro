@@ -199,7 +199,7 @@ const VideoField = () => {
       <VideoModal modalCtrl={modalControl} onSave={field.onChange} />
       {field.value ? (
         <Stack>
-          <VideoBox video={field.value} width="36" shadow="lg" />
+          <VideoBox video={field.value as Blob} width="36" shadow="lg" />
           <Link
             as="button"
             type="button"

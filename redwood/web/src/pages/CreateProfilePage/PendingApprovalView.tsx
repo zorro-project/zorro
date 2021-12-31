@@ -42,6 +42,7 @@ const PendingApprovalView = (props: {
   }
 
   return (
+    // @ts-expect-error TODO: typechecking for redwood forms
     <Form formMethods={methods} onSubmit={onSubmit}>
       <Stack spacing="6">
         <Heading size="lg">Profile Pending Approval</Heading>

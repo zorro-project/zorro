@@ -166,7 +166,7 @@ const PhotoField = () => {
       />
       {field.value ? (
         <Stack>
-          <PhotoBox photo={field.value} width="36" shadow="lg" />
+          <PhotoBox photo={field.value as Blob} width="36" shadow="lg" />
           <Link
             as="button"
             type="button"

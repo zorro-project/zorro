@@ -8,6 +8,7 @@ import {
 import {Link as RedwoodLink} from '@redwoodjs/router'
 
 export const RLink = ({href, ...props}: LinkProps) => (
+  // @ts-expect-error
   <RedwoodLink to={href} {...props} />
 )
 
