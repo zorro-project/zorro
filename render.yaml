@@ -16,7 +16,7 @@ services:
     routes:
       - type: rewrite
         source: /.redwood/functions/*
-        destination: https://zorro.xyz/*
+        destination: https://api.zorro.xyz/*
       - type: rewrite
         source: /*
         destination: /index.html
