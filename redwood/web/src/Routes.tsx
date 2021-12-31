@@ -9,6 +9,7 @@
 
 import {Route, Router, Set} from '@redwoodjs/router'
 import AppLayout from './layouts/AppLayout/AppLayout'
+import ChallengeProfilePage from './pages/ChallengeProfilePage/ChallengeProfilePage'
 
 const Routes = () => {
   return (
@@ -16,6 +17,8 @@ const Routes = () => {
       <Set wrap={AppLayout}>
         <Route path="/profiles" page={ProfilesPage} name="profiles" />
         <Route path="/profiles/{id}" page={ProfilePage} name="profile" />
+        <Route path="/profiles/{id}/challenge" page={ChallengeProfilePage} name="challengeProfile" />
+
         <Route path="/unsubmitted-profiles" page={UnsubmittedProfilesPage} name="unsubmittedProfiles" />
         <Route path="/sign-up" page={SignUpPage} name="signUp" />
         <Route path="/sign-up/{purposeIdentifier}/{externalAddress}" page={SignUpPage} name="signUpAndconnect" />

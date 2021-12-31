@@ -13,6 +13,7 @@
     ]
   },
   "dependencies": {
+    "@argent/get-starknet": "^0.1.4",
     "@chakra-ui/icons": "^1.0.15",
     "@chakra-ui/react": "^1.7.3",
     "@emotion/react": "^11",

@@ -1,21 +1,20 @@
-import {Cached_Profiles, ProfileStatus} from 'types/graphql'
-import {ArrayElement, useDataFieldUrl} from 'src/lib/util'
-import {Box, Text, Stack} from '@chakra-ui/layout'
-import {Skeleton} from '@chakra-ui/skeleton'
+import Icon from '@chakra-ui/icon'
 import {Image} from '@chakra-ui/image'
-import Identicon from 'src/components/Identicon'
-import dayjs from 'dayjs'
-import {FaCalendarCheck, FaCheck, FaGavel, FaTimes} from 'react-icons/fa'
-import Icon, {IconProps} from '@chakra-ui/icon'
+import {Box, Stack, Text} from '@chakra-ui/layout'
+import {Skeleton} from '@chakra-ui/skeleton'
 import {routes} from '@redwoodjs/router'
-import RLink from 'src/components/RLink'
-import VerificationStatus from '../ProfilePage/VerificationStatus'
+import dayjs from 'dayjs'
+import {FaCalendarCheck, FaCheck, FaTimes} from 'react-icons/fa'
+import Identicon from 'src/components/Identicon'
+import {RLink} from 'src/components/links'
+import {ArrayElement, useDataFieldUrl} from 'src/lib/util'
+import {ProfilesPageQuery} from 'types/graphql'
 
 const ProfileCard = ({
   profile,
 }: {
   profile:
-    | ArrayElement<Cached_Profiles['cachedProfiles']['edges']>['node']
+    | ArrayElement<ProfilesPageQuery['cachedProfiles']['edges']>['node']
     | null
 }) => {
   const photoUrl = useDataFieldUrl(profile?.photoCid)
@@ -62,12 +61,11 @@ const ProfileCard = ({
         backgroundColor="gray.100"
         position="relative"
       />
-      <Identicon
-        account={profile.ethereumAddress}
-        position="absolute"
-        top="2"
-        right="2"
-      />
+      <Box position="absolute" top="2" right="3">
+        <Text color="white" textShadow="1px 1px 5px black" fontWeight="bold">
+          {profile.id}
+        </Text>
+      </Box>
       <Stack
         position="absolute"
         w="100%"

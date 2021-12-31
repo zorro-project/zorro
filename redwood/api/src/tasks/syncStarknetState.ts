@@ -11,6 +11,8 @@ import {
 import {exportProfileById, getNumProfiles} from 'src/lib/starknet'
 import {
   CachedProfile,
+  currentStatus,
+  isVerified,
   parseChallengeStatus,
 } from 'src/services/cachedProfiles/cachedProfiles'
 
@@ -45,13 +47,11 @@ export default async function syncStarknetState(onlyNewProfiles = false) {
 }
 
 export const importProfile = async (profileId: number) => {
-  console.log(`Importing profile ${profileId}`)
+  console.log('Importing profile', profileId)
   const exported = await exportProfileById(profileId)
   const {profile} = exported
 
-  console.log(profile)
-
-  const profileFields: Omit<Prisma.CachedProfileCreateInput, 'id'> = {
+  const profileFields = {
     cache: profile,
 
     cid: parseCid(profile.cid).toV1().toString(),
@@ -103,21 +103,21 @@ export const importProfile = async (profileId: number) => {
     },
   })
 
-  const status = parseChallengeStatus(parseNumber(exported.status))
-  if (status !== CachedProfile.status(profileFields)) {
+  const status = parseChallengeStatus(parseNumber(exported.current_status))
+  if (status !== currentStatus(profileFields)) {
     console.warn(
       `Profile ${profileId} status mismatch. ${
-        exported.status
-      } expected, ${CachedProfile.status(profileFields)} derived`
+        exported.current_status
+      } expected, ${currentStatus(profileFields)} derived`
     )
   }
 
-  const isVerified = parseBoolean(exported.is_verified)
-  if (isVerified !== CachedProfile.isVerified(profileFields)) {
+  const isVerifiedonStarkNet = parseBoolean(exported.is_verified)
+  if (isVerifiedonStarkNet !== isVerified(profileFields)) {
     console.warn(
       `Profile ${profileId} isVerified mismatch. ${
         exported.is_verified
-      } expected, ${CachedProfile.isVerified(profileFields)} derived`
+      } expected, ${isVerified(profileFields)} derived`
     )
   }
 

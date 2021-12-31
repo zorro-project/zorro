@@ -508,7 +508,11 @@
                 "type": "felt"
             },
             {
-                "name": "status",
+                "name": "current_status",
+                "type": "felt"
+            },
+            {
+                "name": "now",
                 "type": "felt"
             }
         ],

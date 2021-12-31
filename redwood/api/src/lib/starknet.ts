@@ -13,6 +13,7 @@ import {bnToUint256, uint256ToBN} from 'starknet/dist/utils/uint256'
 
 import ERC20_ABI from '../../../../starknet/starknet-artifacts/contracts/openzeppelin/ERC20.cairo/ERC20_abi.json'
 import ZORRO_ABI from '../../../../starknet/starknet-artifacts/contracts/zorro.cairo/zorro_abi.json'
+import {numToHex} from './serializers'
 
 const CHAIN_DEPLOYMENT = process.env.CHAIN_DEPLOYMENT
 
@@ -54,6 +55,7 @@ export const ERC20Address = chainDeployment.erc20.address
 export const NotaryAddress = chainDeployment.notary.address
 export const ZorroAddress = chainDeployment.zorro.address
 const zorro = new Contract(ZORRO_ABI as Abi[], ZorroAddress)
+const erc20 = new Contract(ERC20_ABI as Abi[], ERC20Address)
 
 export const getNumProfiles = async () => {
   const response = await zorro.call('get_num_profiles', {})
@@ -62,6 +64,13 @@ export const getNumProfiles = async () => {
 
 export async function getSubmissionDepositSize(timestamp = new Date()) {
   const response = await zorro.call('get_submission_deposit_size', {
+    timestamp: number.toHex(number.toBN(timestamp.getTime() / 1000)),
+  })
+  return parseInt(response.res as string, 16)
+}
+
+export async function getChallengeDepositSize(timestamp = new Date()) {
+  const response = await zorro.call('get_challenge_deposit_size', {
     timestamp: number.toHex(number.toBN(timestamp.getTime() / 1000)),
   })
   return parseInt(response.res as string, 16)
@@ -79,18 +88,42 @@ export async function erc20Approve(
     entry_point_selector: stark.getSelectorFromName('approve'),
     calldata: [spender, uintAmount.low, uintAmount.high],
   })
-  console.log('erc20 approve tx hash', resp.transaction_hash)
+
   return defaultProvider.waitForTx(resp.transaction_hash)
 }
 
-export async function getAllowance(owner: Felt, spender: Felt) {
-  const erc20 = new Contract(ERC20_ABI as Abi[], ERC20Address)
+export async function erc20GetAllowance(owner: Felt, spender: Felt) {
   const resp = await erc20.call('allowance', {
     owner,
     spender,
   })
 
   return uint256ToBN(resp.res as any)
+}
+
+export async function erc20GetBalanceOf(owner: Felt) {
+  const resp = await erc20.call('balance_of', {
+    owner,
+  })
+
+  return uint256ToBN(resp.res as any)
+}
+
+export async function erc20Mint(
+  signer: Signer,
+  owner: Felt,
+  amount: BigNumberish
+) {
+  const uintAmount = bnToUint256(amount)
+
+  const resp = await signer.addTransaction({
+    type: 'INVOKE_FUNCTION',
+    contract_address: ERC20Address,
+    entry_point_selector: stark.getSelectorFromName('mint'),
+    calldata: [owner, uintAmount.low, uintAmount.high],
+  })
+
+  return defaultProvider.waitForTx(resp.transaction_hash)
 }
 
 export async function notarySubmitProfile(
@@ -122,6 +155,20 @@ export async function notarySubmitProfile(
   return defaultProvider.waitForTx(resp.transaction_hash)
 }
 
+export async function submitChallenge(
+  challenger: Signer,
+  profileId: Felt,
+  evidenceCid: Felt
+) {
+  const resp = await challenger.addTransaction({
+    type: 'INVOKE_FUNCTION',
+    contract_address: ZorroAddress,
+    entry_point_selector: stark.getSelectorFromName('challenge'),
+    calldata: [profileId, evidenceCid],
+  })
+  return defaultProvider.waitForTx(resp.transaction_hash)
+}
+
 // Keep in sync with profile.cairo
 type Profile = {
   cid: Felt
@@ -142,29 +189,13 @@ type Profile = {
   did_super_adjudicator_verify_profile: Felt
 }
 
-type Challenge = {
-  last_recorded_status: Felt
-  challenge_timestamp: Felt
-  challenger_address: Felt
-  challenge_evidence_cid: Felt
-  profile_owner_evidence_cid: Felt
-  adjudication_timestamp: Felt
-  adjudicator_evidence_cid: Felt
-  did_adjudicator_confirm_profile: Felt
-  appeal_timestamp: Felt
-  super_adjudication_timestamp: Felt
-  did_super_adjudicator_confirm_prof: Felt
-}
-
-export async function exportProfileById(
-  profileId: bigint | number | string | Prisma.Decimal
-) {
+export async function exportProfileById(profileId: number) {
   const profile = (await zorro.call('export_profile_by_id', {
-    profile_id: profileId.toString(16),
+    profile_id: profileId.toString(),
   })) as any as {
     profile: Profile
     num_profiles: Felt
-    status: Felt
+    current_status: Felt
     is_verified: Felt
   }
 

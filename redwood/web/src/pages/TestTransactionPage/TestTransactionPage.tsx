@@ -1,6 +1,8 @@
+import {getStarknet} from '@argent/get-starknet'
 import {Button} from '@chakra-ui/button'
 import {Input} from '@chakra-ui/input'
 import {Box, Heading, Link, Stack, Text} from '@chakra-ui/layout'
+import {FormControl, FormLabel} from '@chakra-ui/react'
 import {MetaTags} from '@redwoodjs/web'
 import {Card} from 'src/components/Card'
 import getNotaryKey from 'src/lib/getNotaryKey'
@@ -8,8 +10,10 @@ import {cairoCompatibleAdd} from 'src/lib/ipfs'
 import {serializeCid} from '../../../../api/src/lib/serializers'
 import {
   ERC20Address,
+  erc20Mint,
   exportProfileById,
-  getAllowance,
+  erc20GetAllowance,
+  erc20GetBalanceOf,
   getNumProfiles,
   NotaryAddress,
   notarySubmitProfile,
@@ -25,7 +29,9 @@ const ExportProfileById = () => {
     setRunning(true)
     setOutput(null)
     try {
-      const profile = await exportProfileById(profileId?.current?.value || '1')
+      const profile = await exportProfileById(
+        parseInt(profileId?.current?.value ?? '1', 10)
+      )
       setOutput(profile)
     } finally {
       setRunning(false)
@@ -76,15 +82,47 @@ const GetNumProfiles = () => {
   )
 }
 
-const GetNotaryZorroAllowance = () => {
-  const [output, setOutput] = React.useState<number | null>()
+const ERC20Ops = (props: {userWallet: string | null}) => {
+  const [output, setOutput] = React.useState<string | null>()
   const [running, setRunning] = React.useState(false)
 
-  const run = async () => {
+  const owner = React.useRef<HTMLInputElement>()
+  const spender = React.useRef<HTMLInputElement>()
+
+  const runGetAllowance = async () => {
     setRunning(true)
     try {
-      await getAllowance(NotaryAddress, ZorroAddress)
-      setOutput((await getAllowance(NotaryAddress, ZorroAddress)).toString())
+      setOutput(
+        (
+          'allowance: ' +
+          (await erc20GetAllowance(owner.current.value, spender.current.value))
+        ).toString()
+      )
+    } finally {
+      setRunning(false)
+    }
+  }
+
+  const runBalanceOf = async () => {
+    setRunning(true)
+    try {
+      setOutput(
+        (
+          'balance_of: ' + (await erc20GetBalanceOf(owner.current.value))
+        ).toString()
+      )
+    } finally {
+      setRunning(false)
+    }
+  }
+
+  const runMint = async () => {
+    setRunning(true)
+    const starknet = getStarknet({showModal: true})
+
+    try {
+      await erc20Mint(starknet.signer, owner.current.value, 500)
+      await runBalanceOf()
     } finally {
       setRunning(false)
     }
@@ -93,11 +131,40 @@ const GetNotaryZorroAllowance = () => {
   return (
     <Card>
       <Stack spacing={4}>
-        <Heading as="h2">erc20.allowance(notary, zorro)</Heading>
-        <Button onClick={run} isLoading={running} colorScheme="blue">
-          Run
+        <Heading as="h2">ERC20</Heading>
+        <FormControl>
+          <FormLabel>Owner</FormLabel>
+          <Input
+            ref={owner}
+            placeholder="Owner"
+            defaultValue={props.userWallet || NotaryAddress}
+          />
+        </FormControl>
+        <FormControl>
+          <FormLabel>Spender</FormLabel>
+          <Input
+            ref={spender}
+            placeholder="Owner"
+            defaultValue={ZorroAddress}
+          />
+        </FormControl>
+
+        <Button
+          onClick={runGetAllowance}
+          isLoading={running}
+          colorScheme="blue"
+        >
+          allowance(owner, spender)
         </Button>
-        {output != null && <pre>Allowance: {output}</pre>}
+
+        <Button onClick={runBalanceOf} isLoading={running} colorScheme="blue">
+          balance_of(owner)
+        </Button>
+
+        <Button onClick={runMint} isLoading={running} colorScheme="blue">
+          mint(owner, 500)
+        </Button>
+        {<pre>{output}</pre>}
       </Stack>
     </Card>
   )
@@ -125,6 +192,18 @@ const submitTestProfile = async () => {
 }
 
 const TestTransactionPage = () => {
+  const starknet = getStarknet({showModal: true})
+
+  const [userWallet, setUserWallet] = React.useState<string | null>(null)
+
+  React.useEffect(() => {
+    async function getUserWallet() {
+      const [userWalletContractAddress] = await starknet.enable()
+      setUserWallet(userWalletContractAddress)
+    }
+    getUserWallet()
+  }, [])
+
   return (
     <Box maxW="xl" mx="auto">
       <MetaTags title="Test Transactions" />
@@ -134,10 +213,11 @@ const TestTransactionPage = () => {
       <ContractLink name="Zorro" address={ZorroAddress} />
       <ContractLink name="Notary" address={NotaryAddress} />
       <ContractLink name="ERC20" address={ERC20Address} />
+      {userWallet && <ContractLink name="My Wallet" address={userWallet} />}
       <Stack spacing={4}>
         <GetNumProfiles />
         <ExportProfileById />
-        <GetNotaryZorroAllowance />
+        <ERC20Ops userWallet={userWallet} />
         <Button onClick={submitTestProfile}>
           <Text>Submit test profile</Text>
         </Button>

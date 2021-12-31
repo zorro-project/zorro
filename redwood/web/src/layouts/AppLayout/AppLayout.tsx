@@ -1,17 +1,22 @@
 import {Box} from '@chakra-ui/react'
 import NavBar from './NavBar'
-
-export const AppBackground = ({children}) => (
-  <Box p={8} bg="gray.50">
-    {children}
-  </Box>
-)
+import {toast, Toaster} from '@redwoodjs/web/toast'
+import {useLocation} from '@redwoodjs/router'
+import {useEffect} from 'react'
 
 export default function AppLayout({children}) {
+  const {pathname} = useLocation()
+
+  useEffect(() => {
+    // dismiss all active toasts
+    toast.dismiss()
+  }, [pathname])
+
   return (
-    <Box>
+    <Box minH="100vh">
+      <Toaster />
       <NavBar />
-      <AppBackground>{children}</AppBackground>
+      <Box p={8}>{children}</Box>
     </Box>
   )
 }

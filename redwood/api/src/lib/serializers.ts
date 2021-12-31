@@ -41,4 +41,6 @@ export const canonicalizeHex = (hex: string) =>
 export const parseAddress = (address: Felt) =>
   isInitialized(address) ? canonicalizeHex(address) : null
 
+export const numToHex = (num: number) => '0x' + num.toString(16)
+
 export const isInitialized = (felt: Felt) => felt && felt !== '0x0'

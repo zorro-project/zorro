@@ -1,19 +1,17 @@
-import {Accordion, AccordionItem, AccordionPanel} from '@chakra-ui/accordion'
 import {Breadcrumb, BreadcrumbItem, BreadcrumbLink} from '@chakra-ui/breadcrumb'
 import Icon from '@chakra-ui/icon'
 import {ExternalLinkIcon} from '@chakra-ui/icons'
-import {Box, Divider, Flex, Heading, Link, Stack, Text} from '@chakra-ui/layout'
+import {Box, Divider, Heading, Link, Stack, Text} from '@chakra-ui/layout'
 import {routes} from '@redwoodjs/router'
 import {CellSuccessProps, createCell, MetaTags} from '@redwoodjs/web'
-import dayjs from 'dayjs'
 import React from 'react'
-import {FaCalendarPlus, FaCheck, FaEthereum, FaTimes} from 'react-icons/fa'
+import {FaCheck, FaEthereum, FaTimes} from 'react-icons/fa'
 import {Card} from 'src/components/Card'
-import Identicon from 'src/components/Identicon'
+import {RLink} from 'src/components/links'
 import {PhotoBox, VideoBox} from 'src/components/SquareBox'
 import {ProfilePageQuery} from 'types/graphql'
 import NotFoundPage from '../NotFoundPage/NotFoundPage'
-import ChallengePanel from './ChallengePanel'
+import ChallengeLink from './ChallengeLink'
 import History from './History'
 
 const QUERY = gql`
@@ -21,13 +19,12 @@ const QUERY = gql`
     cachedProfile(id: $id) {
       id
       ethereumAddress
-      status
+      currentStatus
       isVerified
       cid
       photoCid
       videoCid
 
-      ethereumAddress
       submissionTimestamp
       notarized
       challengeTimestamp
@@ -46,15 +43,18 @@ const QUERY = gql`
   }
 `
 
-const Profile = ({profile}: {profile: ProfilePageQuery['cachedProfile']}) => {
-  const {ethereumAddress, photoCid, videoCid, status} = profile
+const Success = (props: ProfilePageQuery) => {
+  const profile = props.cachedProfile
+  if (!profile) return <NotFoundPage />
+
+  const {ethereumAddress, photoCid, videoCid} = profile
 
   return (
     <>
       <MetaTags title="Public Profile" />
       <Breadcrumb>
         <BreadcrumbItem>
-          <BreadcrumbLink href={routes.profiles()} fontWeight="bold">
+          <BreadcrumbLink href={routes.profiles()} as={RLink} fontWeight="bold">
             Profiles
           </BreadcrumbLink>
         </BreadcrumbItem>
@@ -106,6 +106,7 @@ const Profile = ({profile}: {profile: ProfilePageQuery['cachedProfile']}) => {
               </Box>
             </Stack>
             <History profile={profile} />
+            <ChallengeLink profile={profile} />
           </Stack>
         </Card>
       </Stack>
@@ -113,11 +114,4 @@ const Profile = ({profile}: {profile: ProfilePageQuery['cachedProfile']}) => {
   )
 }
 
-const Success = ({cachedProfile}: CellSuccessProps<ProfilePageQuery>) =>
-  cachedProfile ? <Profile profile={cachedProfile} /> : <NotFoundPage />
-
-const ProfilePageCell = createCell({QUERY, Success})
-
-const ProfilePage = ({id}) => <ProfilePageCell id={id} />
-
-export default ProfilePage
+export default createCell({QUERY, Success})
