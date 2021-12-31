@@ -113,6 +113,7 @@ const Success = ({
           {
             {
               Edit: (
+                // @ts-expect-error TODO: typechecking for redwood forms
                 <Form formMethods={methods} onSubmit={submit}>
                   <EditView
                     onContinue={() => setCurrentView('PreSubmit')}
@@ -121,6 +122,7 @@ const Success = ({
                 </Form>
               ),
               PreSubmit: (
+                // @ts-expect-error TODO: typechecking for redwood forms
                 <Form formMethods={methods} onSubmit={submit}>
                   <PreSubmitView
                     onEdit={() => setCurrentView('Edit')}

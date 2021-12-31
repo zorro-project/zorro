@@ -7,7 +7,7 @@ const baseMock: ProfilePageQuery = {
   cachedProfile: {
     id: '12345',
     ethereumAddress: '0x334230242d318b5ca159fc38e07dc1248b7b35e4',
-    status: 'NOT_CHALLENGED',
+    currentStatus: 'NOT_CHALLENGED',
     isVerified: true,
     cid: 'bafybeg4qt5n7szznmtbsr63bs3aaik23vrc2ptuctm5bmgqynq',
     photoCid: 'bafybeicxoq24v5sxcz4myt5kx35kluclpoqhsfb2qdf5oevfuklprux2em',
@@ -30,7 +30,7 @@ const baseMock: ProfilePageQuery = {
 
 const challengedMock: ProfilePageQuery = merge({}, baseMock, {
   cachedProfile: {
-    status: 'CHALLENGED',
+    currentStatus: 'CHALLENGED',
     isVerified: false,
     challengeTimestamp: '2021-05-02T10:17:36.789Z',
     ethereumAddress: '0xe07dc1248b7b35e4334230242d318b5ca159fc38',
@@ -43,7 +43,7 @@ const adjudicationRoundCompletedMock: ProfilePageQuery = merge(
   challengedMock,
   {
     cachedProfile: {
-      status: 'ADJUDICATION_ROUND_COMPLETED',
+      currentStatus: 'ADJUDICATION_ROUND_COMPLETED',
       adjudicationTimestamp: '2021-05-02T11:17:36.789Z',
       adjudicationEvidencecid:
         'bafybeg4qt5n7szznmtbsr63bs3aaik23vrc2ptuctm5bmgqynq',
@@ -58,7 +58,7 @@ const appealedMock: ProfilePageQuery = merge(
   adjudicationRoundCompletedMock,
   {
     cachedProfile: {
-      status: 'APPEALED',
+      currentStatus: 'APPEALED',
       appealTimestamp: '2021-05-03T12:17:36.789Z',
     },
   }
@@ -69,7 +69,7 @@ const superAdjudicationRoundCompletedMock: ProfilePageQuery = merge(
   appealedMock,
   {
     cachedProfile: {
-      status: 'SUPER_ADJUDICATION_ROUND_COMPLETED',
+      currentStatus: 'SUPER_ADJUDICATION_ROUND_COMPLETED',
       superAdjudicationTimestamp: '2021-05-14T13:17:36.789Z',
       didSuperAdjudicatorVerifyProfile: false,
       isVerified: false,
@@ -80,7 +80,7 @@ const superAdjudicationRoundCompletedMock: ProfilePageQuery = merge(
 const settledMock: ProfilePageQuery = merge(
   {},
   superAdjudicationRoundCompletedMock,
-  {cachedProfile: {status: 'SETTLED'}}
+  {cachedProfile: {currentStatus: 'SETTLED'}}
 )
 
 const mockQuery = (response: ProfilePageQuery) => {

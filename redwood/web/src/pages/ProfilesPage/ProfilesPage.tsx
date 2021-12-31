@@ -38,9 +38,8 @@ const ProfilesPage = () => {
     variables: {cursor: null},
   })
 
-  const loadMore = React.useCallback(
-    () =>
-      !loading &&
+  const loadMore = React.useCallback(() => {
+    !loading &&
       fetchMore({
         query: QUERY,
         variables: {
@@ -64,9 +63,8 @@ const ProfilesPage = () => {
               }
             : previousResult
         },
-      }),
-    [fetchMore, data?.cachedProfiles?.pageInfo?.endCursor]
-  )
+      })
+  }, [fetchMore, data?.cachedProfiles?.pageInfo?.endCursor])
 
   const profiles = data?.cachedProfiles?.edges?.map(({node}) => node)
   const hasNextPage = data?.cachedProfiles?.pageInfo?.hasNextPage

@@ -10,7 +10,7 @@ import {ArrayElement} from 'src/lib/util'
 import {
   ApproveProfileMutation,
   ApproveProfileMutationVariables,
-  MutationAddNotaryFeedbackArgs,
+  MutationaddNotaryFeedbackArgs,
   UnsubmittedProfilesQuery,
 } from 'types/graphql'
 import {notarySubmitProfile} from '../../../../api/src/lib/starknet'
@@ -23,9 +23,9 @@ const UnsubmittedProfile: React.FC<{
 }> = ({profile}) => {
   const [reviewed, setReviewed] = React.useState(false)
   const [submitting, setSubmitting] = React.useState(false)
-  const feedbackRef = React.useRef<typeof Textarea>()
+  const feedbackRef = React.useRef<HTMLTextAreaElement>()
 
-  const [giveFeedback] = useMutation<MutationAddNotaryFeedbackArgs>(gql`
+  const [giveFeedback] = useMutation<MutationaddNotaryFeedbackArgs>(gql`
     mutation AddNotaryFeedback($id: Int!, $feedback: String!) {
       addNotaryFeedback(id: $id, feedback: $feedback)
     }

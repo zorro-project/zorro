@@ -2,7 +2,7 @@ import {Link, Stack, Text} from '@chakra-ui/layout'
 import {Button} from '@chakra-ui/react'
 import {routes} from '@redwoodjs/router'
 import React, {ReactElement} from 'react'
-import RLink, {InternalLink} from 'src/components/links'
+import {InternalLink} from 'src/components/links'
 import {ProfilePageQuery, StatusEnum} from 'types/graphql'
 
 const ChallengePageLink = (props: {

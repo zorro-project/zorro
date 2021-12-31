@@ -21,7 +21,7 @@ import {
 } from '../../../../api/src/lib/starknet'
 
 const ExportProfileById = () => {
-  const profileId = React.useRef()
+  const profileId = React.useRef<HTMLInputElement>()
   const [output, setOutput] = React.useState<object | null>()
   const [running, setRunning] = React.useState(false)
 
@@ -30,7 +30,7 @@ const ExportProfileById = () => {
     setOutput(null)
     try {
       const profile = await exportProfileById(
-        parseInt(profileId?.current?.value ?? '1', 10)
+        parseInt(profileId.current?.value ?? '1', 10)
       )
       setOutput(profile)
     } finally {
