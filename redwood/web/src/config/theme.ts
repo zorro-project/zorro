@@ -4,9 +4,9 @@ const theme = extendTheme({
   styles: {
     global: {
       'html, body': {
-        backgroundColor: 'gray.50'
-      }
-    }
+        backgroundColor: 'gray.50',
+      },
+    },
   },
   components: {
     Link: {
