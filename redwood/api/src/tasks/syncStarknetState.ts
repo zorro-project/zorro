@@ -112,8 +112,8 @@ export const importProfile = async (profileId: number) => {
     )
   }
 
-  const isVerifiedonStarkNet = parseBoolean(exported.is_verified)
-  if (isVerifiedonStarkNet !== isVerified(profileFields)) {
+  const isVerifiedOnStarknet = parseBoolean(exported.is_verified)
+  if (isVerifiedOnStarknet !== isVerified(profileFields)) {
     console.warn(
       `Profile ${profileId} isVerified mismatch. ${
         exported.is_verified

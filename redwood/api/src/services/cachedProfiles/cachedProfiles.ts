@@ -1,8 +1,6 @@
-import {StatusEnum, CachedProfile as PrismaCachedProfile} from '@prisma/client'
+import {CachedProfile as PrismaCachedProfile, StatusEnum} from '@prisma/client'
 import {db} from 'src/lib/db'
 import {importProfile} from 'src/tasks/syncStarknetState'
-import {CachedProfileConnection} from 'types/graphql'
-import dayjs from 'dayjs'
 import {ContractCache} from '../contractCache/contractCache'
 
 export const cachedProfiles = async ({first, cursor}) => {
@@ -77,7 +75,7 @@ export const currentStatus = (
   if (profile.lastRecordedStatus === StatusEnum.NOT_CHALLENGED) {
     return StatusEnum.NOT_CHALLENGED
   } else if (profile.lastRecordedStatus === StatusEnum.CHALLENGED) {
-    const timePassed = dayjs(now).diff(profile.challengeTimestamp, 'seconds')
+    const timePassed = now.getTime() - profile.challengeTimestamp.getTime()
     const hasAppealOpportunityExpired =
       ContractCache.adjudicationTimeWindow + ContractCache.appealTimeWindow <
       timePassed
@@ -93,7 +91,7 @@ export const currentStatus = (
   } else if (
     profile.lastRecordedStatus === StatusEnum.ADJUDICATION_ROUND_COMPLETED
   ) {
-    const timePassed = dayjs(now).diff(profile.adjudicationTimestamp, 'seconds')
+    const timePassed = now.getTime() - profile.adjudicationTimestamp.getTime()
 
     const hasAppealOpportunityExpired =
       ContractCache.appealTimeWindow < timePassed
@@ -102,7 +100,7 @@ export const currentStatus = (
 
     return StatusEnum.ADJUDICATION_ROUND_COMPLETED
   } else if (profile.lastRecordedStatus === StatusEnum.APPEALED) {
-    const timePassed = dayjs(now).diff(profile.appealTimestamp, 'seconds')
+    const timePassed = now.getTime() - profile.appealTimestamp.getTime()
 
     const hasSuperAdjudicationOpportunityExpired =
       ContractCache.superAdjudicationTimeWindow < timePassed
@@ -126,7 +124,7 @@ const isInProvisionalTimeWindow = (
   profile: Pick<PrismaCachedProfile, 'submissionTimestamp'>,
   now = new Date()
 ): boolean => {
-  const timePassed = dayjs(now).diff(profile.submissionTimestamp, 'seconds')
+  const timePassed = now.getTime() - profile.submissionTimestamp.getTime()
   return timePassed < ContractCache.provisionalTimeWindow
 }
 
@@ -152,10 +150,10 @@ export const isVerified = (
     return profile.notarized || !isProvisional
   } else if (status == StatusEnum.CHALLENGED) {
     const isPresumedInnocent =
-      dayjs(profile.challengeTimestamp).diff(
-        profile.challengeTimestamp,
-        'seconds'
-      ) < ContractCache.provisionalTimeWindow
+      ContractCache.provisionalTimeWindow <
+      profile.challengeTimestamp.getTime() -
+        profile.submissionTimestamp.getTime()
+
     return isPresumedInnocent
   } else if (profile.superAdjudicationTimestamp != null) {
     return profile.didSuperAdjudicatorVerifyProfile
