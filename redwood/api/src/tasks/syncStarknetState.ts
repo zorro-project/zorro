@@ -1,4 +1,3 @@
-import {Prisma} from '@prisma/client'
 import {CID} from 'ipfs-http-client'
 import {db} from 'src/lib/db'
 import {
@@ -10,7 +9,6 @@ import {
 } from 'src/lib/serializers'
 import {exportProfileById, getNumProfiles} from 'src/lib/starknet'
 import {
-  CachedProfile,
   currentStatus,
   isVerified,
   parseChallengeStatus,
@@ -103,36 +101,50 @@ export const importProfile = async (profileId: number) => {
     },
   })
 
+  const now = parseTimestamp(exported.now)
   const status = parseChallengeStatus(parseNumber(exported.current_status))
-  if (status !== currentStatus(profileFields)) {
+  if (status !== currentStatus(profileFields, now)) {
     console.warn(
       `Profile ${profileId} status mismatch. ${
         exported.current_status
-      } expected, ${currentStatus(profileFields)} derived`
+      } expected, ${currentStatus(profileFields, now)} derived`
     )
   }
 
   const isVerifiedOnStarknet = parseBoolean(exported.is_verified)
-  if (isVerifiedOnStarknet !== isVerified(profileFields)) {
+  if (isVerifiedOnStarknet !== isVerified(profileFields, now)) {
     console.warn(
       `Profile ${profileId} isVerified mismatch. ${
         exported.is_verified
-      } expected, ${isVerified(profileFields)} derived`
+      } expected, ${isVerified(profileFields, now)} derived`
     )
   }
 
   return {maxId: parseNumber(exported.num_profiles)}
 }
 
-export const readCids = async (cid: CID) => {
+export const readCids = async (cid: CID | null) => {
+  if (cid == null) return {}
+
+  const serializedCid = cid.toV1().toString()
+
   try {
+    const existingProfile = await db.cachedProfile.findFirst({
+      where: {cid: serializedCid},
+    })
+    if (existingProfile)
+      return {
+        videoCid: existingProfile.videoCid,
+        photoCid: existingProfile.photoCid,
+      }
+
     const data = await (
-      await fetch(`https://${cid.toV1().toString()}.ipfs.infura-ipfs.io`)
+      await fetch(`https://${serializedCid}.ipfs.infura-ipfs.io`)
     ).json()
 
-    return {videoCid: data.video.toString(), photoCid: data.photo.toString()}
+    return {videoCid: data.video, photoCid: data.photo}
   } catch (e) {
-    console.log(`Failed to read CID ${cid.toV1().toString()}`)
+    console.log(`Failed to read from CID ${cid.toString()}`)
     return {videoCid: null, photoCid: null}
   }
 }

@@ -1,5 +1,3 @@
-// import {}
-
 import {parseAddress} from './serializers'
 
 describe('parseAddress', () => {

@@ -1,12 +1,10 @@
-import importPoH from 'api/db/seed/importPoH'
+import syncStarknetState from '$api/src/tasks/syncStarknetState'
 import {db} from 'api/src/lib/db'
 
 /* eslint-disable no-console */
 
 export default async () => {
   try {
-    // await importPoH()
-
     console.log('Seeding unsubmitted profiles')
     await db.unsubmittedProfile.createMany({
       data: [
@@ -46,6 +44,8 @@ export default async () => {
       where: {id: feedback.unsubmittedProfileId},
       data: {unaddressedFeedbackId: feedback.id},
     })
+
+    await syncStarknetState()
 
     // TODO: how are we going to seed actual profiles? Push them to StarkNet first I guess?
     // const pohProfiles = await importPoH()

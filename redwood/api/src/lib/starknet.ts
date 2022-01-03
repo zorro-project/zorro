@@ -198,6 +198,7 @@ export async function exportProfileById(profileId: number) {
     num_profiles: Felt
     current_status: Felt
     is_verified: Felt
+    now: Felt
   }
 
   return profile
