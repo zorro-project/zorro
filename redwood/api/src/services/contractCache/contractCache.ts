@@ -6,13 +6,17 @@
 
 export const contractCache = () => ContractCache
 
-const ONE_DAY = 24 * 60 * 60
+// The number of milliseconds in a day
+const ONE_DAY = 24 * 60 * 60 * 1000
 
 export const ContractCache = {
   submissionDepositSize: (time = new Date()) => 25,
   challengeDepositSize: (time = new Date()) => 25,
   challengeRewardSize: (time = new Date()) => 25,
 
+  // Note that all of these are 1000x the actual values listed in the contract
+  // to make date math on the JS side easier, since JS dates are in
+  // milliseconds.
   provisionalTimeWindow: 9 * ONE_DAY,
   adjudicationTimeWindow: 6 * ONE_DAY,
   appealTimeWindow: 3 * ONE_DAY,

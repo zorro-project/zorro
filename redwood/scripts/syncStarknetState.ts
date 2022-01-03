@@ -1,7 +1,7 @@
-import syncStarkNetState from '$api/src/tasks/syncStarkNetState'
+import syncStarknetState from '$api/src/tasks/syncStarknetState'
 
 export default async ({args}) => {
   console.log('Syncing StarkNet state...')
   console.log(args)
-  await syncStarkNetState(!!args.onlyNew)
+  await syncStarknetState(!!args.onlyNew)
 }
