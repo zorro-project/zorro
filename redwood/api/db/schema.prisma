@@ -104,16 +104,17 @@ model CachedProfile {
   updatedAt DateTime @updatedAt
 
   connections Connection[]
+
+  @@index([cid])
 }
 
-
 model Connection {
-  id Int @id @default(autoincrement()) 
+  id Int @id @default(autoincrement())
 
-  profileId Int
+  profileId         Int
   purposeIdentifier String
-  externalAddress String
-  signature String // signature from profile owner
+  externalAddress   String
+  signature         String // signature from profile owner
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

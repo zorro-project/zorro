@@ -8,7 +8,6 @@
     ]
   },
   "scripts": {
-    "db:reset": "rm -rf api/db/migrations/ && echo 'y' | yarn rw prisma migrate dev --name init_db && yarn rw prisma db seed",
     "dev": "rw dev"
   },
   "devDependencies": {
