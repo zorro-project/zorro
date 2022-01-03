@@ -120,5 +120,15 @@ model Connection {
   updatedAt DateTime @updatedAt
 
   cachedProfile CachedProfile @relation(fields: [profileId], references: [id])
-  @@unique([ profileId, purposeIdentifier ])
+  @@unique([profileId, purposeIdentifier])
+}
+
+// Track whether we've sent various types of notifications.
+model Notification {
+  id Int @id @default(autoincrement())
+
+  key Json @unique
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

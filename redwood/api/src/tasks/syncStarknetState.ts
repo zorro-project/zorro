@@ -1,3 +1,4 @@
+import {CachedProfile} from '@prisma/client'
 import {CID} from 'ipfs-http-client'
 import {db} from 'src/lib/db'
 import {
@@ -8,11 +9,14 @@ import {
   parseTimestamp,
 } from 'src/lib/serializers'
 import {exportProfileById, getNumProfiles} from 'src/lib/starknet'
+import {sendMessage} from 'src/lib/twilio'
 import {
   currentStatus,
   isVerified,
   parseChallengeStatus,
 } from 'src/services/cachedProfiles/cachedProfiles'
+import {maybeNotify} from 'src/services/notifications/notifications'
+import {NOTARIES} from 'src/services/unsubmittedProfiles/unsubmittedProfiles'
 
 export default async function syncStarknetState(onlyNewProfiles = false) {
   console.log('Starting StarkNet sync')
@@ -53,7 +57,6 @@ export const importProfile = async (profileId: number) => {
     cache: profile,
 
     cid: parseCid(profile.cid).toV1().toString(),
-    // TODO: memoize this
     ...(await readCids(parseCid(profile.cid))),
 
     ethereumAddress: parseAddress(profile.ethereum_address),
@@ -90,7 +93,7 @@ export const importProfile = async (profileId: number) => {
     ),
   }
 
-  await db.cachedProfile.upsert({
+  const persistedProfile = await db.cachedProfile.upsert({
     where: {id: profileId},
     create: {
       id: profileId,
@@ -120,6 +123,8 @@ export const importProfile = async (profileId: number) => {
     )
   }
 
+  await sendNotifications(persistedProfile)
+
   return {maxId: parseNumber(exported.num_profiles)}
 }
 
@@ -146,5 +151,22 @@ export const readCids = async (cid: CID | null) => {
   } catch (e) {
     console.log(`Failed to read from CID ${cid.toString()}`)
     return {videoCid: null, photoCid: null}
+  }
+}
+
+export const sendNotifications = async (profile: CachedProfile) => {
+  if (profile.challengeTimestamp !== null) {
+    await maybeNotify(
+      {
+        type: 'NEW_CHALLENGE',
+        profileId: profile.id,
+        challengeTimestamp: profile.challengeTimestamp.toISOString(),
+      },
+      async () => {
+        // Just send a message to the notaries for now. Later we'll probably
+        // want to post this to a Discord channel.
+        await sendMessage(NOTARIES, `New challenge to profile ${profile.id}`)
+      }
+    )
   }
 }
