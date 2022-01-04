@@ -7,7 +7,7 @@ import sendNotaryFeedback from 'src/mailers/sendNotaryFeedback'
 import syncStarknetState from 'src/tasks/syncStarknetState'
 
 // Just hard-code these for now. Will get fancier later.
-const NOTARIES = [
+export const NOTARIES = [
   '+18016131318', // Kyle
   '+16175958777', // Ted
 ]
