@@ -1,7 +1,10 @@
 import {castArray} from 'lodash'
 import twilio from 'twilio'
 
-const client = twilio(process.env.TWILIO_SID, process.env.TWILIO_TOKEN)
+const client =
+  process.env.NODE_ENV === 'production'
+    ? twilio(process.env.TWILIO_SID, process.env.TWILIO_TOKEN)
+    : null
 
 export const sendMessage = async (to: string | string[], body: string) => {
   const message = {
