@@ -21,11 +21,14 @@ const PendingApprovalView = (props: {
 
   const [saveEmail] = useMutation(gql`
     mutation UnsubmittedProfileSetEmailMutation(
-      $address: String!
+      $ethereumAddress: String!
       $email: String!
     ) {
-      unsubmittedProfileSetEmail(address: $address, email: $email) {
-        address
+      unsubmittedProfileSetEmail(
+        ethereumAddress: $ethereumAddress
+        email: $email
+      ) {
+        ethereumAddress
       }
     }
   `)
@@ -33,7 +36,7 @@ const PendingApprovalView = (props: {
   const onSubmit = async (data) => {
     await saveEmail({
       variables: {
-        address: props.unsubmittedProfile.address,
+        ethereumAddress: props.unsubmittedProfile.ethereumAddress,
         email: data.email,
       },
     })

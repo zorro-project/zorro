@@ -19,9 +19,9 @@ export function UserContextProvider({children}: {children: React.ReactNode}) {
   >(
     gql`
       query UserContextQuery($ethereumAddress: ID!) {
-        unsubmittedProfile(address: $ethereumAddress) {
+        unsubmittedProfile(ethereumAddress: $ethereumAddress) {
           id
-          address
+          ethereumAddress
         }
 
         cachedProfileByEthAddress(ethereumAddress: $ethereumAddress) {

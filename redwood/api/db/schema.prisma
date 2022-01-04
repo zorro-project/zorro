@@ -29,10 +29,8 @@ model UnsubmittedProfile {
   photoCid String
   videoCid String
 
-  // This now represents the ethereum_address in the submitted profile.
-  // TODO: rename to ethereumAddress.
-  address String  @unique
-  email   String?
+  ethereumAddress String  @unique
+  email           String?
 
   unaddressedFeedbackId Int?
   UnaddressedFeedback   NotaryFeedback? @relation("unaddressedFeedback", fields: [unaddressedFeedbackId], references: [id])

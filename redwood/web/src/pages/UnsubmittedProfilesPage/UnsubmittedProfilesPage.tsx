@@ -13,7 +13,7 @@ const UnsubmittedProfilesPage = () => {
         id
         photoCid
         videoCid
-        address
+        ethereumAddress
       }
     }
   `)

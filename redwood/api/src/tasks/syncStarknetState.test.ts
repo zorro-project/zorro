@@ -23,6 +23,7 @@ describe('readCids', () => {
 
 describe('importProfile', () => {
   test('sends new challenge notifications', async () => {
+    // @ts-expect-error
     exportProfileById.mockResolvedValueOnce({
       profile: {
         cid: '0x170121b909f5bf9672d64c328fb6196c0042b5bac45a7ce829b3a161a186c',
@@ -52,6 +53,7 @@ describe('importProfile', () => {
 
     await importProfile(1)
 
+    // @ts-expect-error
     expect(sendMessage.mock.calls[0][1]).toEqual('New challenge to profile 1')
 
     const notification = await db.notification.findFirst()
