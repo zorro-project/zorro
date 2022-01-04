@@ -1,6 +1,6 @@
 import {logger} from 'src/lib/logger'
 import {db} from 'src/lib/db'
-import {CachedProfile} from 'src/services/cachedProfiles/cachedProfiles'
+import {isVerified} from 'src/services/cachedProfiles/cachedProfiles'
 
 // This endpoint is used by the Snapshot strategy named `zorro`
 export const handler = async (event, context) => {
@@ -18,7 +18,7 @@ export const handler = async (event, context) => {
   })
 
   const verifiedExternalAddresses = connections
-    .filter((connection) => CachedProfile.isVerified(connection.cachedProfile))
+    .filter((connection) => isVerified(connection.cachedProfile))
     .map((connection) => connection.externalAddress)
 
   return {
