@@ -57,7 +57,7 @@ const UnsubmittedProfile: React.FC<{
 
     const submittedProfile = await notarySubmitProfile(
       serializeCid(cid),
-      profile.address,
+      profile.ethereumAddress,
       getNotaryKey()
     )
     console.log(submittedProfile)
@@ -73,10 +73,10 @@ const UnsubmittedProfile: React.FC<{
       <Td>
         <Text size="xs">
           <Link
-            href={`https://etherscan.io/address/${profile.address}`}
+            href={`https://etherscan.io/address/${profile.ethereumAddress}`}
             isExternal
           >
-            {profile.address}
+            {profile.ethereumAddress}
           </Link>
         </Text>
       </Td>
