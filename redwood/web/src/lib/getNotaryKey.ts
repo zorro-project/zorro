@@ -1,4 +1,4 @@
-const LS_KEY = 'NYM_NOTARY_KEY'
+const LS_KEY = 'ZORRO_NOTARY_KEY'
 
 const getNotaryKey = (): string => {
   let key = localStorage.getItem(LS_KEY)

@@ -15,6 +15,7 @@ import {
   FindUnsubmittedProfileQuery,
   FindUnsubmittedProfileQueryVariables,
   UpdateUnsubmittedProfileMutation,
+  UpdateUnsubmittedProfileMutationVariables,
 } from 'types/graphql'
 import PendingApprovalView from './PendingApprovalView'
 import PreSubmitView from './PreSubmitView'
@@ -39,12 +40,18 @@ const Success = ({
   >(unsubmittedProfile ? 'PendingApproval' : 'Edit')
   const [submitProgress, setSubmitProgress] = React.useState(0)
 
-  const [updateMutation] = useMutation<UpdateUnsubmittedProfileMutation>(gql`
+  const [updateMutation] = useMutation<
+    UpdateUnsubmittedProfileMutation,
+    UpdateUnsubmittedProfileMutationVariables
+  >(gql`
     mutation UpdateUnsubmittedProfileMutation(
-      $address: String!
+      $ethereumAddress: String!
       $input: UpdateUnsubmittedProfileInput!
     ) {
-      updateUnsubmittedProfile(address: $address, input: $input) {
+      updateUnsubmittedProfile(
+        ethereumAddress: $ethereumAddress
+        input: $input
+      ) {
         id
       }
     }
@@ -84,11 +91,10 @@ const Success = ({
 
       await updateMutation({
         variables: {
-          address: account,
+          ethereumAddress: account,
           input: {
             photoCid,
             videoCid,
-            email: data.email,
           },
         },
       })
@@ -99,7 +105,7 @@ const Success = ({
     [account, updateMutation]
   )
 
-  if (account == null) return <Redirect to={routes.signUp()} />
+  if (account == null) return <Redirect to={routes.signUpIntro()} />
 
   return (
     <>
@@ -144,14 +150,14 @@ const Success = ({
   )
 }
 
-const SignUpCell = createCell<CellProps>({
+const CreateProfileCell = createCell<CellProps>({
   QUERY: gql`
     query FindUnsubmittedProfileQuery($account: ID!) {
-      unsubmittedProfile(address: $account) {
+      unsubmittedProfile(ethereumAddress: $account) {
         photoCid
         videoCid
         hasEmail
-        address
+        ethereumAddress
         UnaddressedFeedback {
           feedback
         }
@@ -161,11 +167,11 @@ const SignUpCell = createCell<CellProps>({
   Success,
 })
 
-const SignUpPage = () => {
+const CreateProfilePage = () => {
   const {account} = useEthers()
-  if (account == null) return <Redirect to={routes.signUp()} />
+  if (account == null) return <Redirect to={routes.signUpIntro()} />
 
-  return <SignUpCell account={account} />
+  return <CreateProfileCell account={account} />
 }
 
-export default SignUpPage
+export default CreateProfilePage

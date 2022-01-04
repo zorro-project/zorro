@@ -21,19 +21,19 @@ export const unsubmittedProfiles = async ({pendingReview}) => {
 }
 
 export const unsubmittedProfile = async ({
-  address,
+  ethereumAddress,
 }: Prisma.UnsubmittedProfileWhereUniqueInput) => {
   const record = await db.unsubmittedProfile.findUnique({
-    where: {address},
+    where: {ethereumAddress},
   })
   return record ? {...record, hasEmail: !!record.email} : null
 }
 
-export const updateUnsubmittedProfile = async ({address, input}) => {
+export const updateUnsubmittedProfile = async ({ethereumAddress, input}) => {
   const profile = await db.unsubmittedProfile.upsert({
-    create: {...input, address},
+    create: {...input, ethereumAddress},
     update: {...input, unaddressedFeedbackId: null},
-    where: {address},
+    where: {ethereumAddress},
   })
 
   const pendingCount = (await unsubmittedProfiles({pendingReview: true})).length
@@ -48,8 +48,8 @@ export const updateUnsubmittedProfile = async ({address, input}) => {
   return profile
 }
 
-export const unsubmittedProfileSetEmail = ({address, email}) =>
-  db.unsubmittedProfile.update({where: {address}, data: {email}})
+export const unsubmittedProfileSetEmail = ({ethereumAddress, email}) =>
+  db.unsubmittedProfile.update({where: {ethereumAddress}, data: {email}})
 
 export const UnsubmittedProfile = {
   UnaddressedFeedback: (
@@ -103,7 +103,7 @@ export const approveProfile = async ({id}) => {
   // await db.unsubmittedProfile.delete({ where: { id } })
 
   if (profile.email) {
-    await sendNotaryApproved(profile.email, profile.address)
+    await sendNotaryApproved(profile.email, profile.ethereumAddress)
   }
   return true
 }

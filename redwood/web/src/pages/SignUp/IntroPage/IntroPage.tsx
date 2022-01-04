@@ -10,9 +10,9 @@ import ipfsClient from 'src/lib/ipfs'
 import {
   save as saveIntendedConnection,
   load as loadIntendedConnection,
-} from '../../lib/intendedConnectionStorage'
+} from '../../../lib/intendedConnectionStorage'
 
-const SignUpPage = ({purposeIdentifier, externalAddress}) => {
+const IntroPage = ({purposeIdentifier, externalAddress}) => {
   const {account} = useEthers()
 
   useEffect(() => {
@@ -25,7 +25,7 @@ const SignUpPage = ({purposeIdentifier, externalAddress}) => {
 
   return (
     <Box maxW="xl" mx="auto">
-      <MetaTags title="Sign Up" />
+      <MetaTags title="Connect Account" />
       <Heading size="lg" pb="4">
         Sign Up for Zorro
       </Heading>
@@ -61,4 +61,4 @@ const SignUpPage = ({purposeIdentifier, externalAddress}) => {
   )
 }
 
-export default SignUpPage
+export default IntroPage
