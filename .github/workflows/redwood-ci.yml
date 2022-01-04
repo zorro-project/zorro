@@ -1,0 +1,30 @@
+on:
+  push:
+    branches: [main]
+  pull_request:
+    types: [opened, synchronize]
+
+defaults:
+  run:
+    working-directory: ./redwood
+
+jobs:
+  runCI:
+    name: Redwood CI
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '16'
+      - name: Cache "node_modules"
+        uses: actions/cache@v2
+        with:
+          path: '**/node_modules'
+          key: node_modules_${{ hashFiles('redwood/**/yarn.lock') }}
+
+      - run: yarn install --frozen-lockfile
+      - run: yarn rw tsc
+      # run: yarn rw test --watch=false --ci
+      # - run: yarn rw lint
+      # - run: yarn rw check
