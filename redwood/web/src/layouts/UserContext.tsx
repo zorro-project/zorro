@@ -22,6 +22,8 @@ export function UserContextProvider({children}: {children: React.ReactNode}) {
         unsubmittedProfile(ethereumAddress: $ethereumAddress) {
           id
           ethereumAddress
+          photoCid
+          videoCid
         }
 
         cachedProfileByEthAddress(ethereumAddress: $ethereumAddress) {

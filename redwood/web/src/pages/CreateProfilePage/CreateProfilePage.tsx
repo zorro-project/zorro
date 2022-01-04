@@ -76,7 +76,7 @@ const Success = ({
             ).cid
               .toV1()
               .toString()
-          : data.photoCid
+          : (data.photoCid as string)
 
       const videoCid =
         data.videoCid instanceof Blob
@@ -87,7 +87,7 @@ const Success = ({
             ).cid
               .toV1()
               .toString()
-          : data.videoCid
+          : (data.videoCid as string)
 
       await updateMutation({
         variables: {

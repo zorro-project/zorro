@@ -3,7 +3,6 @@ import {useEthers} from '@usedapp/core'
 import {useContext} from 'react'
 import {useForm, UseFormReturn} from 'react-hook-form'
 import UserContext from 'src/layouts/UserContext'
-import {SignUpLayoutQuery} from 'types/graphql'
 
 type SignupFieldValues = {
   photoCid: Blob | string
@@ -17,7 +16,6 @@ type SignUpContextType = {
 
 export default function SignUpLayout(props) {
   const user = useContext(UserContext)
-  console.log({user})
   const {unsubmittedProfile} = user
 
   const formMethods = useForm<SignupFieldValues>({
