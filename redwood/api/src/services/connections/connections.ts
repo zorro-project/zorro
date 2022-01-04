@@ -1,37 +1,5 @@
 import ethers from 'ethers'
-import {result} from 'lodash'
 import {db} from 'src/lib/db'
-import {
-  CachedProfile,
-  isVerified,
-} from 'src/services/cachedProfiles/cachedProfiles'
-
-export const connection = async ({purposeIdentifier, externalAddress}) => {
-  return db.connection.findFirst({
-    where: {purposeIdentifier, externalAddress},
-  })
-}
-
-// This endpoint is used by the Snapshot strategy named `zorro`
-export const getVerifiedExternalAddresses = async ({
-  purposeIdentifier,
-  externalAddresses,
-  snapshot,
-}) => {
-  const connections = await db.connection.findMany({
-    where: {
-      purposeIdentifier,
-      externalAddress: {in: externalAddresses.map((str) => str.toLowerCase())},
-    },
-    include: {
-      cachedProfile: true,
-    },
-  })
-
-  return connections
-    .filter((connection) => isVerified(connection.cachedProfile))
-    .map((connection) => connection.externalAddress)
-}
 
 export const createConnection = async ({input}) => {
   // XXX: dedup message with frontend
