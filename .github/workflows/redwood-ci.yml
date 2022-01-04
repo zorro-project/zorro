@@ -12,6 +12,22 @@ jobs:
   runCI:
     name: Redwood CI
     runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:12.1-alpine
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      TEST_DATABASE_URL: postgres://postgres@localhost:5432/zorro_tests
+      CHAIN_DEPLOYMENT: test
+
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
@@ -25,6 +41,7 @@ jobs:
 
       - run: yarn install --frozen-lockfile
       - run: yarn rw tsc
-      # run: yarn rw test --watch=false --ci
+      - run: yarn rw test --watch=false --ci
+
       # - run: yarn rw lint
       # - run: yarn rw check

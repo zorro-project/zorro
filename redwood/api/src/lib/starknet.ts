@@ -37,6 +37,11 @@ const chainDeployments = {
     notary: maybeRequireContract('production', 'notary'),
     zorro: maybeRequireContract('production', 'zorro'),
   },
+  test: {
+    erc20: maybeRequireContract('test', 'erc20'),
+    notary: maybeRequireContract('test', 'notary'),
+    zorro: maybeRequireContract('test', 'zorro'),
+  },
 }
 
 if (!(CHAIN_DEPLOYMENT in chainDeployments)) {
