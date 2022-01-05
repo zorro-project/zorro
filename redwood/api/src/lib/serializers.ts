@@ -1,6 +1,7 @@
 import assert from 'minimalistic-assert'
-import {sanitizeHex} from 'starknet/dist/utils/encode'
+import {removeHexPrefix, sanitizeHex} from 'starknet/dist/utils/encode'
 import {CID} from 'ipfs-http-client'
+import {getAddress} from 'ethers/lib/utils'
 
 type Felt = string
 
@@ -34,12 +35,20 @@ export const parseCid = (cid: Felt): CID | null =>
   isInitialized(cid) ? CID.decode(feltToBytes(cid)) : null
 export const serializeCid = (cid: CID) => bytesToFelt(cid.bytes)
 
-export const canonicalizeHex = (hex: string) =>
+const canonicalizeHex = (hex: string) =>
   sanitizeHex(hex.replace(/^0x0*/, '')).toLowerCase()
 
 // Parses an address into an even-length hex string with 0 or 1 leading 0s.
-export const parseAddress = (address: Felt) =>
+export const parseStarknetAddress = (address: Felt) =>
   isInitialized(address) ? canonicalizeHex(address) : null
+
+// Parses an ethereum address into its checksummed form.
+export const parseEthereumAddress = (address: Felt) => {
+  if (!isInitialized(address)) return null
+  if (removeHexPrefix(address).length > 40) return null
+
+  return getAddress(removeHexPrefix(address).padStart(40, '0'))
+}
 
 export const numToHex = (num: number) => '0x' + num.toString(16)
 

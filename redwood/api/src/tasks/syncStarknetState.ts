@@ -2,10 +2,11 @@ import {CachedProfile} from '@prisma/client'
 import {CID} from 'ipfs-http-client'
 import {db} from 'src/lib/db'
 import {
-  parseAddress,
   parseBoolean,
   parseCid,
+  parseEthereumAddress,
   parseNumber,
+  parseStarknetAddress,
   parseTimestamp,
 } from 'src/lib/serializers'
 import {exportProfileById, getNumProfiles} from 'src/lib/starknet'
@@ -32,7 +33,7 @@ export default async function syncStarknetState(onlyNewProfiles = false) {
   currentId = currentId + 1
 
   while (currentId <= maxId) {
-    const {maxId} = await importProfile(currentId)
+    maxId = (await importProfile(currentId)).maxId
 
     currentId = currentId + 1
   }
@@ -59,7 +60,7 @@ export const importProfile = async (profileId: number) => {
     cid: parseCid(profile.cid).toV1().toString(),
     ...(await readCids(parseCid(profile.cid))),
 
-    ethereumAddress: parseAddress(profile.ethereum_address),
+    ethereumAddress: parseEthereumAddress(profile.ethereum_address),
     submissionTimestamp: parseTimestamp(profile.submission_timestamp),
 
     notarized: parseBoolean(profile.is_notarized),
@@ -68,7 +69,7 @@ export const importProfile = async (profileId: number) => {
       parseNumber(profile.last_recorded_status)
     ),
     challengeTimestamp: parseTimestamp(profile.challenge_timestamp),
-    challengerAddress: parseAddress(profile.challenger_address),
+    challengerAddress: parseStarknetAddress(profile.challenger_address),
     challengeEvidenceCid: parseCid(profile.challenge_evidence_cid)
       ?.toV1()
       .toString(),

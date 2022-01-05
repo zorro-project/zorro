@@ -57,6 +57,7 @@ export const schema = gql`
       @skipAuth
 
     cachedProfile(id: ID!, resync: Boolean = false): CachedProfile @skipAuth
-    cachedProfileByEthAddress(ethereumAddress: ID!): CachedProfile @skipAuth
+    cachedProfileByEthereumAddress(ethereumAddress: ID!): CachedProfile
+      @skipAuth
   }
 `
