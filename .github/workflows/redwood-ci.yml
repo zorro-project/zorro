@@ -42,6 +42,5 @@ jobs:
       - run: yarn install --frozen-lockfile
       - run: yarn rw tsc
       - run: yarn rw test --watch=false --ci
-
-      # - run: yarn rw lint
-      # - run: yarn rw check
+      - run: yarn rw lint
+      - run: yarn rw check

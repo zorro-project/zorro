@@ -1,7 +1,5 @@
-import {htmlToText} from 'nodemailer-html-to-text'
-import {hostname} from 'os'
-
 import nodemailer from 'nodemailer'
+import {htmlToText} from 'nodemailer-html-to-text'
 
 const transport = nodemailer.createTransport({
   host: process.env.SMTP_HOST,

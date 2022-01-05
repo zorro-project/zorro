@@ -1,8 +1,8 @@
-import {Box, useInterval} from '@chakra-ui/react'
-import NavBar from './NavBar'
-import {toast, Toaster} from '@redwoodjs/web/toast'
+import {Box} from '@chakra-ui/react'
 import {useLocation} from '@redwoodjs/router'
-import {useEffect, useState} from 'react'
+import {toast, Toaster} from '@redwoodjs/web/toast'
+import {useEffect} from 'react'
+import NavBar from './NavBar'
 
 export default function AppLayout({children}) {
   const {pathname} = useLocation()

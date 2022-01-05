@@ -5,12 +5,7 @@ import {MetaTags} from '@redwoodjs/web'
 import {useEthers} from '@usedapp/core'
 import {useEffect} from 'react'
 import ConnectButton from 'src/components/ConnectButton/ConnectButton'
-import ipfsClient from 'src/lib/ipfs'
-
-import {
-  save as saveIntendedConnection,
-  load as loadIntendedConnection,
-} from '../../../lib/intendedConnectionStorage'
+import {save as saveIntendedConnection} from 'src/lib/intendedConnectionStorage'
 
 const IntroPage = ({purposeIdentifier, externalAddress}) => {
   const {account} = useEthers()

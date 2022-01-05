@@ -5,6 +5,10 @@ import {exportProfileById} from 'src/lib/starknet'
 import {sendMessage} from 'src/lib/twilio'
 import {db} from 'src/lib/db'
 
+// TODO: jest includes this natively in 27.4, switch to that version when
+// Redwood upgrades https://github.com/facebook/jest/pull/12089
+import {mocked} from 'ts-jest/dist/utils/testing'
+
 jest.mock('src/lib/starknet')
 jest.mock('src/lib/twilio')
 
@@ -23,8 +27,7 @@ describe('readCids', () => {
 
 describe('importProfile', () => {
   test('sends new challenge notifications', async () => {
-    // @ts-expect-error
-    exportProfileById.mockResolvedValueOnce({
+    mocked(exportProfileById).mockResolvedValueOnce({
       profile: {
         cid: '0x170121b909f5bf9672d64c328fb6196c0042b5bac45a7ce829b3a161a186c',
         ethereum_address: '0x4956f0cd',
@@ -53,8 +56,9 @@ describe('importProfile', () => {
 
     await importProfile(1)
 
-    // @ts-expect-error
-    expect(sendMessage.mock.calls[0][1]).toEqual('New challenge to profile 1')
+    expect(mocked(sendMessage).mock.calls[0][1]).toEqual(
+      'New challenge to profile 1'
+    )
 
     const notification = await db.notification.findFirst()
     expect(notification.key).toEqual({

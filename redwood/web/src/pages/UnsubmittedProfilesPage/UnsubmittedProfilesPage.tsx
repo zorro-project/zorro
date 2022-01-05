@@ -1,6 +1,5 @@
 import {Heading} from '@chakra-ui/layout'
-import {Table, Thead, Tr, Th, Tbody} from '@chakra-ui/react'
-import {Link, routes} from '@redwoodjs/router'
+import {Table, Tbody, Th, Thead, Tr} from '@chakra-ui/react'
 import {MetaTags, useQuery} from '@redwoodjs/web'
 import {Card} from 'src/components/Card'
 import {UnsubmittedProfilesQuery} from 'types/graphql'

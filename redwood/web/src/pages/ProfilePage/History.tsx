@@ -1,15 +1,13 @@
 import {ExternalLinkIcon} from '@chakra-ui/icons'
 import {
-  AccordionButton,
   Heading,
-  AccordionIcon,
-  Stack,
   Icon,
-  Text,
   Link,
+  Stack,
   Table,
   Tbody,
   Td,
+  Text,
   Tr,
 } from '@chakra-ui/react'
 import dayjs from 'dayjs'
