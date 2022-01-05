@@ -24,6 +24,7 @@ import ResizeTextarea from 'react-textarea-autosize'
 import {Card} from 'src/components/Card'
 import {InternalLink, RLink} from 'src/components/links'
 import {cairoCompatibleAdd} from 'src/lib/ipfs'
+import NotFoundPage from 'src/pages/NotFoundPage'
 import {
   ChallengePageQuery,
   ChallengePageQueryVariables,
@@ -109,7 +110,7 @@ const NotChallenged = (props: {query: ChallengePageQuery}) => {
   }, [])
 
   const formMethods = useForm()
-  const {isSubmitting, isDirty, isValid, errors} = formMethods.formState
+  const {errors} = formMethods.formState
 
   return (
     <Stack>

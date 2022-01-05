@@ -1,5 +1,17 @@
 {
   "python.formatting.provider": "black",
   "cairols.venvCommand": "source ./starknet/.venv/bin/activate",
-  "cairo.cairoFormatPath": "./starknet/.venv/bin/cairo-format"
+  "cairo.cairoFormatPath": "./starknet/.venv/bin/cairo-format",
+
+  "editor.tabSize": 2,
+  "files.trimTrailingWhitespace": true,
+  "editor.formatOnSave": false,
+  "eslint.workingDirectories": ["./redwood"],
+  "eslint.packageManager": "yarn",
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": true
+  },
+  "[prisma]": {
+    "editor.formatOnSave": true
+  }
 }

@@ -1,4 +1,3 @@
-import {Prisma} from '@prisma/client'
 import {
   Abi,
   Contract,
@@ -11,10 +10,8 @@ import {
 } from 'starknet'
 import {BigNumberish} from 'starknet/dist/utils/number'
 import {bnToUint256, uint256ToBN} from 'starknet/dist/utils/uint256'
-
 import ERC20_ABI from '../../../../starknet/starknet-artifacts/contracts/openzeppelin/ERC20.cairo/ERC20_abi.json'
 import ZORRO_ABI from '../../../../starknet/starknet-artifacts/contracts/zorro.cairo/zorro_abi.json'
-import {numToHex} from './serializers'
 
 const CHAIN_DEPLOYMENT = process.env.CHAIN_DEPLOYMENT
 

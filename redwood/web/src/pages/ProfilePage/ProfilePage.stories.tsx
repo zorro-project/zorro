@@ -1,7 +1,6 @@
-import ProfilePage from './ProfilePage'
-import {ProfilePageQuery, ProfilePageQueryVariables} from 'types/graphql'
 import {merge} from 'lodash'
-import {PartialDeep} from 'type-fest'
+import {ProfilePageQuery} from 'types/graphql'
+import ProfilePage from './ProfilePage'
 
 const baseMock: ProfilePageQuery = {
   cachedProfile: {
@@ -84,11 +83,7 @@ const settledMock: ProfilePageQuery = merge(
 )
 
 const mockQuery = (response: ProfilePageQuery) => {
-  mockGraphQLQuery(
-    'ProfilePageQuery',
-    (variables: ProfilePageQueryVariables, {ctx, req}): ProfilePageQuery =>
-      response
-  )
+  mockGraphQLQuery('ProfilePageQuery', (): ProfilePageQuery => response)
 }
 
 export const Not_Challenged = () => {

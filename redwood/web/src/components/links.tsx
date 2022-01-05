@@ -8,7 +8,7 @@ import {
 import {Link as RedwoodLink} from '@redwoodjs/router'
 
 export const RLink = ({href, ...props}: LinkProps) => (
-  // @ts-expect-error
+  // @ts-expect-error there's something incompatible with the `color` prop, not sure if it's a real issue or just a problem with the typescript definitions
   <RedwoodLink to={href} {...props} />
 )
 

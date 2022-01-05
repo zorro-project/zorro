@@ -49,7 +49,7 @@ const UnsubmittedProfile: React.FC<{
   `)
 
   const onApprove = async () => {
-    // setSubmitting(true)
+    setSubmitting(true)
 
     const cid = await cairoCompatibleAdd(
       JSON.stringify({photo: profile.photoCid, video: profile.videoCid})
@@ -63,7 +63,7 @@ const UnsubmittedProfile: React.FC<{
     console.log(submittedProfile)
 
     await markApproved({variables: {id: profile.id}})
-    // setReviewed(true)
+    setReviewed(true)
   }
 
   if (reviewed) return null
