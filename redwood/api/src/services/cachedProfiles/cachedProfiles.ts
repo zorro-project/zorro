@@ -41,7 +41,7 @@ export const cachedProfile = async ({id, resync}) => {
   return profile
 }
 
-export const cachedProfileByEthAddress = async ({ethereumAddress}) =>
+export const cachedProfileByEthereumAddress = async ({ethereumAddress}) =>
   await db.cachedProfile.findUnique({
     where: {ethereumAddress},
   })
