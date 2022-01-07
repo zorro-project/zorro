@@ -24,8 +24,8 @@ export const schema = gql`
   }
 
   input UpdateUnsubmittedProfileInput {
-    photoCid: String
-    videoCid: String
+    photoCid: String!
+    videoCid: String!
   }
 
   type Mutation {

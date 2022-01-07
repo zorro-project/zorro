@@ -1,15 +1,16 @@
-# This file contains the configuration settings for your Redwood app.
-# This file is also what makes your Redwood app a Redwood app.
-# If you remove it and try to run `yarn rw dev`, you'll get an error.
-#
-# For the full list of options, see the "App Configuration: redwood.toml" doc:
-# https://redwoodjs.com/docs/app-configuration-redwood-toml
-
 [web]
   title = "Zorro"
   port = 8910
   apiUrl = "/.redwood/functions"
-  includeEnvironmentVariables = ['CHAIN_DEPLOYMENT', 'INFURA_IPFS_ID', 'INFURA_IPFS_SECRET'] # any ENV vars that should be available to the web side, see https://redwoodjs.com/docs/environment-variables#web
+
+  # ENV vars that should be available to the web side
+  includeEnvironmentVariables = [
+    'CHAIN_DEPLOYMENT',
+    'INFURA_IPFS_ID',
+    'INFURA_IPFS_SECRET',
+    'PUSHER_APP_ID',
+    'PUSHER_CLUSTER'
+  ]
 [api]
   port = 8911
 [browser]

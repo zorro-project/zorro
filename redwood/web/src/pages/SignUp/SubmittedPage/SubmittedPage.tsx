@@ -15,6 +15,7 @@ import {Card} from 'src/components/Card'
 import requireEthAddress from 'src/components/requireEthAddress'
 // import RequireEthAddress from 'src/components/RequireEthAddress'
 import UserContext from 'src/layouts/UserContext'
+import {usePusher} from 'src/lib/pusher'
 import ProfileStatus from 'src/pages/SignUp/ProfileStatus'
 import {SignUpSubmittedPageQuery} from 'types/graphql'
 
@@ -40,6 +41,12 @@ const Success = (props: CellSuccessProps<SignUpSubmittedPageQuery>) => {
       }
     }
   `)
+
+  usePusher(
+    `unsubmittedProfile.${props.unsubmittedProfile.id}`,
+    'updated',
+    props.refetch
+  )
 
   const onSubmit = async (data) => {
     await saveEmail({
@@ -98,6 +105,7 @@ const Cell = createCell({
   QUERY: gql`
     query SignUpSubmittedPageQuery($ethereumAddress: ID!) {
       unsubmittedProfile(ethereumAddress: $ethereumAddress) {
+        id
         hasEmail
         UnaddressedFeedback {
           feedback
