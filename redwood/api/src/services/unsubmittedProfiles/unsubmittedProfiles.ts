@@ -18,7 +18,7 @@ import {
 import {ResolverArgs} from '@redwoodjs/graphql-server'
 
 const alertProfileUpdated = (profile: {id: number}) =>
-  pusher.trigger(`unsubmittedProfile.${profile.id}`, 'updated', {})
+  pusher?.trigger(`unsubmittedProfile.${profile.id}`, 'updated', {})
 
 // Just hard-code these for now. Will get fancier later.
 export const NOTARIES = [
