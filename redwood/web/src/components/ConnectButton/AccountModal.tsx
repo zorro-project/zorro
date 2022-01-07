@@ -1,6 +1,5 @@
 import {ExternalLinkIcon} from '@chakra-ui/icons'
 import {
-  Button,
   Flex,
   Link,
   Modal,
@@ -11,8 +10,9 @@ import {
   ModalOverlay,
   Text,
 } from '@chakra-ui/react'
-import {useEthers} from '@usedapp/core'
+import {useContext} from 'react'
 import Identicon from 'src/components/Identicon'
+import UserContext from 'src/layouts/UserContext'
 
 type Props = {
   isOpen: any
@@ -20,15 +20,7 @@ type Props = {
 }
 
 export default function AccountModal({isOpen, onClose}: Props) {
-  const {account, deactivate} = useEthers()
-
-  function handleDeactivateAccount() {
-    // Deactivate is kinda broken right now unfortunately. After refreshing the
-    // page the user is still signed in (!)
-    // https://github.com/EthWorks/useDApp/issues/273
-    deactivate()
-    onClose()
-  }
+  const {ethereumAddress} = useContext(UserContext)
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} isCentered size="md">
@@ -39,18 +31,9 @@ export default function AccountModal({isOpen, onClose}: Props) {
         </ModalHeader>
         <ModalCloseButton />
         <ModalBody>
-          <Flex justifyContent="space-between" alignItems="center" mb={3}>
-            <Text fontSize="sm">Connected with MetaMask</Text>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleDeactivateAccount}
-            >
-              Disconnect
-            </Button>
-          </Flex>
+          <Text fontSize="sm">Connected with MetaMask</Text>
           <Flex alignItems="center" mt={2} mb={4} lineHeight={1}>
-            <Identicon account={account} />
+            <Identicon account={ethereumAddress} />
             <Text
               fontSize="xl"
               fontWeight="semibold"
@@ -58,14 +41,14 @@ export default function AccountModal({isOpen, onClose}: Props) {
               lineHeight="1.1"
               wordBreak="break-all"
             >
-              {account}
+              {ethereumAddress}
             </Text>
           </Flex>
           <Link
             fontSize="sm"
             display="flex"
             alignItems="center"
-            href={`https://etherscan.io/address/${account}`}
+            href={`https://etherscan.io/address/${ethereumAddress}`}
             isExternal
             color="gray.600"
           >
