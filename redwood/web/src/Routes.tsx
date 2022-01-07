@@ -10,7 +10,7 @@
 import {Route, Router, Set} from '@redwoodjs/router'
 import AppLayout from './layouts/AppLayout/AppLayout'
 import ChallengeProfilePage from './pages/ChallengeProfilePage/ChallengeProfilePage'
-import SignUpLayout from './pages/SignUp/SignUpLayout'
+import SignUpContext from 'src/pages/SignUp/SignUpContext'
 
 const Routes = () => {
   return (
@@ -24,11 +24,13 @@ const Routes = () => {
         <Route path="/create-connection" page={CreateConnectionPage} name="createConnection" />
         <Route path="/test-transaction" page={TestTransactionPage} name="testTransaction" />
         <Route notfound page={NotFoundPage} />
-        <Set wrap={SignUpLayout}>
+        <Route path="/sign-up" page={SignUpIntroPage} name="signUpIntro" />
+        <Set wrap={SignUpContext}>
           <Route path="/sign-up/{purposeIdentifier}/{externalAddress}" page={SignUpIntroPage} name="signUpAndconnect" />
-          <Route path="/sign-up" page={SignUpIntroPage} name="signUpIntro" />
-          <Route path="/sign-up/create-profile" page={CreateProfilePage} name="createProfile" />
+          <Route path="/sign-up/edit" page={SignUpEditPage} name="signUpEdit" />
+          <Route path="/sign-up/presubmit" page={SignUpPresubmitPage} name="signUpPresubmit" />
         </Set>
+        <Route path="/sign-up/submitted" page={SignUpSubmittedPage} name="signUpSubmitted" />
       </Set>
     </Router>
   )

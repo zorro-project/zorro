@@ -1,30 +1,32 @@
 import {Button, ButtonGroup} from '@chakra-ui/button'
 import {FormControl, FormHelperText, FormLabel} from '@chakra-ui/form-control'
 import {Heading, Stack, StackDivider, Text} from '@chakra-ui/layout'
+import {navigate, routes} from '@redwoodjs/router'
+import {MetaTags} from '@redwoodjs/web'
+import {useContext} from 'react'
 import {useFormContext} from 'react-hook-form'
 import {Card} from 'src/components/Card'
-import PhotoField from 'src/pages/CreateProfilePage/PhotoField'
-import VideoField from 'src/pages/CreateProfilePage/VideoField'
-import {FindUnsubmittedProfileQuery} from 'types/graphql'
-import ProfileStatus from './ProfileStatus'
+import PhotoField from 'src/pages/SignUp/PhotoField'
+import ProfileStatus from 'src/pages/SignUp/ProfileStatus'
+import VideoField from 'src/pages/SignUp/VideoField'
+import {SignUpContext} from '../SignUpContext'
 
-const EditView = (props: {
-  onContinue: () => void
-  unsubmittedProfile: FindUnsubmittedProfileQuery['unsubmittedProfile']
-}) => {
+const EditPage = () => {
   const {formState} = useFormContext()
+  const {
+    data: {unsubmittedProfile},
+  } = useContext(SignUpContext)
 
   return (
     <Stack spacing="6">
+      <MetaTags title="Create Public Profile" />
       <Heading size="lg">Create Public Profile</Heading>
       <Text>
         Your Zorro profile is linked to your real identity, and each person can
         only create a single profile. If you already have a Zorro profile,
         switch to that wallet.
       </Text>
-      {!formState.isDirty && (
-        <ProfileStatus profile={props.unsubmittedProfile} />
-      )}
+      {!formState.isDirty && <ProfileStatus profile={unsubmittedProfile} />}
       <Card>
         <Stack divider={<StackDivider />} spacing="8">
           <Stack
@@ -62,7 +64,7 @@ const EditView = (props: {
         <Button
           colorScheme="teal"
           disabled={!formState.isValid}
-          onClick={props.onContinue}
+          onClick={() => navigate(routes.signUpPresubmit())}
         >
           Continue
         </Button>
@@ -71,4 +73,4 @@ const EditView = (props: {
   )
 }
 
-export default EditView
+export default EditPage

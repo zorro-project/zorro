@@ -24,7 +24,7 @@ import Webcam from 'react-webcam'
 import {VideoBox} from 'src/components/SquareBox'
 import {dataUrlToBlob} from 'src/lib/util'
 import {useFilePicker} from 'use-file-picker'
-import {SignupFieldValues} from './types'
+import {SignupFieldValues} from './SignUpContext'
 
 const VideoModal = (props: {
   modalCtrl: UseDisclosureReturn
@@ -184,7 +184,8 @@ const VideoModal = (props: {
   )
 }
 
-const VideoField = () => {
+const VideoField: React.FC<{readOnly?: boolean}> = (props) => {
+  const {readOnly = false} = props
   const modalControl = useDisclosure()
 
   const {control} = useFormContext<SignupFieldValues>()
@@ -200,14 +201,16 @@ const VideoField = () => {
       {field.value ? (
         <Stack>
           <VideoBox video={field.value as Blob} width="36" shadow="lg" />
-          <Link
-            as="button"
-            type="button"
-            variant="btn"
-            onClick={modalControl.onOpen}
-          >
-            Change
-          </Link>
+          {!readOnly && (
+            <Link
+              as="button"
+              type="button"
+              variant="btn"
+              onClick={modalControl.onOpen}
+            >
+              Change
+            </Link>
+          )}
         </Stack>
       ) : (
         <Button onClick={modalControl.onOpen}>Record Video</Button>

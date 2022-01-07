@@ -10,20 +10,29 @@ import {
   Text,
 } from '@chakra-ui/layout'
 import {CircularProgress} from '@chakra-ui/progress'
-import {useEthers} from '@usedapp/core'
-import React from 'react'
+import {navigate, Redirect, routes} from '@redwoodjs/router'
+import {MetaTags} from '@redwoodjs/web'
+import React, {useContext} from 'react'
 import {useFormContext} from 'react-hook-form'
 import {Card} from 'src/components/Card'
 import Identicon from 'src/components/Identicon'
-import {PhotoBox, VideoBox} from 'src/components/SquareBox'
-import {SignupFieldValues} from 'src/pages/CreateProfilePage/types'
+import UserContext from 'src/layouts/UserContext'
+import PhotoField from 'src/pages/SignUp/PhotoField'
+import VideoField from 'src/pages/SignUp/VideoField'
+import {SignUpContext, SignupFieldValues} from '../SignUpContext'
 
-const PreSubmitView = (props: {submitProgress: number; onEdit: () => void}) => {
-  const {account} = useEthers()
-  const {watch, formState} = useFormContext<SignupFieldValues>()
+const PreSubmitPage = () => {
+  const {ethereumAddress} = useContext(UserContext)
+  const {formState, watch} = useFormContext<SignupFieldValues>()
+  const {submitProgress} = useContext(SignUpContext)
+
+  if (watch('videoCid') == null || watch('photoCid') == null) {
+    return <Redirect to={routes.signUpEdit()} />
+  }
 
   return (
     <Stack spacing="6">
+      <MetaTags title="Review Public Profile" />
       <Heading size="lg">Review Public Profile</Heading>
       <Card>
         <Stack divider={<StackDivider />} spacing="8">
@@ -36,9 +45,9 @@ const PreSubmitView = (props: {submitProgress: number; onEdit: () => void}) => {
               </Text>
               <Stack direction="row" justify="center" align="center">
                 <Text fontWeight="bold" display="block">
-                  {account}
+                  {ethereumAddress}
                 </Text>
-                <Identicon account={account} />
+                <Identicon account={ethereumAddress} />
               </Stack>
             </Stack>
           </Box>
@@ -62,7 +71,7 @@ const PreSubmitView = (props: {submitProgress: number; onEdit: () => void}) => {
                 </ListItem>
               </OrderedList>
             </FormControl>
-            <PhotoBox photo={watch('photoCid')} width="36" shadow="lg" />
+            <PhotoField readOnly />
           </Stack>
           <Stack
             direction={{base: 'column', md: 'row'}}
@@ -82,23 +91,27 @@ const PreSubmitView = (props: {submitProgress: number; onEdit: () => void}) => {
                 </ListItem>
               </OrderedList>
             </FormControl>
-            <VideoBox
+            <VideoField readOnly />
+
+            {/* <VideoBox
               video={watch('videoCid')}
               width="36"
               borderRadius="lg"
               shadow="lg"
-            />
+            /> */}
           </Stack>
         </Stack>
       </Card>
       {formState.isSubmitting ? (
         <Stack align="center" justify="center" direction="row">
-          <CircularProgress value={props.submitProgress} />
+          <CircularProgress value={submitProgress} />
           <Text>Submitting...</Text>
         </Stack>
       ) : (
         <ButtonGroup alignSelf="flex-end">
-          <Button onClick={props.onEdit}>Make Changes</Button>
+          <Button onClick={() => navigate(routes.signUpEdit())}>
+            Make Changes
+          </Button>
           <Button
             colorScheme="blue"
             type="submit"
@@ -112,4 +125,4 @@ const PreSubmitView = (props: {submitProgress: number; onEdit: () => void}) => {
   )
 }
 
-export default PreSubmitView
+export default PreSubmitPage
