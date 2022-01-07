@@ -1,11 +1,11 @@
-import {Icon, Stack, StackProps, Text} from '@chakra-ui/react'
-import {FaMask} from 'react-icons/fa'
+import {Stack, StackProps, Text} from '@chakra-ui/react'
+import LogoSVG from 'src/logo.svg'
 
 const Logo = (props: StackProps) => {
   return (
     <Stack direction="row" align="center" {...props}>
-      <Icon as={FaMask} color="blue.800" boxSize="8" />
-      <Text color="blue.800" fontWeight="900" fontSize="2xl">
+      <LogoSVG height="20" width="40" />
+      <Text color="#805AD5" fontWeight="700" fontSize="2xl">
         Zorro
       </Text>
     </Stack>
