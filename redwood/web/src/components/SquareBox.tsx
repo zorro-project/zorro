@@ -45,7 +45,19 @@ export const VideoBox = ({
   const videoUrl = useDataFieldUrl(video)
 
   return (
-    <SquareBox {...props}>
+    <SquareBox
+      {...props}
+      // Hide annoying loading spinner https://stackoverflow.com/a/62786714/2141688
+      sx={{
+        'video::-webkit-media-controls': {
+          visibility: 'hidden',
+        },
+
+        'video::-webkit-media-controls-enclosure': {
+          visibility: 'visible',
+        },
+      }}
+    >
       <ReactPlayer url={videoUrl} controls width="100%" height="100%" />
     </SquareBox>
   )

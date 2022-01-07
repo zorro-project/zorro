@@ -5,11 +5,11 @@ import {useState} from 'react'
 import {UserContextQuery, UserContextQueryVariables} from 'types/graphql'
 import useLocalStorageState from 'use-local-storage-state'
 
-type UserContextType = {
-  ethereumAddress: string
-  unsubmittedProfile: UserContextQuery['unsubmittedProfile'] | null
-  cachedProfile: UserContextQuery['cachedProfileByEthereumAddress'] | null
-} | null
+type UserContextType =
+  | ({
+      ethereumAddress: string
+    } & UserContextQuery)
+  | null
 
 const UserContext = React.createContext<UserContextType>(null)
 
@@ -37,14 +37,12 @@ export function UserContextProvider({children}: {children: React.ReactNode}) {
       query UserContextQuery($ethereumAddress: ID!) {
         unsubmittedProfile(ethereumAddress: $ethereumAddress) {
           id
-          ethereumAddress
-          photoCid
-          videoCid
         }
 
-        cachedProfileByEthereumAddress(ethereumAddress: $ethereumAddress) {
+        cachedProfile: cachedProfileByEthereumAddress(
+          ethereumAddress: $ethereumAddress
+        ) {
           id
-          ethereumAddress
         }
       }
     `,
@@ -63,8 +61,7 @@ export function UserContextProvider({children}: {children: React.ReactNode}) {
 
   const context: UserContextType = {
     ethereumAddress,
-    unsubmittedProfile: ethereumAddress && data?.unsubmittedProfile,
-    cachedProfile: ethereumAddress && data?.cachedProfileByEthereumAddress,
+    ...data,
   }
 
   return <UserContext.Provider value={context}>{children}</UserContext.Provider>

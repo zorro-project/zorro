@@ -24,7 +24,7 @@ import Webcam from 'react-webcam'
 import {PhotoBox} from 'src/components/SquareBox'
 import {dataUrlToBlob} from 'src/lib/util'
 import {useFilePicker} from 'use-file-picker'
-import {SignupFieldValues} from './types'
+import {SignupFieldValues} from './SignUpContext'
 
 const PhotoModal = (props: {
   modalCtrl: UseDisclosureReturn
@@ -148,7 +148,8 @@ const PhotoModal = (props: {
   )
 }
 
-const PhotoField = () => {
+const PhotoField: React.FC<{readOnly?: boolean}> = (props) => {
+  const {readOnly = false} = props
   const modalControl = useDisclosure()
 
   const {control} = useFormContext<SignupFieldValues>()
@@ -167,14 +168,16 @@ const PhotoField = () => {
       {field.value ? (
         <Stack>
           <PhotoBox photo={field.value as Blob} width="36" shadow="lg" />
-          <Link
-            as="button"
-            type="button"
-            variant="btn"
-            onClick={modalControl.onOpen}
-          >
-            Change
-          </Link>
+          {!readOnly && (
+            <Link
+              as="button"
+              type="button"
+              variant="btn"
+              onClick={modalControl.onOpen}
+            >
+              Change
+            </Link>
+          )}
         </Stack>
       ) : (
         <Button onClick={modalControl.onOpen}>Take Selfie</Button>

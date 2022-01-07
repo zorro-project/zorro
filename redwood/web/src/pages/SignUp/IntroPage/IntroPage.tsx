@@ -2,13 +2,13 @@ import {Alert, AlertDescription, AlertIcon} from '@chakra-ui/alert'
 import {Box, Heading, ListItem, OrderedList, Text} from '@chakra-ui/layout'
 import {Redirect, routes} from '@redwoodjs/router'
 import {MetaTags} from '@redwoodjs/web'
-import {useEthers} from '@usedapp/core'
-import {useEffect} from 'react'
+import {useContext, useEffect} from 'react'
 import ConnectButton from 'src/components/ConnectButton/ConnectButton'
+import UserContext from 'src/layouts/UserContext'
 import {save as saveIntendedConnection} from 'src/lib/intendedConnectionStorage'
 
 const IntroPage = ({purposeIdentifier, externalAddress}) => {
-  const {account} = useEthers()
+  const {ethereumAddress} = useContext(UserContext)
 
   useEffect(() => {
     if (purposeIdentifier && externalAddress) {
@@ -16,7 +16,7 @@ const IntroPage = ({purposeIdentifier, externalAddress}) => {
     }
   }, [])
 
-  if (account != null) return <Redirect to={routes.createProfile()} />
+  if (ethereumAddress != null) return <Redirect to={routes.signUpEdit()} />
 
   return (
     <Box maxW="xl" mx="auto">

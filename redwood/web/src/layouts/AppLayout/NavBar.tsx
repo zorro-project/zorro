@@ -95,13 +95,13 @@ const NavBar = () => {
   } else if (user.unsubmittedProfile) {
     navItems.push({
       label: 'Complete Profile',
-      href: routes.createProfile(),
+      href: routes.signUpEdit(),
       icon: BsPersonPlus,
     })
   } else if (user) {
     navItems.push({
       label: 'Create Profile',
-      href: routes.createProfile(),
+      href: routes.signUpEdit(),
       icon: BsPersonPlus,
     })
   }
