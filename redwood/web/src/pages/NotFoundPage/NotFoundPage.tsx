@@ -1,11 +1,4 @@
-import {useEffect} from 'react'
-
 export default () => {
-  // Temporary, just until we launch...
-  useEffect(() => {
-    top.location = 'https://github.com/zorro-project'
-  }, [])
-  return <div />
   return (
     <main>
       <style
