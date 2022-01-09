@@ -15,6 +15,7 @@ import {
   ModalFooter,
   ModalBody,
   ModalCloseButton,
+  MetaTags,
   useDisclosure,
 } from '@chakra-ui/react'
 
@@ -24,14 +25,22 @@ import {Feature} from './Feature'
 
 const SplashPage = () => {
   return (
-    <Box>
-      <Nav />
-      <Box as="section" py="7.5rem">
-        <Hero />
-        <Divider my="20" opacity={1} />
-        <Features />
+    <>
+      <MetaTags
+        title="Zorro: web3 citizenship"
+        description="Proof of personhood with fast registration for democratic DAO voting, fair airdrops, etc"
+        ogUrl="https://zorro.xyz"
+        ogContentUrl="https://zorro.xyz/logo-twitter-card.png"
+      />
+      <Box>
+        <Nav />
+        <Box as="section" py="7.5rem">
+          <Hero />
+          <Divider my="20" opacity={1} />
+          <Features />
+        </Box>
       </Box>
-    </Box>
+    </>
   )
 }
 
