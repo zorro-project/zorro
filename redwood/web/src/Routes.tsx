@@ -15,7 +15,7 @@ import SignUpContext from 'src/pages/SignUp/SignUpContext'
 const Routes = () => {
   return (
     <Router>
-      <Route path="/" page={SplashPage} name="splash" />
+      <Route path="/" page={SplashPage} name="splash" prerender />
       <Set wrap={AppLayout}>
         <Route path="/profiles" page={ProfilesPage} name="profiles" />
         <Route path="/profiles/{id}" page={ProfilePage} name="profile" />
