@@ -1,5 +1,4 @@
 import * as React from 'react'
-import {Head} from '@redwoodjs/web'
 import {
   Box,
   Button,
@@ -25,28 +24,14 @@ import {Feature} from './Feature'
 
 const SplashPage = () => {
   return (
-    <>
-      <Head>
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="Zorro: web3 citizenship" />
-        <meta
-          name="twitter:description"
-          content="Proof of personhood with fast registration for democratic DAO voting, fair airdrops, etc"
-        />
-        <meta
-          name="twitter:image"
-          content="https://zorro.xyz/logo-twitter-card.png"
-        />
-      </Head>
-      <Box>
-        <Nav />
-        <Box as="section" py="7.5rem">
-          <Hero />
-          <Divider my="20" opacity={1} />
-          <Features />
-        </Box>
+    <Box>
+      <Nav />
+      <Box as="section" py="7.5rem">
+        <Hero />
+        <Divider my="20" opacity={1} />
+        <Features />
       </Box>
-    </>
+    </Box>
   )
 }
 
