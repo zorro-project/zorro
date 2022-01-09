@@ -1,5 +1,5 @@
 import * as React from 'react'
-import {MetaTags} from '@redwoodjs/web'
+import {Head} from '@redwoodjs/web'
 import {
   Box,
   Button,
@@ -26,12 +26,18 @@ import {Feature} from './Feature'
 const SplashPage = () => {
   return (
     <>
-      <MetaTags
-        title="Zorro: web3 citizenship"
-        description="Proof of personhood with fast registration for democratic DAO voting, fair airdrops, etc"
-        ogUrl="https://zorro.xyz"
-        ogContentUrl="https://zorro.xyz/logo-twitter-card.png"
-      />
+      <Head>
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Zorro: web3 citizenship" />
+        <meta
+          name="twitter:description"
+          content="Proof of personhood with fast registration for democratic DAO voting, fair airdrops, etc"
+        />
+        <meta
+          name="twitter:image"
+          content="https://zorro.xyz/logo-twitter-card.png"
+        />
+      </Head>
       <Box>
         <Nav />
         <Box as="section" py="7.5rem">
