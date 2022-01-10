@@ -5,20 +5,18 @@ import {useState} from 'react'
 import {UserContextQuery, UserContextQueryVariables} from 'types/graphql'
 import useLocalStorageState from 'use-local-storage-state'
 
-type UserContextType =
-  | ({
-      ethereumAddress: string
-    } & UserContextQuery)
-  | null
+type UserContextType = {
+  ethereumAddress?: string
+} & UserContextQuery
 
-const UserContext = React.createContext<UserContextType>(null)
+const UserContext = React.createContext<UserContextType>({})
 
 export function UserContextProvider({children}: {children: React.ReactNode}) {
   const ethers = useEthers()
 
   const [ethereumAddress, setEthereumAddress] = useLocalStorageState<
-    string | null
-  >('UserContext_ethereumAddress', null)
+    string | undefined
+  >('UserContext_ethereumAddress', undefined)
 
   // This is an ugly hack since ethers.js doesn't tell you whether `account` is
   // undefined because the page just loaded, or undefined because the user has
@@ -45,13 +43,12 @@ export function UserContextProvider({children}: {children: React.ReactNode}) {
           id
         }
       }
-    `,
-    {variables: {ethereumAddress}}
+    `
   )
 
   React.useEffect(() => {
     if (initialLoadTimeoutExpired) {
-      setEthereumAddress(ethers.account ?? null)
+      setEthereumAddress(ethers.account ?? undefined)
     }
   }, [ethers.account, initialLoadTimeoutExpired, setEthereumAddress])
 

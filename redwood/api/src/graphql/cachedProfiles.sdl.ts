@@ -47,8 +47,8 @@ export const schema = gql`
 
   type CachedProfileConnection {
     id: ID! # This makes apollo-client happy
-    edges: [CachedProfileEdge]
-    pageInfo: PageInfo
+    edges: [CachedProfileEdge]!
+    pageInfo: PageInfo!
     count: Int!
   }
 

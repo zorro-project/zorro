@@ -46,6 +46,8 @@ const ProfilesPage = () => {
           cursor: data?.cachedProfiles?.pageInfo?.endCursor || null,
         },
         updateQuery: (previousResult, {fetchMoreResult}): ProfilesPageQuery => {
+          if (!fetchMoreResult?.cachedProfiles) return previousResult
+
           const newEdges = fetchMoreResult.cachedProfiles.edges
           const pageInfo = fetchMoreResult.cachedProfiles.pageInfo
 
@@ -55,7 +57,7 @@ const ProfilesPage = () => {
                 cachedProfiles: {
                   ...fetchMoreResult.cachedProfiles,
                   edges: [
-                    ...previousResult.cachedProfiles.edges,
+                    ...(previousResult.cachedProfiles?.edges ?? []),
                     ...fetchMoreResult.cachedProfiles.edges,
                   ],
                   pageInfo,
@@ -66,12 +68,13 @@ const ProfilesPage = () => {
       })
   }, [fetchMore, data?.cachedProfiles?.pageInfo?.endCursor])
 
-  const profiles = data?.cachedProfiles?.edges?.map(({node}) => node)
+  const profiles = data?.cachedProfiles?.edges?.map((edge) => edge?.node)
   const hasNextPage = data?.cachedProfiles?.pageInfo?.hasNextPage
 
-  const profilesCount = data?.cachedProfiles?.count
+  const profilesCount = data?.cachedProfiles?.count ?? 0
+  const profilesLength = profiles?.length ?? 0
   const isProfileLoaded = (index: number) =>
-    !hasNextPage || index < profiles.length
+    !hasNextPage || index < profilesLength
 
   if (data == null) return null
 
@@ -117,11 +120,15 @@ const ProfilesPage = () => {
                   >
                     {({columnIndex, rowIndex, style}) => {
                       const idx = rowIndex * columnCount + columnIndex
-                      if (idx >= profiles.length) return null
+                      if (idx >= profilesLength) return null
+                      const profile = (profiles ?? [])[idx]
+                      if (profile == null) return null
                       return (
-                        <Box style={style} p="2">
-                          <ProfileCard profile={profiles[idx]} />
-                        </Box>
+                        profile && (
+                          <Box style={style} p="2">
+                            <ProfileCard profile={profile} />
+                          </Box>
+                        )
                       )
                     }}
                   </FixedSizeGrid>

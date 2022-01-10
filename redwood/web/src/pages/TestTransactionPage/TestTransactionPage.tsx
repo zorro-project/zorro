@@ -21,7 +21,7 @@ import {
 } from '../../../../api/src/lib/starknet'
 
 const ExportProfileById = () => {
-  const profileId = React.useRef<HTMLInputElement>()
+  const profileId = React.useRef<HTMLInputElement>(null)
   const [output, setOutput] = React.useState<object | null>()
   const [running, setRunning] = React.useState(false)
 
@@ -86,8 +86,8 @@ const ERC20Ops = (props: {userWallet: string | null}) => {
   const [output, setOutput] = React.useState<string | null>()
   const [running, setRunning] = React.useState(false)
 
-  const owner = React.useRef<HTMLInputElement>()
-  const spender = React.useRef<HTMLInputElement>()
+  const owner = React.useRef<HTMLInputElement>(null)
+  const spender = React.useRef<HTMLInputElement>(null)
 
   const runGetAllowance = async () => {
     setRunning(true)
@@ -95,7 +95,10 @@ const ERC20Ops = (props: {userWallet: string | null}) => {
       setOutput(
         (
           'allowance: ' +
-          (await erc20GetAllowance(owner.current.value, spender.current.value))
+          (await erc20GetAllowance(
+            owner.current!.value,
+            spender.current!.value
+          ))
         ).toString()
       )
     } finally {
@@ -108,7 +111,7 @@ const ERC20Ops = (props: {userWallet: string | null}) => {
     try {
       setOutput(
         (
-          'balance_of: ' + (await erc20GetBalanceOf(owner.current.value))
+          'balance_of: ' + (await erc20GetBalanceOf(owner.current!.value))
         ).toString()
       )
     } finally {
@@ -120,8 +123,12 @@ const ERC20Ops = (props: {userWallet: string | null}) => {
     setRunning(true)
     const starknet = getStarknet({showModal: true})
 
+    if (!starknet.signer) {
+      alert('cannot access starknet wallet')
+      return
+    }
     try {
-      await erc20Mint(starknet.signer, owner.current.value, 500)
+      await erc20Mint(starknet.signer, owner.current!.value, 500)
       await runBalanceOf()
     } finally {
       setRunning(false)
@@ -191,7 +198,10 @@ const submitTestProfile = async () => {
   )
   const addr = '0x334230242D318b5CA159fc38E07dC1248B7b35e4'
 
-  await notarySubmitProfile(serializeCid(cid), addr, getNotaryKey())
+  const notaryKey = getNotaryKey()
+  if (notaryKey == null) return
+
+  await notarySubmitProfile(serializeCid(cid), addr, notaryKey)
 }
 
 const TestTransactionPage = () => {

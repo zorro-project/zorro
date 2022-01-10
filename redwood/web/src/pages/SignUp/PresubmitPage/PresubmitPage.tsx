@@ -26,6 +26,10 @@ const PreSubmitPage = () => {
   const {formState, watch} = useFormContext<SignupFieldValues>()
   const {submitProgress} = useContext(SignUpContext)
 
+  if (!ethereumAddress) {
+    return <Redirect to={routes.signUpIntro()} />
+  }
+
   if (watch('videoCid') == null || watch('photoCid') == null) {
     return <Redirect to={routes.signUpEdit()} />
   }

@@ -1,3 +1,4 @@
+import {UserInputError} from '@redwoodjs/graphql-server'
 import ethers from 'ethers'
 import {db} from 'src/lib/db'
 import {MutationcreateConnectionArgs} from 'types/graphql'
@@ -7,16 +8,18 @@ export const createConnection = async ({
 }: MutationcreateConnectionArgs) => {
   // XXX: dedup message with frontend
   const message = `Connect Zorro to ${input.externalAddress}`
-  const ethereumAddress = ethers.utils
-    .verifyMessage(message, input.signature)
-    .toLowerCase()
+  const ethereumAddress = ethers.utils.verifyMessage(message, input.signature)
 
   const profileId = (
     await db.cachedProfile.findUnique({
       where: {ethereumAddress},
       select: {id: true},
     })
-  ).id
+  )?.id
+
+  if (!profileId) {
+    throw new UserInputError("Couldn't find a profile for this address")
+  }
 
   const createOrUpdate = {
     purposeIdentifier: input.purposeIdentifier,

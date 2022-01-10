@@ -9,8 +9,7 @@ type Felt = string
 export const parseNumber = (number: Felt) => parseInt(number, 16)
 
 export const parseBoolean = (boolean: Felt) => parseInt(boolean) === 1
-export const parseTimestamp = (timestamp: Felt) =>
-  parseInt(timestamp) > 0 ? new Date(parseInt(timestamp)) : null
+export const parseTimestamp = (timestamp: Felt) => new Date(parseInt(timestamp))
 
 export const bytesToFelt = (bytes: Uint8Array) => {
   assert(bytes.length <= 31, 'Error: cids on Cairo must be 31 bytes')
@@ -25,14 +24,20 @@ export const bytesToFelt = (bytes: Uint8Array) => {
 
 export const feltToBytes = (felt: Felt) =>
   new Uint8Array(
-    sanitizeHex(felt)
-      .slice(2)
-      .match(/.{2}/g)
-      .map((byte) => parseInt(byte, 16))
+    (sanitizeHex(felt).slice(2).match(/.{2}/g) as string[]).map((byte) =>
+      parseInt(byte, 16)
+    )
   )
 
-export const parseCid = (cid: Felt): CID | null =>
-  isInitialized(cid) ? CID.decode(feltToBytes(cid)) : null
+export const parseCid = (cid: Felt): CID | null => {
+  if (!isInitialized(cid)) return null
+  try {
+    return CID.decode(feltToBytes(cid))
+  } catch (e) {
+    return null
+  }
+}
+
 export const serializeCid = (cid: CID) => bytesToFelt(cid.bytes)
 
 const canonicalizeHex = (hex: string) =>
@@ -47,7 +52,11 @@ export const parseEthereumAddress = (address: Felt) => {
   if (!isInitialized(address)) return null
   if (removeHexPrefix(address).length > 40) return null
 
-  return getAddress(removeHexPrefix(address).padStart(40, '0'))
+  try {
+    return getAddress(removeHexPrefix(address).padStart(40, '0'))
+  } catch (e) {
+    return null
+  }
 }
 
 export const numToHex = (num: number) => '0x' + num.toString(16)

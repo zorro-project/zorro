@@ -17,7 +17,7 @@ import sendNotaryFeedback from 'src/mailers/sendNotaryFeedback'
 import syncStarknetState from 'src/tasks/syncStarknetState'
 
 const alertProfileUpdated = (profile: {id: number}) =>
-  pusher.trigger(`unsubmittedProfile.${profile.id}`, 'updated', {})
+  pusher?.trigger(`unsubmittedProfile.${profile.id}`, 'updated', {})
 
 // Just hard-code these for now. Will get fancier later.
 export const NOTARIES = [
@@ -92,9 +92,8 @@ export const addNotaryFeedback = async ({
     include: {UnaddressedFeedback: true},
   })
 
-  alertProfileUpdated(profile)
-
-  if (profile.email) {
+  if (profile?.email && profile.UnaddressedFeedback) {
+    alertProfileUpdated(profile)
     await sendNotaryFeedback(
       profile.email,
       profile.UnaddressedFeedback.feedback
@@ -108,6 +107,8 @@ export const approveProfile = async ({id}: MutationapproveProfileArgs) => {
   const profile = await db.unsubmittedProfile.findUnique({
     where: {id},
   })
+
+  if (!profile) return false
 
   syncStarknetState(true)
 

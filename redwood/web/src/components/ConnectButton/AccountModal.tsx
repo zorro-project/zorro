@@ -22,6 +22,8 @@ type Props = {
 export default function AccountModal({isOpen, onClose}: Props) {
   const {ethereumAddress} = useContext(UserContext)
 
+  if (!ethereumAddress) return null
+
   return (
     <Modal isOpen={isOpen} onClose={onClose} isCentered size="md">
       <ModalOverlay />

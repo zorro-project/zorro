@@ -26,7 +26,9 @@ const EditPage = () => {
         only create a single profile. If you already have a Zorro profile,
         switch to that wallet.
       </Text>
-      {!formState.isDirty && <ProfileStatus profile={unsubmittedProfile} />}
+      {!formState.isDirty && unsubmittedProfile && (
+        <ProfileStatus profile={unsubmittedProfile} />
+      )}
       <Card>
         <Stack divider={<StackDivider />} spacing="8">
           <Stack

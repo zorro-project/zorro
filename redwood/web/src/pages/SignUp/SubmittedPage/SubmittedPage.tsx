@@ -22,11 +22,15 @@ import {SignUpSubmittedPageQuery} from 'types/graphql'
 type FormFields = {email: string}
 
 const Success = (props: CellSuccessProps<SignUpSubmittedPageQuery>) => {
-  const {ethereumAddress} = useContext(UserContext)
+  const user = useContext(UserContext)
+  if (!user) return <Redirect to={routes.signUpIntro()} />
+  const {ethereumAddress} = user
+
+  if (!props.unsubmittedProfile) return <Redirect to={routes.signUpEdit()} />
 
   const methods = useForm<FormFields>({
     defaultValues: {
-      email: props.unsubmittedProfile?.hasEmail ? '***@***.***' : null,
+      email: props.unsubmittedProfile?.hasEmail ? '***@***.***' : undefined,
     },
   })
 
@@ -45,7 +49,7 @@ const Success = (props: CellSuccessProps<SignUpSubmittedPageQuery>) => {
   `)
 
   usePusher(
-    `unsubmittedProfile.${props.unsubmittedProfile.id}`,
+    `unsubmittedProfile.${props.unsubmittedProfile?.id}`,
     'updated',
     props.refetch
   )

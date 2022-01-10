@@ -13,7 +13,9 @@ const ProfileCard = ({
   profile,
 }: {
   profile:
-    | ArrayElement<ProfilesPageQuery['cachedProfiles']['edges']>['node']
+    | NonNullable<
+        ArrayElement<NonNullable<ProfilesPageQuery['cachedProfiles']>['edges']>
+      >['node']
     | null
 }) => {
   const photoUrl = useDataFieldUrl(profile?.photoCid)

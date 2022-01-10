@@ -4,9 +4,9 @@ import {SignupContextQuery} from 'types/graphql'
 
 const ProfileStatus: React.FC<{
   profile: Pick<
-    SignupContextQuery['unsubmittedProfile'],
+    NonNullable<SignupContextQuery['unsubmittedProfile']>,
     'UnaddressedFeedback'
-  > | null
+  >
 }> = ({profile}) => {
   if (!profile) return null
 
@@ -19,7 +19,7 @@ const ProfileStatus: React.FC<{
           <AlertDescription fontSize="sm">
             <Text>Please address the following issue with your profile:</Text>
             <Text fontWeight="bold">
-              {profile.UnaddressedFeedback.feedback}
+              {profile.UnaddressedFeedback?.feedback}
             </Text>
           </AlertDescription>
         </Box>

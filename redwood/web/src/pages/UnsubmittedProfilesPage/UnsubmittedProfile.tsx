@@ -23,7 +23,7 @@ const UnsubmittedProfile: React.FC<{
 }> = ({profile}) => {
   const [reviewed, setReviewed] = React.useState(false)
   const [submitting, setSubmitting] = React.useState(false)
-  const feedbackRef = React.useRef<HTMLTextAreaElement>()
+  const feedbackRef = React.useRef<HTMLTextAreaElement>(null)
 
   const [giveFeedback] = useMutation<MutationaddNotaryFeedbackArgs>(gql`
     mutation AddNotaryFeedback($id: Int!, $feedback: String!) {
@@ -33,7 +33,7 @@ const UnsubmittedProfile: React.FC<{
 
   const onGiveFeedback = async () => {
     await giveFeedback({
-      variables: {id: profile.id, feedback: feedbackRef.current.value},
+      variables: {id: profile.id, feedback: feedbackRef.current?.value},
     })
 
     setReviewed(true)
@@ -49,6 +49,8 @@ const UnsubmittedProfile: React.FC<{
   `)
 
   const onApprove = async () => {
+    const notaryKey = getNotaryKey()
+    if (notaryKey == null) return
     setSubmitting(true)
 
     const cid = await cairoCompatibleAdd(
@@ -58,7 +60,7 @@ const UnsubmittedProfile: React.FC<{
     const submittedProfile = await notarySubmitProfile(
       serializeCid(cid),
       profile.ethereumAddress,
-      getNotaryKey()
+      notaryKey
     )
     console.log(submittedProfile)
 

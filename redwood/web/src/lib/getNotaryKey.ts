@@ -1,6 +1,6 @@
 const LS_KEY = 'ZORRO_NOTARY_KEY'
 
-const getNotaryKey = (): string => {
+const getNotaryKey = (): string | null => {
   let key = localStorage.getItem(LS_KEY)
 
   if (!key) {

@@ -76,11 +76,11 @@ model CachedProfile {
   cache Json @db.JsonB
 
   // Derived fields
-  cid      String
+  cid      String?
   photoCid String?
   videoCid String?
 
-  ethereumAddress      String     @unique
+  ethereumAddress      String?    @unique
   submissionTimestamp  DateTime
   notarized            Boolean
   lastRecordedStatus   StatusEnum

@@ -61,7 +61,7 @@ describe('importProfile', () => {
     )
 
     const notification = await db.notification.findFirst()
-    expect(notification.key).toEqual({
+    expect(notification?.key).toEqual({
       type: 'NEW_CHALLENGE',
       profileId: 1,
       challengeTimestamp: '1970-01-02T10:17:36.789Z',

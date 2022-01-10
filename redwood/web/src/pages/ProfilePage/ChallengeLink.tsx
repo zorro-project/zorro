@@ -6,7 +6,7 @@ import {InternalLink} from 'src/components/links'
 import {ProfilePageQuery, StatusEnum} from 'types/graphql'
 
 const ChallengePageLink = (props: {
-  profile: ProfilePageQuery['cachedProfile']
+  profile: NonNullable<ProfilePageQuery['cachedProfile']>
   text: string
 }) => (
   <InternalLink href={routes.challengeProfile({id: props.profile.id})}>
@@ -17,7 +17,7 @@ const ChallengePageLink = (props: {
 const ChallengeLink = ({
   profile,
 }: {
-  profile: ProfilePageQuery['cachedProfile']
+  profile: NonNullable<ProfilePageQuery['cachedProfile']>
 }) => {
   const notChallenged = (
     <Text>
@@ -40,7 +40,7 @@ const ChallengeLink = ({
     </Stack>
   )
 
-  const linkConfigs: {[key in StatusEnum]: ReactElement} = {
+  const linkConfigs: {[key in StatusEnum]: ReactElement | null} = {
     NOT_CHALLENGED: notChallenged,
     CHALLENGED: null,
     ADJUDICATION_ROUND_COMPLETED: (
