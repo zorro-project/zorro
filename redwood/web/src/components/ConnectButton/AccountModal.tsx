@@ -15,8 +15,8 @@ import Identicon from 'src/components/Identicon'
 import UserContext from 'src/layouts/UserContext'
 
 type Props = {
-  isOpen: any
-  onClose: any
+  isOpen: boolean
+  onClose: () => void
 }
 
 export default function AccountModal({isOpen, onClose}: Props) {

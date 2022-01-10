@@ -8,7 +8,7 @@ const pusher = new Pusher(process.env.PUSHER_KEY, {
 export const usePusher = (
   channel: string,
   event: string,
-  callback: Function
+  callback: () => unknown
 ) => {
   useEffect(() => {
     const pusherChannel = pusher.subscribe(channel)

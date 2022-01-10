@@ -18,7 +18,7 @@ const Identicon = ({account, size = 16, ...props}: Props) => {
     }
   }, [ref, account, size])
 
-  return <Box pt="1" {...props} ref={ref as any} />
+  return <Box pt="1" {...props} ref={ref} />
 }
 
 export default Identicon
