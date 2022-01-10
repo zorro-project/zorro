@@ -6,7 +6,9 @@ import services from 'src/services/**/*.{js,ts}'
 
 import {db} from 'src/lib/db'
 import {logger} from 'src/lib/logger'
-import 'types/environment'
+
+// Just make need to make sure this file gets loaded somewhere
+import type {} from 'types/environment'
 
 export const handler = createGraphQLHandler({
   loggerConfig: {logger, options: {operationName: true}},
