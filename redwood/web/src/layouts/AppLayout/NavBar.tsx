@@ -23,7 +23,7 @@ type NavItem = {
   icon?: React.FC
 }
 
-const DesktopNavItem = (props: NavItem) => {
+const NavItem = (props: NavItem) => {
   const {icon, label, href = '#'} = props
   const active = useMatch(href).match
 
@@ -37,15 +37,15 @@ const DesktopNavItem = (props: NavItem) => {
       py="2"
       rounded="md"
       transition="all 0.2s"
-      color="blue.400"
+      color="purple.400"
       border="1px solid white"
       _activeLink={{
-        color: 'blue.600',
-        borderColor: 'blue.600',
+        color: 'purple.600',
+        borderColor: 'purple.600',
       }}
       _hover={{
-        color: 'blue.900',
-        borderColor: 'blue.900',
+        color: 'purple.900',
+        borderColor: 'purple.900',
       }}
     >
       {icon && <Icon as={icon} mr="0.5" />}
@@ -57,7 +57,7 @@ const DesktopNavItem = (props: NavItem) => {
 const DesktopNav = ({navItems}: {navItems: Array<NavItem>}) => (
   <Stack direction={'row'} spacing={4}>
     {navItems.map((navItem) => (
-      <DesktopNavItem key={navItem.label} {...navItem} />
+      <NavItem key={navItem.label} {...navItem} />
     ))}
   </Stack>
 )
@@ -69,7 +69,7 @@ const MobileNav = ({navItems}: {navItems: Array<NavItem>}) => (
     display={{md: 'none'}}
   >
     {navItems.map((navItem) => (
-      <DesktopNavItem key={navItem.label} {...navItem} />
+      <NavItem key={navItem.label} {...navItem} />
     ))}
   </Stack>
 )

@@ -6,7 +6,6 @@ import {routes} from '@redwoodjs/router'
 import {createCell, MetaTags} from '@redwoodjs/web'
 import React from 'react'
 import {FaCheck, FaEthereum, FaTimes} from 'react-icons/fa'
-import {Card} from 'src/components/Card'
 import {RLink} from 'src/components/links'
 import {PhotoBox, VideoBox} from 'src/components/SquareBox'
 import {ProfilePageQuery} from 'types/graphql'
@@ -63,52 +62,46 @@ const Success = (props: ProfilePageQuery) => {
         </BreadcrumbItem>
       </Breadcrumb>
 
-      <Stack maxW="2xl" mx="auto" my="8">
-        <Card>
-          <Stack spacing="6">
-            <Box>
-              <Stack>
-                <Heading size="md">Profile {profile.id}</Heading>
-                <Stack direction="row" alignItems="center">
-                  <Icon as={FaEthereum} />
-                  <Link
-                    display="flex"
-                    alignItems="center"
-                    href={`https://etherscan.io/address/${ethereumAddress}`}
-                    isExternal
-                    color={'black'}
-                  >
-                    {ethereumAddress}
-                    <ExternalLinkIcon ml={1} />
-                  </Link>
-                </Stack>
-                <Stack direction="row" alignItems="center">
-                  <Icon
-                    as={profile.isVerified ? FaCheck : FaTimes}
-                    color={profile.isVerified ? 'green.500' : 'red.500'}
-                  />
-                  <Text>
-                    {profile.isVerified ? 'Verified' : 'Not Verified'}
-                  </Text>
-                </Stack>
-              </Stack>
-            </Box>
-            <Divider />
-            <Heading size="md" textAlign="center">
-              Photo & Video
-            </Heading>
-            <Stack direction="row" spacing="4">
-              <Box flex="1">
-                <PhotoBox photo={photoCid} />
-              </Box>
-              <Box flex="1">
-                <VideoBox video={videoCid} />
-              </Box>
+      <Stack maxW="xl" mx="auto" my="8" spacing="6">
+        <Box>
+          <Stack>
+            <Heading size="md">Profile {profile.id}</Heading>
+            <Stack direction="row" alignItems="center">
+              <Icon as={FaEthereum} />
+              <Link
+                display="flex"
+                alignItems="center"
+                href={`https://etherscan.io/address/${ethereumAddress}`}
+                isExternal
+                color={'black'}
+              >
+                {ethereumAddress}
+                <ExternalLinkIcon ml={1} />
+              </Link>
             </Stack>
-            <History profile={profile} />
-            <ChallengeLink profile={profile} />
+            <Stack direction="row" alignItems="center">
+              <Icon
+                as={profile.isVerified ? FaCheck : FaTimes}
+                color={profile.isVerified ? 'green.500' : 'red.500'}
+              />
+              <Text>{profile.isVerified ? 'Verified' : 'Not Verified'}</Text>
+            </Stack>
           </Stack>
-        </Card>
+        </Box>
+        <Divider />
+        <Heading size="md" textAlign="center">
+          Photo & Video
+        </Heading>
+        <Stack direction="row" spacing="4">
+          <Box flex="1">
+            <PhotoBox photo={photoCid} />
+          </Box>
+          <Box flex="1">
+            <VideoBox video={videoCid} />
+          </Box>
+        </Stack>
+        <History profile={profile} />
+        <ChallengeLink profile={profile} />
       </Stack>
     </>
   )

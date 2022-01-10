@@ -1,3 +1,5 @@
+import {useLazyQuery} from '@apollo/client'
+import {getStarknet} from '@argent/get-starknet'
 import {
   Box,
   Breadcrumb,
@@ -5,23 +7,23 @@ import {
   BreadcrumbLink,
   Button,
   FormControl,
+  FormErrorMessage,
   FormHelperText,
   FormLabel,
   Heading,
+  Link,
   ListItem,
   OrderedList,
   Stack,
-  Textarea,
   Text,
-  Link,
-  FormErrorMessage,
+  Textarea,
 } from '@chakra-ui/react'
 import {Form, useForm} from '@redwoodjs/forms'
 import {Redirect, routes} from '@redwoodjs/router'
 import {CellSuccessProps, createCell, MetaTags} from '@redwoodjs/web'
+import {toast} from '@redwoodjs/web/dist/toast'
 import {ReactElement} from 'react'
 import ResizeTextarea from 'react-textarea-autosize'
-import {Card} from 'src/components/Card'
 import {InternalLink, RLink} from 'src/components/links'
 import {cairoCompatibleAdd} from 'src/lib/ipfs'
 import NotFoundPage from 'src/pages/NotFoundPage'
@@ -30,6 +32,7 @@ import {
   ChallengePageQueryVariables,
   StatusEnum,
 } from 'types/graphql'
+import {serializeCid} from '../../../../api/src/lib/serializers'
 import {
   erc20Approve,
   erc20GetBalanceOf,
@@ -37,11 +40,6 @@ import {
   submitChallenge,
   ZorroAddress,
 } from '../../../../api/src/lib/starknet'
-
-import {getStarknet} from '@argent/get-starknet'
-import {useLazyQuery} from '@apollo/client'
-import {serializeCid} from '../../../../api/src/lib/serializers'
-import {toast} from '@redwoodjs/web/dist/toast'
 
 const QUERY = gql`
   query ChallengePageQuery($id: ID!, $resync: Boolean) {
@@ -228,14 +226,10 @@ const Success = (props: CellSuccessProps<ChallengePageQuery>) => {
         </BreadcrumbItem>
       </Breadcrumb>
 
-      <Stack maxW="2xl" mx="auto" my="8">
-        <Card>
-          <Stack spacing="6">
-            <Box>
-              <Stack>{bodyContent[profile.currentStatus]}</Stack>
-            </Box>
-          </Stack>
-        </Card>
+      <Stack maxW="xl" mx="auto" my="8" spacing="6">
+        <Box>
+          <Stack>{bodyContent[profile.currentStatus]}</Stack>
+        </Box>
       </Stack>
     </>
   )
