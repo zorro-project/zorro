@@ -1,9 +1,17 @@
 import {CachedProfile as PrismaCachedProfile, StatusEnum} from '@prisma/client'
 import {db} from 'src/lib/db'
 import {importProfile} from 'src/tasks/syncStarknetState'
+import {
+  QuerycachedProfileArgs,
+  QuerycachedProfileByEthereumAddressArgs,
+  QuerycachedProfilesArgs,
+} from 'types/graphql'
 import {ContractCache} from '../contractCache/contractCache'
 
-export const cachedProfiles = async ({first, cursor}) => {
+export const cachedProfiles = async ({
+  first,
+  cursor,
+}: QuerycachedProfilesArgs) => {
   const profiles = await db.cachedProfile.findMany({
     cursor: cursor ? {id: parseInt(cursor, 10)} : undefined,
     orderBy: {id: 'desc'},
@@ -32,7 +40,7 @@ export const cachedProfiles = async ({first, cursor}) => {
   }
 }
 
-export const cachedProfile = async ({id, resync}) => {
+export const cachedProfile = async ({id, resync}: QuerycachedProfileArgs) => {
   if (resync) await importProfile(parseInt(id, 10))
 
   const profile = await db.cachedProfile.findUnique({
@@ -41,7 +49,9 @@ export const cachedProfile = async ({id, resync}) => {
   return profile
 }
 
-export const cachedProfileByEthereumAddress = async ({ethereumAddress}) =>
+export const cachedProfileByEthereumAddress = async ({
+  ethereumAddress,
+}: QuerycachedProfileByEthereumAddressArgs) =>
   await db.cachedProfile.findUnique({
     where: {ethereumAddress},
   })
@@ -163,7 +173,12 @@ export const isVerified = (
 }
 
 export const CachedProfile = {
-  currentStatus: (_args, {root}) => currentStatus(root),
-  isInProvisionalTimeWindow: (_args, {root}) => isInProvisionalTimeWindow(root),
-  isVerified: (_args, {root}) => isVerified(root),
+  currentStatus: (_args: void, {root}: {root: PrismaCachedProfile}) =>
+    currentStatus(root),
+  isInProvisionalTimeWindow: (
+    _args: void,
+    {root}: {root: PrismaCachedProfile}
+  ) => isInProvisionalTimeWindow(root),
+  isVerified: (_args: void, {root}: {root: PrismaCachedProfile}) =>
+    isVerified(root),
 }

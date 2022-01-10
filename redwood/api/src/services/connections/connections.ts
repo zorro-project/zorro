@@ -1,7 +1,10 @@
 import ethers from 'ethers'
 import {db} from 'src/lib/db'
+import {MutationcreateConnectionArgs} from 'types/graphql'
 
-export const createConnection = async ({input}) => {
+export const createConnection = async ({
+  input,
+}: MutationcreateConnectionArgs) => {
   // XXX: dedup message with frontend
   const message = `Connect Zorro to ${input.externalAddress}`
   const ethereumAddress = ethers.utils

@@ -2,45 +2,9 @@ import {Box, Heading, Text} from '@chakra-ui/layout'
 import {Button} from '@chakra-ui/react'
 import {useMutation} from '@redwoodjs/web'
 import {useEthers} from '@usedapp/core'
+import {useCallback} from 'react'
 import {CreateConnectionMutation} from 'types/graphql'
-import {
-  IntendedConnection,
-  load as loadIntendedConnection,
-} from '../../lib/intendedConnectionStorage'
-
-const connect = async (
-  createConnection,
-  provider,
-  intendedConnection: IntendedConnection
-) => {
-  console.log(provider, intendedConnection.purposeIdentifier)
-  let signature = null
-
-  try {
-    // XXX: dedup message with backend
-    const message = `Connect Zorro to ${intendedConnection.externalAddress}`
-    signature = await provider.getSigner().signMessage(message)
-  } catch (error) {
-    if (error.code === 4001) {
-      // user denied signature
-    } else {
-      throw error
-    }
-  }
-
-  console.log('signature', signature)
-
-  await createConnection({
-    variables: {
-      input: {
-        signature,
-        purposeIdentifier: intendedConnection.purposeIdentifier,
-        externalAddress: intendedConnection.externalAddress,
-      },
-    },
-  })
-}
-
+import {load as loadIntendedConnection} from '../../lib/intendedConnectionStorage'
 const CreateConnectionPage = () => {
   const {library: provider} = useEthers()
   //console.log('ethers result', result)
@@ -56,6 +20,35 @@ const CreateConnectionPage = () => {
     }
   `)
 
+  const connect = useCallback(async () => {
+    console.log(provider, intendedConnection.purposeIdentifier)
+    let signature = null
+
+    try {
+      // XXX: dedup message with backend
+      const message = `Connect Zorro to ${intendedConnection.externalAddress}`
+      signature = await provider.getSigner().signMessage(message)
+    } catch (error) {
+      if (error.code === 4001) {
+        // user denied signature
+      } else {
+        throw error
+      }
+    }
+
+    console.log('signature', signature)
+
+    await createConnection({
+      variables: {
+        input: {
+          signature,
+          purposeIdentifier: intendedConnection.purposeIdentifier,
+          externalAddress: intendedConnection.externalAddress,
+        },
+      },
+    })
+  }, [provider, intendedConnection, createConnection])
+
   return (
     <Box maxW="xl" mx="auto">
       <Heading size="lg" pb="4">
@@ -63,10 +56,7 @@ const CreateConnectionPage = () => {
       </Heading>
       <Text>Intended connection: {JSON.stringify(intendedConnection)}</Text>
       {/* XXX: handle missing intended connection */}
-      <Button
-        onClick={() => connect(createConnection, provider, intendedConnection)}
-        colorScheme="blue"
-      >
+      <Button onClick={connect} colorScheme="blue">
         Connect
       </Button>
     </Box>

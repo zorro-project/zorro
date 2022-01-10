@@ -12,6 +12,7 @@ export const schema = gql`
   directive @requireAuth(roles: [String]) on FIELD_DEFINITION
 `
 
+// @ts-expect-error directives aren't strongly typed yet
 const validate = ({directiveArgs}) => {
   const {roles} = directiveArgs
   applicationRequireAuth({roles})

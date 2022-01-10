@@ -170,7 +170,10 @@ const ERC20Ops = (props: {userWallet: string | null}) => {
   )
 }
 
-const ContractLink = ({name, address}) => (
+const ContractLink: React.FC<{name: string; address: string}> = ({
+  name,
+  address,
+}) => (
   <Text>
     {name} Contract:{' '}
     <Link isExternal href={`https://goerli.voyager.online/contract/${address}`}>

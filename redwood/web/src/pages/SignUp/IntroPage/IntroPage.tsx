@@ -7,7 +7,10 @@ import ConnectButton from 'src/components/ConnectButton/ConnectButton'
 import UserContext from 'src/layouts/UserContext'
 import {save as saveIntendedConnection} from 'src/lib/intendedConnectionStorage'
 
-const IntroPage = ({purposeIdentifier, externalAddress}) => {
+const IntroPage: React.FC<{
+  purposeIdentifier?: string
+  externalAddress?: string
+}> = ({purposeIdentifier, externalAddress}) => {
   const {ethereumAddress} = useContext(UserContext)
 
   useEffect(() => {

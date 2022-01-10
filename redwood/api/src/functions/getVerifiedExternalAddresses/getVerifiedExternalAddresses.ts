@@ -1,9 +1,15 @@
 import {db} from 'src/lib/db'
 import {isVerified} from 'src/services/cachedProfiles/cachedProfiles'
+import {Handler} from 'aws-lambda'
+
+type Params = {
+  purposeIdentifier: string
+  externalAddresses: string[]
+}
 
 // This endpoint is used by the Snapshot strategy named `zorro`
-export const handler = async (event, _context) => {
-  const params = JSON.parse(event.body)
+export const handler: Handler = async (event) => {
+  const params: Params = JSON.parse(event.body)
   const {purposeIdentifier, externalAddresses} = params
 
   const connections = await db.connection.findMany({
