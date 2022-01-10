@@ -11,7 +11,10 @@ type NotificationType = {
 // same `key` has been created. This prevents us from sending the same
 // notification multiple times.
 
-export const maybeNotify = async (key: NotificationType, notify: Function) => {
+export const maybeNotify = async (
+  key: NotificationType,
+  notify: () => unknown
+) => {
   if ((await db.notification.count({where: {key: {equals: key}}})) > 0) return
 
   await notify()

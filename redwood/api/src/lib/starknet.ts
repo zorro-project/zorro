@@ -9,7 +9,7 @@ import {
   stark,
 } from 'starknet'
 import {BigNumberish} from 'starknet/dist/utils/number'
-import {bnToUint256, uint256ToBN} from 'starknet/dist/utils/uint256'
+import {bnToUint256, Uint256, uint256ToBN} from 'starknet/dist/utils/uint256'
 import ERC20_ABI from '../../../../starknet/starknet-artifacts/contracts/openzeppelin/ERC20.cairo/ERC20_abi.json'
 import ZORRO_ABI from '../../../../starknet/starknet-artifacts/contracts/zorro.cairo/zorro_abi.json'
 
@@ -101,7 +101,7 @@ export async function erc20GetAllowance(owner: Felt, spender: Felt) {
     spender,
   })
 
-  return uint256ToBN(resp.res as any)
+  return uint256ToBN(resp.res as unknown as Uint256)
 }
 
 export async function erc20GetBalanceOf(owner: Felt) {
@@ -109,7 +109,7 @@ export async function erc20GetBalanceOf(owner: Felt) {
     owner,
   })
 
-  return uint256ToBN(resp.res as any)
+  return uint256ToBN(resp.res as unknown as Uint256)
 }
 
 export async function erc20Mint(
@@ -195,7 +195,7 @@ type Profile = {
 export async function exportProfileById(profileId: number) {
   const profile = (await zorro.call('export_profile_by_id', {
     profile_id: profileId.toString(),
-  })) as any as {
+  })) as unknown as {
     profile: Profile
     num_profiles: Felt
     current_status: Felt
