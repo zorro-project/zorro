@@ -70,7 +70,8 @@ const ProfilesPage = () => {
   const hasNextPage = data?.cachedProfiles?.pageInfo?.hasNextPage
 
   const profilesCount = data?.cachedProfiles?.count
-  const isProfileLoaded = (index) => !hasNextPage || index < profiles.length
+  const isProfileLoaded = (index: number) =>
+    !hasNextPage || index < profiles.length
 
   if (data == null) return null
 

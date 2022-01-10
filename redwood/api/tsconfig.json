@@ -1,12 +1,6 @@
 {
+  "extends": "../tsconfig-base.json",
   "compilerOptions": {
-    "noEmit": true,
-    "allowJs": true,
-    "esModuleInterop": true,
-    "target": "esnext",
-    "module": "esnext",
-    "moduleResolution": "node",
-    "resolveJsonModule": true,
     "baseUrl": "./",
     "rootDirs": ["./src", "../.redwood/types/mirror/api/src"],
     "paths": {

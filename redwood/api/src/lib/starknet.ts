@@ -13,9 +13,15 @@ import {bnToUint256, Uint256, uint256ToBN} from 'starknet/dist/utils/uint256'
 import ERC20_ABI from '../../../../starknet/starknet-artifacts/contracts/openzeppelin/ERC20.cairo/ERC20_abi.json'
 import ZORRO_ABI from '../../../../starknet/starknet-artifacts/contracts/zorro.cairo/zorro_abi.json'
 
-const CHAIN_DEPLOYMENT = process.env.CHAIN_DEPLOYMENT
+const CHAIN_DEPLOYMENT = process.env.CHAIN_DEPLOYMENT as AvailableDeployment
 
-const maybeRequireContract = (chainDeployment, name) => {
+type AvailableDeployment = 'development' | 'production' | 'test'
+type AvailableContract = 'erc20' | 'zorro' | 'notary'
+
+const maybeRequireContract = (
+  chainDeployment: AvailableDeployment,
+  name: AvailableContract
+) => {
   try {
     return require(`../../../../starknet/chain-deployments/${chainDeployment}/${name}.json`)
   } catch (e) {

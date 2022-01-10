@@ -19,10 +19,12 @@ import {usePusher} from 'src/lib/pusher'
 import ProfileStatus from 'src/pages/SignUp/ProfileStatus'
 import {SignUpSubmittedPageQuery} from 'types/graphql'
 
+type FormFields = {email: string}
+
 const Success = (props: CellSuccessProps<SignUpSubmittedPageQuery>) => {
   const {ethereumAddress} = useContext(UserContext)
 
-  const methods = useForm<{email: string}>({
+  const methods = useForm<FormFields>({
     defaultValues: {
       email: props.unsubmittedProfile?.hasEmail ? '***@***.***' : null,
     },
@@ -48,7 +50,7 @@ const Success = (props: CellSuccessProps<SignUpSubmittedPageQuery>) => {
     props.refetch
   )
 
-  const onSubmit = async (data) => {
+  const onSubmit = async (data: FormFields) => {
     await saveEmail({
       variables: {
         ethereumAddress,

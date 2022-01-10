@@ -4,7 +4,7 @@ import {toast, Toaster} from '@redwoodjs/web/toast'
 import {useEffect} from 'react'
 import NavBar from './NavBar'
 
-export default function AppLayout({children}) {
+const AppLayout: React.FC = ({children}) => {
   const {pathname} = useLocation()
 
   useEffect(() => {
@@ -20,3 +20,5 @@ export default function AppLayout({children}) {
     </Box>
   )
 }
+
+export default AppLayout

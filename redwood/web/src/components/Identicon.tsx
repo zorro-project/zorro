@@ -1,4 +1,6 @@
 import {Box, BoxProps} from '@chakra-ui/react'
+
+// @ts-expect-error untyped package
 import Jazzicon from '@metamask/jazzicon'
 import {useEffect, useRef} from 'react'
 
