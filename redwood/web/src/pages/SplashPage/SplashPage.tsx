@@ -21,6 +21,7 @@ import {
 import {FaShieldAlt, FaWind, FaVoteYea} from 'react-icons/fa'
 import Nav from './Nav'
 import {Feature} from './Feature'
+import {Helmet, HelmetProvider} from 'react-helmet-async'
 
 const SplashPage = () => {
   return (
@@ -38,6 +39,12 @@ const SplashPage = () => {
 const Hero = () => (
   <>
     <Box maxW={{base: 'xl', md: '5xl'}} mx="auto" px={{base: '6', md: '8'}}>
+      {/* Override the Redwood-managed Helmet provider on this page only to avoid appending " | Zorro" to the title. */}
+      <HelmetProvider>
+        <Helmet>
+          <title>Zorro: web3 citizenship</title>
+        </Helmet>
+      </HelmetProvider>
       <Box textAlign="center">
         <Heading
           as="h1"
