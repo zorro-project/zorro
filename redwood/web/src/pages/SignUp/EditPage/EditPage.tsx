@@ -62,7 +62,7 @@ const EditPage = () => {
       </Card>
       <ButtonGroup alignSelf="flex-end">
         <Button
-          colorScheme="teal"
+          colorScheme="purple"
           disabled={!formState.isValid}
           onClick={() => navigate(routes.signUpPresubmit())}
         >

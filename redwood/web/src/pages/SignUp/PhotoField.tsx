@@ -105,7 +105,7 @@ const PhotoModal = (props: {
                   />
                 </Box>
                 <ButtonGroup justify="center" pb="4">
-                  <Button colorScheme="teal" onClick={capture}>
+                  <Button colorScheme="purple" onClick={capture}>
                     Capture Photo
                   </Button>
                   <Button onClick={() => setWebcamActive(false)}>Cancel</Button>
@@ -133,9 +133,14 @@ const PhotoModal = (props: {
               </ScaleFade>
             )}
             {!candidatePic && !webcamActive && (
-              <ButtonGroup justify="center" colorScheme="teal" pb="4">
-                <Button onClick={openFileSelector}>Upload Picture</Button>
-                <Button onClick={() => setWebcamActive(true)}>
+              <ButtonGroup justify="center" pb="4">
+                <Button onClick={openFileSelector} colorScheme="gray">
+                  Upload Picture
+                </Button>
+                <Button
+                  onClick={() => setWebcamActive(true)}
+                  colorScheme="purple"
+                >
                   Use Webcam
                 </Button>
               </ButtonGroup>

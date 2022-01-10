@@ -169,9 +169,12 @@ const VideoModal = (props: {
               </ScaleFade>
             )}
             {!candidateVid && !webcamActive && (
-              <ButtonGroup justify="center" colorScheme="teal" pb="4">
+              <ButtonGroup justify="center" pb="4">
                 <Button onClick={openFileSelector}>Upload Video</Button>
-                <Button onClick={() => setwebcamActive(true)}>
+                <Button
+                  onClick={() => setwebcamActive(true)}
+                  colorScheme="purple"
+                >
                   Use Webcam
                 </Button>
               </ButtonGroup>

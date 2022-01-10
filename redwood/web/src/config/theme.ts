@@ -1,13 +1,6 @@
 import {extendTheme} from '@chakra-ui/react'
 
 const theme = extendTheme({
-  styles: {
-    global: {
-      'html, body': {
-        backgroundColor: 'gray.50',
-      },
-    },
-  },
   components: {
     Link: {
       variants: {
@@ -19,11 +12,11 @@ const theme = extendTheme({
           },
         }),
         btn: {
-          color: 'teal.500',
+          color: 'purple.500',
           // fontWeight: 'bold',
           textAlign: 'center',
           _hover: {
-            color: 'teal.800',
+            color: 'purple.800',
             textDecoration: 'none',
           },
         },

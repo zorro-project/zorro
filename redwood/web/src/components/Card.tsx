@@ -1,8 +1,8 @@
-import {Box, BoxProps, useColorModeValue} from '@chakra-ui/react'
+import {Box, BoxProps} from '@chakra-ui/react'
 
 export const Card = (props: BoxProps) => (
   <Box
-    bg={useColorModeValue('white', 'gray.700')}
+    bg="white"
     shadow="base"
     rounded="lg"
     p={{base: '4', md: '8'}}

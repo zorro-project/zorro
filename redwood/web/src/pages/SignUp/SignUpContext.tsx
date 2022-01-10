@@ -144,11 +144,3 @@ const Cell = createCell({
 })
 
 export default requireEthAddress(<Cell />)
-// export default () => <RequireEthAddress child={<Cell />} />
-// export default function SignUpLayout({children}) {
-//   const {ethereumAddress} = useContext(UserContext)
-
-//   if (ethereumAddress == null) return <Redirect to={routes.signUpIntro()} />
-
-//   return <Cell ethereumAddress={ethereumAddress}>{children}</Cell>
-// }
