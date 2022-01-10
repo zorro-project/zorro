@@ -63,6 +63,10 @@ const NotChallenged = (props: {query: ChallengePageQuery}) => {
   const profile = props.query.cachedProfile
   const contractCache = props.query.contractCache
 
+  if (profile == null) {
+    return <NotFoundPage />
+  }
+
   const [refetchProfile] = useLazyQuery<
     ChallengePageQuery,
     ChallengePageQueryVariables
@@ -75,7 +79,7 @@ const NotChallenged = (props: {query: ChallengePageQuery}) => {
 
     const starknet = getStarknet({showModal: true})
     const [userWalletContractAddress] = await starknet.enable()
-    if (!starknet) return
+    if (!starknet?.signer) return
 
     setSubmissionStatus('Verifying required deposit size...')
     const depositSize = await getChallengeDepositSize()
@@ -181,7 +185,7 @@ const NotChallenged = (props: {query: ChallengePageQuery}) => {
           colorScheme="red"
           type="submit"
           isLoading={submissionStatus != null}
-          loadingText={submissionStatus}
+          loadingText={submissionStatus ?? ''}
         >
           Submit Challenge
         </Button>
@@ -197,7 +201,7 @@ const Success = (props: CellSuccessProps<ChallengePageQuery>) => {
   // TODO: use a flash message to explain why the challenge page isn't available in these states
   const profileRedirect = <Redirect to={routes.profile({id: profile.id})} />
 
-  const bodyContent: {[key in StatusEnum]: ReactElement} = {
+  const bodyContent: {[key in StatusEnum]: ReactElement | null} = {
     NOT_CHALLENGED: <NotChallenged query={props} />,
     CHALLENGED: <Text>profile challenged</Text>,
     ADJUDICATION_ROUND_COMPLETED: null,

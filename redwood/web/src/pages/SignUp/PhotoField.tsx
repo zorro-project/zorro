@@ -49,11 +49,14 @@ const PhotoModal = (props: {
   const webcamRef = React.useRef<null | Webcam>(null)
 
   const capture = async () => {
-    setCandidatePic(await dataUrlToBlob(webcamRef.current.getScreenshot()))
+    const dataUrl = webcamRef.current?.getScreenshot()
+    if (!dataUrl) return
+    setCandidatePic(await dataUrlToBlob(dataUrl))
     setWebcamActive(false)
   }
 
   const savePhoto = () => {
+    if (!candidatePic) return
     props.onSave(candidatePic)
     setCandidatePic(null)
     props.modalCtrl.onClose()

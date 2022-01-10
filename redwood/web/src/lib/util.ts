@@ -1,7 +1,7 @@
 export const dataUrlToBlob = async (dataUrl: string) =>
   await (await fetch(dataUrl)).blob()
 
-export type DataFieldType = string | Blob | undefined
+export type DataFieldType = string | Blob | undefined | null
 
 export const dataFieldToUrl: (value: DataFieldType) => string | undefined = (
   value

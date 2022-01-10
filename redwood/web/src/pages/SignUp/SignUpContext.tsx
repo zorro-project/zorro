@@ -1,6 +1,6 @@
 import {SlideFade, Stack} from '@chakra-ui/react'
 import {Form} from '@redwoodjs/forms'
-import {navigate, routes, useLocation} from '@redwoodjs/router'
+import {navigate, Redirect, routes, useLocation} from '@redwoodjs/router'
 import {CellSuccessProps, createCell, useMutation} from '@redwoodjs/web'
 import {useContext} from 'react'
 import {SubmitHandler, useForm} from 'react-hook-form'
@@ -24,13 +24,15 @@ type SignUpContextType = {
   data: SignupContextQuery
 }
 
-export const SignUpContext = React.createContext<SignUpContextType>(null)
+export const SignUpContext = React.createContext<SignUpContextType>({
+  submitProgress: 0,
+  data: {},
+})
 
 const Success: React.FC<CellSuccessProps<SignupContextQuery>> = (props) => {
   const {pathname} = useLocation()
   const {ethereumAddress} = useContext(UserContext)
-
-  const {refetch} = props
+  if (!ethereumAddress) return <Redirect to={routes.signUpIntro()} />
 
   const [submitProgress, setSubmitProgress] = React.useState(0)
 
@@ -101,10 +103,10 @@ const Success: React.FC<CellSuccessProps<SignupContextQuery>> = (props) => {
         },
       })
 
-      refetch()
+      props.refetch?.()
       navigate(routes.signUpSubmitted())
     },
-    [ethereumAddress, updateMutation, refetch]
+    [ethereumAddress, updateMutation, props.refetch]
   )
 
   return (

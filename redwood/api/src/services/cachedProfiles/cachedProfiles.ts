@@ -25,8 +25,8 @@ export const cachedProfiles = async ({
   }))
 
   const lastCursor = (
-    await db.cachedProfile.aggregate({_min: {id: true}})
-  )._min.id.toString()
+    (await db.cachedProfile.aggregate({_min: {id: true}}))._min?.id ?? 0
+  ).toString()
   const endCursor = edges[edges.length - 1].cursor
 
   return {
@@ -85,7 +85,8 @@ export const currentStatus = (
   if (profile.lastRecordedStatus === StatusEnum.NOT_CHALLENGED) {
     return StatusEnum.NOT_CHALLENGED
   } else if (profile.lastRecordedStatus === StatusEnum.CHALLENGED) {
-    const timePassed = now.getTime() - profile.challengeTimestamp.getTime()
+    const timePassed =
+      now.getTime() - (profile.challengeTimestamp?.getTime() ?? 0)
     const hasAppealOpportunityExpired =
       ContractCache.adjudicationTimeWindow + ContractCache.appealTimeWindow <
       timePassed
@@ -101,7 +102,8 @@ export const currentStatus = (
   } else if (
     profile.lastRecordedStatus === StatusEnum.ADJUDICATION_ROUND_COMPLETED
   ) {
-    const timePassed = now.getTime() - profile.adjudicationTimestamp.getTime()
+    const timePassed =
+      now.getTime() - (profile.adjudicationTimestamp?.getTime() ?? 0)
 
     const hasAppealOpportunityExpired =
       ContractCache.appealTimeWindow < timePassed
@@ -110,7 +112,7 @@ export const currentStatus = (
 
     return StatusEnum.ADJUDICATION_ROUND_COMPLETED
   } else if (profile.lastRecordedStatus === StatusEnum.APPEALED) {
-    const timePassed = now.getTime() - profile.appealTimestamp.getTime()
+    const timePassed = now.getTime() - (profile.appealTimestamp?.getTime() ?? 0)
 
     const hasSuperAdjudicationOpportunityExpired =
       ContractCache.superAdjudicationTimeWindow < timePassed
@@ -161,7 +163,7 @@ export const isVerified = (
   } else if (status == StatusEnum.CHALLENGED) {
     const isPresumedInnocent =
       ContractCache.provisionalTimeWindow <
-      profile.challengeTimestamp.getTime() -
+      (profile.challengeTimestamp?.getTime() ?? 0) -
         profile.submissionTimestamp.getTime()
 
     return isPresumedInnocent

@@ -21,12 +21,14 @@ const CreateConnectionPage = () => {
   `)
 
   const connect = useCallback(async () => {
-    console.log(provider, intendedConnection.purposeIdentifier)
+    console.log(provider, intendedConnection?.purposeIdentifier)
+    if (provider == null || intendedConnection == null) return
+
     let signature = null
 
     try {
       // XXX: dedup message with backend
-      const message = `Connect Zorro to ${intendedConnection.externalAddress}`
+      const message = `Connect Zorro to ${intendedConnection?.externalAddress}`
       signature = await provider.getSigner().signMessage(message)
     } catch (error) {
       if (error.code === 4001) {

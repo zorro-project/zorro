@@ -53,6 +53,9 @@ const VideoModal = (props: {
 
   const handleStartCaptureClick = React.useCallback(() => {
     setRecording(true)
+    // @ts-expect-error TODO: why are we assigning to a supposedly readonly ref
+    // here? Just copied the example from
+    // https://codepen.io/mozmorris/pen/yLYKzyp?editors=0010
     mediaRecorderRef.current = new MediaRecorder(webcamRef.current.stream, {
       mimeType: 'video/webm',
     })
@@ -68,12 +71,13 @@ const VideoModal = (props: {
   }, [webcamRef, setRecording, mediaRecorderRef])
 
   const handleStopCaptureClick = React.useCallback(() => {
-    mediaRecorderRef.current.stop()
+    mediaRecorderRef.current?.stop()
     setRecording(false)
     setwebcamActive(false)
   }, [mediaRecorderRef, webcamRef, setRecording])
 
   const saveVideo = () => {
+    if (candidateVid == null) return
     props.onSave(candidateVid)
     setCandidateVid(null)
     props.modalCtrl.onClose()

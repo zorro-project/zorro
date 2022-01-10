@@ -7,6 +7,9 @@ import Routes from 'src/Routes'
 import theme from './config/theme'
 import {UserContextProvider} from './layouts/UserContext'
 
+// Just make need to make sure this file gets loaded somewhere
+import type {} from 'types/environment'
+
 const App = () => {
   return (
     <FatalErrorBoundary page={FatalErrorPage}>

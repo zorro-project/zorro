@@ -19,7 +19,7 @@ import {ProfilePageQuery} from 'types/graphql'
 
 const Entry: React.FC<{
   icon: IconType
-  timestamp: string
+  timestamp?: string | null
   title: string
   description?: React.ReactNode
 }> = (props) => {
@@ -38,7 +38,7 @@ const Entry: React.FC<{
 }
 
 const History: React.FC<{
-  profile: ProfilePageQuery['cachedProfile']
+  profile: NonNullable<ProfilePageQuery['cachedProfile']>
 }> = ({profile}) => (
   <Stack>
     <Heading size="md" textAlign="center">
@@ -59,10 +59,12 @@ const History: React.FC<{
           title="Challenged"
           timestamp={profile.challengeTimestamp}
           description={
-            <Link href={cidToUrl(profile.challengeEvidenceCid)} isExternal>
-              Challenger evidence
-              <ExternalLinkIcon ml={1} />
-            </Link>
+            profile.challengeEvidenceCid && (
+              <Link href={cidToUrl(profile.challengeEvidenceCid)} isExternal>
+                Challenger evidence
+                <ExternalLinkIcon ml={1} />
+              </Link>
+            )
           }
         />
         <Entry
@@ -78,10 +80,15 @@ const History: React.FC<{
                   : 'Unverified'}
               </strong>{' '}
               (
-              <Link href={cidToUrl(profile.adjudicatorEvidenceCid)} isExternal>
-                Evidence
-                <ExternalLinkIcon ml={1} />
-              </Link>
+              {profile.adjudicatorEvidenceCid && (
+                <Link
+                  href={cidToUrl(profile.adjudicatorEvidenceCid)}
+                  isExternal
+                >
+                  Evidence
+                  <ExternalLinkIcon ml={1} />
+                </Link>
+              )}
               )
             </Text>
           }

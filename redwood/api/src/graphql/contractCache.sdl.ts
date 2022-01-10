@@ -10,6 +10,6 @@ export const schema = gql`
   }
 
   type Query {
-    contractCache: ContractCache @skipAuth
+    contractCache: ContractCache! @skipAuth
   }
 `

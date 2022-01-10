@@ -8,7 +8,7 @@
     'CHAIN_DEPLOYMENT',
     'INFURA_IPFS_ID',
     'INFURA_IPFS_SECRET',
-    'PUSHER_APP_ID',
+    'PUSHER_KEY',
     'PUSHER_CLUSTER'
   ]
 [api]

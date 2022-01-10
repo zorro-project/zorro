@@ -13,13 +13,12 @@ import {bnToUint256, Uint256, uint256ToBN} from 'starknet/dist/utils/uint256'
 import ERC20_ABI from '../../../../starknet/starknet-artifacts/contracts/openzeppelin/ERC20.cairo/ERC20_abi.json'
 import ZORRO_ABI from '../../../../starknet/starknet-artifacts/contracts/zorro.cairo/zorro_abi.json'
 
-const CHAIN_DEPLOYMENT = process.env.CHAIN_DEPLOYMENT as AvailableDeployment
+const CHAIN_DEPLOYMENT = process.env.CHAIN_DEPLOYMENT
 
-type AvailableDeployment = 'development' | 'production' | 'test'
 type AvailableContract = 'erc20' | 'zorro' | 'notary'
 
 const maybeRequireContract = (
-  chainDeployment: AvailableDeployment,
+  chainDeployment: typeof process.env.CHAIN_DEPLOYMENT,
   name: AvailableContract
 ) => {
   try {
@@ -199,15 +198,18 @@ type Profile = {
 }
 
 export async function exportProfileById(profileId: number) {
-  const profile = (await zorro.call('export_profile_by_id', {
-    profile_id: profileId.toString(),
-  })) as unknown as {
-    profile: Profile
-    num_profiles: Felt
-    current_status: Felt
-    is_verified: Felt
-    now: Felt
+  try {
+    const profile = (await zorro.call('export_profile_by_id', {
+      profile_id: profileId.toString(),
+    })) as unknown as {
+      profile: Profile
+      num_profiles: Felt
+      current_status: Felt
+      is_verified: Felt
+      now: Felt
+    }
+    return profile
+  } catch (e) {
+    return null
   }
-
-  return profile
 }

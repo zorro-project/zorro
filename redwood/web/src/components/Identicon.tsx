@@ -9,7 +9,7 @@ type Props = {
   size?: number
 } & BoxProps
 const Identicon = ({account, size = 16, ...props}: Props) => {
-  const ref = useRef<HTMLDivElement>()
+  const ref = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     if (ref.current) {

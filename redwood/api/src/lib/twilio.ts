@@ -14,7 +14,7 @@ export const sendMessage = async (to: string | string[], body: string) => {
   if (process.env.NODE_ENV === 'production') {
     const toArray = castArray(to)
     await Promise.all(
-      toArray.map((to) => client.messages.create({to, ...message}))
+      toArray.map((to) => client?.messages.create({to, ...message}))
     )
   } else {
     console.log('Would send', {to, ...message})

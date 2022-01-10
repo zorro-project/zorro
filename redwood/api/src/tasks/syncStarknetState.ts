@@ -33,7 +33,8 @@ export default async function syncStarknetState(onlyNewProfiles = false) {
   currentId = currentId + 1
 
   while (currentId <= maxId) {
-    maxId = (await importProfile(currentId)).maxId
+    const newMaxId = (await importProfile(currentId))?.maxId
+    if (newMaxId) maxId = newMaxId
 
     currentId = currentId + 1
   }
@@ -52,13 +53,16 @@ export default async function syncStarknetState(onlyNewProfiles = false) {
 export const importProfile = async (profileId: number) => {
   console.log('Importing profile', profileId)
   const exported = await exportProfileById(profileId)
+  if (exported == null) return
   const {profile} = exported
+
+  const cid = parseCid(profile.cid)
 
   const profileFields = {
     cache: profile,
 
-    cid: parseCid(profile.cid).toV1().toString(),
-    ...(await readCids(parseCid(profile.cid))),
+    cid: cid?.toV1().toString(),
+    ...(await readCids(cid)),
 
     ethereumAddress: parseEthereumAddress(profile.ethereum_address),
     submissionTimestamp: parseTimestamp(profile.submission_timestamp),
@@ -105,7 +109,7 @@ export const importProfile = async (profileId: number) => {
     },
   })
 
-  const now = parseTimestamp(exported.now)
+  const now = parseTimestamp(exported.now) ?? new Date()
   const status = parseChallengeStatus(parseNumber(exported.current_status))
   if (status !== currentStatus(profileFields, now)) {
     console.warn(
