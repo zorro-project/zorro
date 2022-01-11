@@ -1,4 +1,4 @@
-import {Heading} from '@chakra-ui/layout'
+import {Heading, Stack} from '@chakra-ui/layout'
 import {Table, Tbody, Th, Thead, Tr} from '@chakra-ui/react'
 import {MetaTags, useQuery} from '@redwoodjs/web'
 import {UnsubmittedProfilesQuery} from 'types/graphql'
@@ -17,7 +17,7 @@ const UnsubmittedProfilesPage = () => {
   `)
 
   return (
-    <>
+    <Stack>
       <MetaTags title="Unsubmitted Profiles" />
       <Heading size="lg">Unsubmitted Profiles</Heading>
       <Table variant="simple" background="white" mt="8">
@@ -35,7 +35,7 @@ const UnsubmittedProfilesPage = () => {
           ))}
         </Tbody>
       </Table>
-    </>
+    </Stack>
   )
 }
 

@@ -93,12 +93,16 @@ const Success = (props: ProfilePageQuery) => {
           Photo & Video
         </Heading>
         <Stack direction="row" spacing="4">
-          <Box flex="1">
-            <PhotoBox photo={photoCid} />
-          </Box>
-          <Box flex="1">
-            <VideoBox video={videoCid} />
-          </Box>
+          {photoCid && (
+            <Box flex="1">
+              <PhotoBox photo={photoCid} />
+            </Box>
+          )}
+          {videoCid && (
+            <Box flex="1">
+              <VideoBox video={videoCid} />
+            </Box>
+          )}
         </Stack>
         <History profile={profile} />
         <ChallengeLink profile={profile} />

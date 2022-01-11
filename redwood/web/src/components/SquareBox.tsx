@@ -1,7 +1,8 @@
-import {AspectRatio, AspectRatioProps, Box} from '@chakra-ui/layout'
 import {Image} from '@chakra-ui/image'
-import {DataFieldType, useDataFieldUrl} from 'src/lib/util'
+import {AspectRatio, AspectRatioProps, Box} from '@chakra-ui/layout'
 import ReactPlayer from 'react-player'
+import {cidToUrl} from 'src/lib/ipfs'
+import {isLocalUrl} from 'src/lib/util'
 
 const SquareBox = (props: AspectRatioProps) => (
   <AspectRatio
@@ -17,33 +18,32 @@ const SquareBox = (props: AspectRatioProps) => (
 
 export default SquareBox
 
+export const maybeCidToUrl: (value: string) => string = (value) => {
+  if (isLocalUrl(value)) return value
+  return cidToUrl(value)
+}
+
 export const PhotoBox = ({
   photo,
   ...props
-}: AspectRatioProps & {photo: DataFieldType}) => {
-  const photoUrl = useDataFieldUrl(photo)
-
-  return (
-    <SquareBox {...props}>
-      <Box>
-        <Image
-          src={photoUrl}
-          alt="Profile Photo"
-          objectFit="contain"
-          width="100%"
-          height="100%"
-        />
-      </Box>
-    </SquareBox>
-  )
-}
+}: AspectRatioProps & {photo: string}) => (
+  <SquareBox {...props}>
+    <Box>
+      <Image
+        src={maybeCidToUrl(photo)}
+        alt="Profile Photo"
+        objectFit="contain"
+        width="100%"
+        height="100%"
+      />
+    </Box>
+  </SquareBox>
+)
 
 export const VideoBox = ({
   video,
   ...props
-}: AspectRatioProps & {video: DataFieldType}) => {
-  const videoUrl = useDataFieldUrl(video)
-
+}: AspectRatioProps & {video: string}) => {
   return (
     <SquareBox
       {...props}
@@ -58,7 +58,12 @@ export const VideoBox = ({
         },
       }}
     >
-      <ReactPlayer url={videoUrl} controls width="100%" height="100%" />
+      <ReactPlayer
+        url={maybeCidToUrl(video)}
+        controls
+        width="100%"
+        height="100%"
+      />
     </SquareBox>
   )
 }

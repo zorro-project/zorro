@@ -59,9 +59,6 @@ const IntroPage: React.FC<{
       <Button variant="link" colorScheme="purple" onClick={alreadyRegistered}>
         I'm already registered
       </Button>
-      {/* <ConnectButton colorScheme="purple" my="8" width="100%">
-        Connect my wallet!
-      </ConnectButton> */}
     </VStack>
   )
 }

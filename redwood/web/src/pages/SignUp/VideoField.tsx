@@ -18,22 +18,20 @@ import {
   UseDisclosureReturn,
 } from '@chakra-ui/react'
 import {useState} from 'react'
-import {useController, useFormContext} from 'react-hook-form'
 import ReactPlayer from 'react-player'
 import Webcam from 'react-webcam'
 import {VideoBox} from 'src/components/SquareBox'
-import {dataUrlToBlob} from 'src/lib/util'
+import {useAppDispatch, useAppSelector} from 'src/state/store'
+import {signUpSlice} from 'src/state/signUpSlice'
 import {useFilePicker} from 'use-file-picker'
-import {SignupFieldValues} from './SignUpContext'
 
-const VideoModal = (props: {
-  modalCtrl: UseDisclosureReturn
-  onSave: (newVideo: Blob) => void
-}) => {
+const VideoModal = (props: {modalCtrl: UseDisclosureReturn}) => {
+  const dispatch = useAppDispatch()
+
   const [webcamActive, setwebcamActive] = useState<boolean>(false)
   const [recording, setRecording] = useState(false)
 
-  const [candidateVid, setCandidateVid] = useState<Blob | null>(null)
+  const [candidateVid, setCandidateVid] = useState<string | undefined>()
 
   const [openFileSelector, {filesContent}] = useFilePicker({
     readAs: 'DataURL',
@@ -44,8 +42,7 @@ const VideoModal = (props: {
 
   React.useEffect(() => {
     if (filesContent.length < 1) return
-    ;(async () =>
-      setCandidateVid(await dataUrlToBlob(filesContent[0].content)))()
+    ;(async () => setCandidateVid(filesContent[0].content))()
   }, [filesContent])
 
   const webcamRef = React.useRef<Webcam>(null)
@@ -65,7 +62,7 @@ const VideoModal = (props: {
       // video/x-matroska;codecs=avc1,opus, which Infura refuses to accept
       // as a valid mime-type when uploading the video.
       const video = data.slice(0, data.size, 'video/webm')
-      setCandidateVid(video)
+      setCandidateVid(URL.createObjectURL(video))
     })
     mediaRecorderRef.current.start()
   }, [webcamRef, setRecording, mediaRecorderRef])
@@ -78,8 +75,9 @@ const VideoModal = (props: {
 
   const saveVideo = () => {
     if (candidateVid == null) return
-    props.onSave(candidateVid)
-    setCandidateVid(null)
+
+    dispatch(signUpSlice.actions.setVideo(candidateVid))
+    setCandidateVid(undefined)
     props.modalCtrl.onClose()
   }
 
@@ -151,11 +149,11 @@ const VideoModal = (props: {
               </>
             )}
             {candidateVid && !webcamActive && (
-              <ScaleFade in={candidateVid && !webcamActive}>
+              <ScaleFade in={!!candidateVid && !webcamActive}>
                 <Stack spacing="8" align="center">
                   <Box borderRadius="md" overflow="hidden" shadow="md">
                     <ReactPlayer
-                      url={URL.createObjectURL(candidateVid)}
+                      url={candidateVid}
                       controls
                       width="100%"
                       height="auto"
@@ -165,7 +163,7 @@ const VideoModal = (props: {
                     <Button colorScheme="blue" onClick={saveVideo}>
                       Use This
                     </Button>
-                    <Button onClick={() => setCandidateVid(null)}>
+                    <Button onClick={() => setCandidateVid(undefined)}>
                       Choose Another
                     </Button>
                   </ButtonGroup>
@@ -195,19 +193,14 @@ const VideoField: React.FC<{readOnly?: boolean}> = (props) => {
   const {readOnly = false} = props
   const modalControl = useDisclosure()
 
-  const {control} = useFormContext<SignupFieldValues>()
-  const {field} = useController({
-    name: 'videoCid',
-    control,
-    rules: {required: true},
-  })
+  const video = useAppSelector((state) => state.signUp.video)
 
   return (
     <>
-      <VideoModal modalCtrl={modalControl} onSave={field.onChange} />
-      {field.value ? (
+      <VideoModal modalCtrl={modalControl} />
+      {video ? (
         <Stack>
-          <VideoBox video={field.value as Blob} width="36" shadow="lg" />
+          <VideoBox video={video} width="36" shadow="lg" />
           {!readOnly && (
             <Link
               as="button"
