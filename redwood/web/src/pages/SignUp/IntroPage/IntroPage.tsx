@@ -1,17 +1,19 @@
-import {Alert, AlertDescription, AlertIcon} from '@chakra-ui/alert'
-import {Box, Heading, ListItem, OrderedList, Text} from '@chakra-ui/layout'
+import {Heading, Spacer, Text, VStack} from '@chakra-ui/layout'
+import {Button, useToast} from '@chakra-ui/react'
 import {Redirect, routes} from '@redwoodjs/router'
 import {MetaTags} from '@redwoodjs/web'
 import {useContext, useEffect} from 'react'
-import ConnectButton from 'src/components/ConnectButton/ConnectButton'
+import {RLink} from 'src/components/links'
 import UserContext from 'src/layouts/UserContext'
 import {save as saveIntendedConnection} from 'src/lib/intendedConnectionStorage'
+import SignUpLogo from '../SignUpLogo'
 
 const IntroPage: React.FC<{
   purposeIdentifier?: string
   externalAddress?: string
 }> = ({purposeIdentifier, externalAddress}) => {
   const {ethereumAddress} = useContext(UserContext)
+  console.log('blah blah')
 
   useEffect(() => {
     if (purposeIdentifier && externalAddress) {
@@ -19,43 +21,48 @@ const IntroPage: React.FC<{
     }
   }, [])
 
+  const toast = useToast()
+  const alreadyRegistered = () => {
+    toast({
+      title:
+        'Please connect the wallet you registered with previously to continue.',
+      status: 'info',
+      isClosable: true,
+      duration: 15000,
+    })
+  }
+
   if (ethereumAddress != null) return <Redirect to={routes.signUpEdit()} />
 
   return (
-    <Box maxW="xl" mx="auto">
-      <MetaTags title="Connect Account" />
-      <Heading size="lg" pb="4">
-        Sign Up for Zorro
+    <VStack maxW="md" mx="auto" spacing="6">
+      <SignUpLogo />
+      <MetaTags title="Connect Wallet" />
+      <Heading size="lg" pb="4" alignSelf="flex-start">
+        Zorro: web3 citizenship
       </Heading>
       <Text>
-        <strong>Zorro</strong> is a new way to prove to Dapps that you're a real
-        person, while preserving your privacy. It works like this:
+        Becoming a web3 citizen will let you claim additional voting rights and
+        other privileges.
       </Text>
-      <OrderedList py="4" px="4">
-        <ListItem>
-          First you create a public <strong>Zorro profile</strong>. Your Zorro
-          profile is linked to your real identity, and each person can only
-          create a single profile.
-        </ListItem>
-        <ListItem>
-          Once your profile is complete, you'll be able to create one or more{' '}
-          <strong>Zorro aliases</strong>. Zorro aliases are private pseudonyms
-          you can use to demonstrate that you're a real, unique human, without
-          disclosing exactly <em>which</em> human you are.
-        </ListItem>
-      </OrderedList>
-      <Text>To get started, just connect an Ethereum wallet.</Text>
-      <ConnectButton colorScheme="blue" my="8" width="100%">
+      <Text>
+        It takes about 8 minutes. The costs are covered by the Zorro community.
+      </Text>
+      <Spacer display={['initial', 'none']} />
+      <Button
+        as={RLink}
+        href={routes.signUpConnectWallet()}
+        colorScheme="purple"
+      >
+        Let's go!
+      </Button>
+      <Button variant="link" colorScheme="purple" onClick={alreadyRegistered}>
+        I'm already registered
+      </Button>
+      {/* <ConnectButton colorScheme="purple" my="8" width="100%">
         Connect my wallet!
-      </ConnectButton>
-      <Alert status="warning">
-        <AlertIcon />
-        <AlertDescription fontSize="sm">
-          Note: the wallet you choose will be linked to your real identity, so
-          use a new one or one you don't mind revealing publicly.
-        </AlertDescription>
-      </Alert>
-    </Box>
+      </ConnectButton> */}
+    </VStack>
   )
 }
 

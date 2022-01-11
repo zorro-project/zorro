@@ -26,6 +26,7 @@ const Routes = () => {
         <Route path="/test-transaction" page={TestTransactionPage} name="testTransaction" />
         <Route notfound page={NotFoundPage} />
         <Route path="/sign-up" page={SignUpIntroPage} name="signUpIntro" />
+        <Route path="/sign-up/connect" page={SignUpConnectWalletPage} name="signUpConnectWallet" />
         <Set wrap={SignUpContext}>
           <Route path="/sign-up/{purposeIdentifier}/{externalAddress}" page={SignUpIntroPage} name="signUpAndconnect" />
           <Route path="/sign-up/edit" page={SignUpEditPage} name="signUpEdit" />

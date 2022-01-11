@@ -5,6 +5,7 @@ import AutoSizer from 'react-virtualized-auto-sizer'
 import {FixedSizeGrid} from 'react-window'
 import InfiniteLoader from 'react-window-infinite-loader'
 import {ProfilesPageQuery} from 'types/graphql'
+import {useWindowSize} from 'usehooks-ts'
 import ProfileCard from './ProfileCard'
 
 const QUERY = gql`
@@ -30,13 +31,13 @@ const QUERY = gql`
   }
 `
 
-const MIN_CARD_SIZE = 200
-
 const ProfilesPage = () => {
   const {data, loading, fetchMore} = useQuery<ProfilesPageQuery>(QUERY, {
     notifyOnNetworkStatusChange: true,
     variables: {cursor: null},
   })
+
+  const {width: windowWidth} = useWindowSize()
 
   const loadMore = React.useCallback(() => {
     !loading &&
@@ -79,14 +80,15 @@ const ProfilesPage = () => {
   if (data == null) return null
 
   return (
-    <Flex flexDir="column" height="100vh" spacing={8}>
+    <Flex flexDir="column" height="100vh" width="100%">
       <MetaTags title="All Profiles" />
       <Heading as="h1">All Profiles</Heading>
 
       <Box mx="-2" mt="6" flex={1}>
         <AutoSizer>
           {({width, height}) => {
-            const columnCount = Math.floor(width / MIN_CARD_SIZE)
+            const minCardSize = windowWidth > 800 ? 200 : 150
+            const columnCount = Math.floor(width / minCardSize)
             const rowCount = Math.ceil(profilesCount / columnCount)
             const cardSize = Math.floor(width / columnCount)
 

@@ -110,8 +110,8 @@ const Success: React.FC<CellSuccessProps<SignupContextQuery>> = (props) => {
   )
 
   return (
-    <SlideFade key={pathname} in={true}>
-      <Stack maxW="xl" mx="auto">
+    <Stack maxW="xl" mx="auto">
+      <SlideFade key={pathname} in={true}>
         <SignUpContext.Provider
           value={{
             submitProgress,
@@ -123,8 +123,8 @@ const Success: React.FC<CellSuccessProps<SignupContextQuery>> = (props) => {
             {props.children}
           </Form>
         </SignUpContext.Provider>
-      </Stack>
-    </SlideFade>
+      </SlideFade>
+    </Stack>
   )
 }
 
