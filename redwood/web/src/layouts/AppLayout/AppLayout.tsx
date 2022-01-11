@@ -1,4 +1,4 @@
-import {Box, useToast} from '@chakra-ui/react'
+import {Box, Stack, useToast} from '@chakra-ui/react'
 import {useLocation} from '@redwoodjs/router'
 import {useEffect} from 'react'
 import NavBar from './NavBar'
@@ -11,10 +11,12 @@ const AppLayout: React.FC = ({children}) => {
   useEffect(toast.closeAll, [pathname])
 
   return (
-    <Box minH="100vh">
+    <Stack minH="100vh">
       <NavBar />
-      <Box p={8}>{children}</Box>
-    </Box>
+      <Box p={8} flex="1" display="flex" alignItems="" width="100%">
+        {children}
+      </Box>
+    </Stack>
   )
 }
 
