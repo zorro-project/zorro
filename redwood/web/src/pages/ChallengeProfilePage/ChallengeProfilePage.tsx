@@ -17,11 +17,11 @@ import {
   Stack,
   Text,
   Textarea,
+  useToast,
 } from '@chakra-ui/react'
 import {Form, useForm} from '@redwoodjs/forms'
 import {Redirect, routes} from '@redwoodjs/router'
 import {CellSuccessProps, createCell, MetaTags} from '@redwoodjs/web'
-import {toast} from '@redwoodjs/web/dist/toast'
 import {ReactElement} from 'react'
 import ResizeTextarea from 'react-textarea-autosize'
 import {InternalLink, RLink} from 'src/components/links'
@@ -57,6 +57,7 @@ const QUERY = gql`
 `
 
 const NotChallenged = (props: {query: ChallengePageQuery}) => {
+  const toast = useToast()
   const [submissionStatus, setSubmissionStatus] = React.useState<string | null>(
     null
   )
@@ -88,10 +89,12 @@ const NotChallenged = (props: {query: ChallengePageQuery}) => {
     const balance = await erc20GetBalanceOf(userWalletContractAddress)
 
     if (balance < depositSize) {
-      toast.error(
-        'You have insufficient funds to submit a challenge. Add funds to your wallet and try again.',
-        {duration: 10000}
-      )
+      toast({
+        title:
+          'You have insufficient funds to submit a challenge. Add funds to your wallet and try again.',
+        status: 'error',
+        duration: 10000,
+      })
       setSubmissionStatus(null)
       return
     }
