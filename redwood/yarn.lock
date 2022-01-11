@@ -20084,6 +20084,11 @@ use@^3.1.0:
   resolved "https://registry.yarnpkg.com/use/-/use-3.1.1.tgz#d50c8cac79a19fbc20f2911f56eb973f4e10070f"
   integrity sha512-cwESVXlO3url9YWlFW/TA9cshCEhtu7IKJ/p5soJ/gGpj7vbvFrAY/eIioQ6Dw23KjZhYgiIo8HOs1nQ2vr/oQ==
 
+usehooks-ts@^2.2.0:
+  version "2.2.0"
+  resolved "https://registry.yarnpkg.com/usehooks-ts/-/usehooks-ts-2.2.0.tgz#4c6080d65be0d0e4de045a7619057f9b989f7d86"
+  integrity sha512-7aLmT9UHN5cub1cOG+MQnMKGLGCcPrFxXL21jkt8CZ8KdaNZVluAVNs/KS8XmSxVQ56Ypo7kBjRZkfpJH/3yYw==
+
 utif@^2.0.1:
   version "2.0.1"
   resolved "https://registry.yarnpkg.com/utif/-/utif-2.0.1.tgz#9e1582d9bbd20011a6588548ed3266298e711759"

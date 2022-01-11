@@ -10,7 +10,8 @@ import {
   useColorModeValue,
   useDisclosure,
 } from '@chakra-ui/react'
-import {routes, useMatch} from '@redwoodjs/router'
+import {routes, useLocation, useMatch} from '@redwoodjs/router'
+import {useEffect} from 'react'
 import {BsGrid, BsPersonBadge, BsPersonPlus} from 'react-icons/bs'
 import ConnectButton from 'src/components/ConnectButton/ConnectButton'
 import {RLink} from 'src/components/links'
@@ -64,9 +65,12 @@ const DesktopNav = ({navItems}: {navItems: Array<NavItem>}) => (
 
 const MobileNav = ({navItems}: {navItems: Array<NavItem>}) => (
   <Stack
-    bg={useColorModeValue('white', 'gray.800')}
+    bg="white"
     p={4}
     display={{md: 'none'}}
+    borderBottom={1}
+    borderStyle={'solid'}
+    borderColor={useColorModeValue('gray.200', 'gray.900')}
   >
     {navItems.map((navItem) => (
       <NavItem key={navItem.label} {...navItem} />
@@ -75,8 +79,12 @@ const MobileNav = ({navItems}: {navItems: Array<NavItem>}) => (
 )
 
 const NavBar = () => {
-  const {isOpen, onToggle} = useDisclosure()
+  const {isOpen, onToggle, onClose} = useDisclosure()
   const user = React.useContext(UserContext)
+
+  const {pathname} = useLocation()
+
+  useEffect(onClose, [pathname])
 
   const navItems: Array<NavItem> = [
     {
@@ -98,16 +106,16 @@ const NavBar = () => {
       href: routes.signUpEdit(),
       icon: BsPersonPlus,
     })
-  } else if (user) {
+  } else {
     navItems.push({
       label: 'Create Profile',
-      href: routes.signUpEdit(),
+      href: routes.signUpIntro(),
       icon: BsPersonPlus,
     })
   }
 
   return (
-    <>
+    <Box>
       <Flex
         bg={useColorModeValue('white', 'gray.800')}
         color={useColorModeValue('gray.600', 'white')}
@@ -142,10 +150,14 @@ const NavBar = () => {
 
         <ConnectButton />
       </Flex>
-      <Collapse in={isOpen} animateOpacity>
-        <MobileNav navItems={navItems} />
-      </Collapse>
-    </>
+      <Box position="relative" m="0">
+        <Box pos="absolute" top="0" left="0" right="0">
+          <Collapse in={isOpen} animateOpacity>
+            <MobileNav navItems={navItems} />
+          </Collapse>
+        </Box>
+      </Box>
+    </Box>
   )
 }
 
