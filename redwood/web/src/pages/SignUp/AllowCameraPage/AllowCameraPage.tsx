@@ -9,15 +9,12 @@ import {
 } from 'mic-check'
 import SignUpLogo from '../SignUpLogo'
 
-const ConnectWalletPage: React.FC<{
-  purposeIdentifier?: string
-  externalAddress?: string
-}> = () => {
+const AllowCameraPage: React.FC = () => {
   const cameraError = useToast({status: 'error', position: 'top'})
 
   const requestPermissions = async () => {
     requestMediaPermissions()
-      .then(() => navigate(routes.signUpEdit()))
+      .then(() => navigate(routes.signUpRecord()))
       .catch((err: MediaPermissionsError) => {
         if (err.type === MediaPermissionsErrorType.SystemPermissionDenied) {
           cameraError({
@@ -60,4 +57,4 @@ const ConnectWalletPage: React.FC<{
   )
 }
 
-export default ConnectWalletPage
+export default AllowCameraPage

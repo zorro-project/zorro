@@ -103,7 +103,7 @@ const NavBar = () => {
   } else if (user.unsubmittedProfile) {
     navItems.push({
       label: 'Complete Profile',
-      href: routes.signUpEdit(),
+      href: routes.signUpSubmitted(),
       icon: BsPersonPlus,
     })
   } else {

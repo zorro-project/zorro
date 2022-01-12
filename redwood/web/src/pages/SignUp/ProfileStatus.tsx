@@ -1,10 +1,10 @@
 import {Alert, AlertDescription, AlertIcon, AlertTitle} from '@chakra-ui/alert'
 import {Box, Text} from '@chakra-ui/layout'
-import {SignupEditPageQuery} from 'types/graphql'
+import {SignUpSubmittedPageQuery} from 'types/graphql'
 
 const ProfileStatus: React.FC<{
   profile: Pick<
-    NonNullable<SignupEditPageQuery['unsubmittedProfile']>,
+    NonNullable<SignUpSubmittedPageQuery['unsubmittedProfile']>,
     'UnaddressedFeedback'
   > | null
 }> = ({profile}) => {
