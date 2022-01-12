@@ -46,16 +46,6 @@ export default async () => {
     })
 
     await syncStarknetState()
-
-    // TODO: how are we going to seed actual profiles? Push them to StarkNet first I guess?
-    // const pohProfiles = await importPoH()
-
-    // await db.cachedProfile.createMany({
-    //   data: pohProfiles.map((profile) => ({
-    //     ...profile,
-    //     submissionTimestamp: new Date(),
-    //   })),
-    // })
   } catch (error) {
     console.error(error)
   }
