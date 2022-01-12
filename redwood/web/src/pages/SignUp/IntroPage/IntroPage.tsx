@@ -12,8 +12,10 @@ const IntroPage: React.FC<{
   purposeIdentifier?: string
   externalAddress?: string
 }> = ({purposeIdentifier, externalAddress}) => {
-  const {ethereumAddress} = useContext(UserContext)
-  console.log('blah blah')
+  const {cachedProfile} = useContext(UserContext)
+
+  if (cachedProfile != null)
+    return <Redirect to={routes.profile({id: cachedProfile.id})} />
 
   useEffect(() => {
     if (purposeIdentifier && externalAddress) {
@@ -32,10 +34,8 @@ const IntroPage: React.FC<{
     })
   }
 
-  if (ethereumAddress != null) return <Redirect to={routes.signUpEdit()} />
-
   return (
-    <VStack maxW="md" mx="auto" spacing="6">
+    <VStack spacing="6" flex="1">
       <SignUpLogo />
       <MetaTags title="Connect Wallet" />
       <Heading size="lg" pb="4" alignSelf="flex-start">

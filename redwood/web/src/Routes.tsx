@@ -20,6 +20,7 @@ const Routes = () => {
           <Route path="/sign-up" page={SignUpIntroPage} name="signUpIntro" />
           <Route path="/sign-up/{purposeIdentifier}/{externalAddress}" page={SignUpIntroPage} name="signUpAndconnect" />
           <Route path="/sign-up/connect" page={SignUpConnectWalletPage} name="signUpConnectWallet" />
+          <Route path="/sign-up/allow-camera" page={SignUpAllowCameraPage} name="signUpAllowCamera" />
           <Route path="/sign-up/edit" page={SignUpEditPage} name="signUpEdit" />
           <Route path="/sign-up/presubmit" page={SignUpPresubmitPage} name="signUpPresubmit" />
         </Set>

@@ -11,10 +11,11 @@ const ConnectWalletPage: React.FC<{
   externalAddress?: string
 }> = () => {
   const {ethereumAddress} = useContext(UserContext)
-  if (ethereumAddress != null) return <Redirect to={routes.signUpEdit()} />
+  if (ethereumAddress != null)
+    return <Redirect to={routes.signUpAllowCamera()} />
 
   return (
-    <VStack maxW="md" mx="auto" spacing="6">
+    <VStack spacing="6" flex="1">
       <SignUpLogo />
       <MetaTags title="Sign Up" />
       <Spacer display={['initial', 'none']} />

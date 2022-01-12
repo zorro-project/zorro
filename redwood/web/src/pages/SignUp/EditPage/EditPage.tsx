@@ -12,6 +12,7 @@ import {useAppDispatch, useAppSelector} from 'src/state/store'
 import {signUpSlice} from 'src/state/signUpSlice'
 import {SignupEditPageQuery} from 'types/graphql'
 import ProfileStatus from '../ProfileStatus'
+import {requestMediaPermissions} from 'mic-check'
 
 const EditPage = () => {
   const {photo, video} = useAppSelector((state) => state.signUp)
@@ -44,6 +45,11 @@ const EditPage = () => {
     data?.unsubmittedProfile?.videoCid &&
       dispatch(signUpSlice.actions.setVideo(data.unsubmittedProfile.videoCid))
   }, [data?.unsubmittedProfile?.photoCid, data?.unsubmittedProfile?.videoCid])
+
+  // Make sure we have camera permissions
+  useEffect(() => {
+    requestMediaPermissions().catch(() => navigate(routes.signUpAllowCamera()))
+  }, [])
 
   return (
     <Stack spacing="6">
