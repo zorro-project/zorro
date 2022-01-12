@@ -20,5 +20,6 @@ export const signUpSlice = createSlice({
     setVideo: (state, action: PayloadAction<SignUpState['video']>) => {
       state.video = action.payload
     },
+    reset: () => initialState,
   },
 })
