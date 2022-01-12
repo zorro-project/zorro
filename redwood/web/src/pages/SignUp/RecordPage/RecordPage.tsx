@@ -111,10 +111,10 @@ const RecordPage = () => {
   const {photo, video} = useAppSelector((state) => state.signUp)
   const webcamRef = useRef<Webcam>(null)
 
-  if (video) return <Redirect to={routes.signUpPresubmit()} />
+  if (video) return <Redirect to={routes.signUpReview()} />
 
   return (
-    <Stack maxW="md" mx="auto" spacing="6" flex="1">
+    <Stack spacing="6" flex="1">
       <Box background="black" width="100%">
         <Webcam
           videoConstraints={{facingMode: 'user'}}
