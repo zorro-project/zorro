@@ -6,7 +6,8 @@ import {routes} from '@redwoodjs/router'
 import dayjs from 'dayjs'
 import {FaCalendarCheck, FaCheck, FaTimes} from 'react-icons/fa'
 import {RLink} from 'src/components/links'
-import {ArrayElement, useDataFieldUrl} from 'src/lib/util'
+import {cidToUrl} from 'src/lib/ipfs'
+import {ArrayElement} from 'src/lib/util'
 import {ProfilesPageQuery} from 'types/graphql'
 
 const ProfileCard = ({
@@ -18,8 +19,6 @@ const ProfileCard = ({
       >['node']
     | null
 }) => {
-  const photoUrl = useDataFieldUrl(profile?.photoCid)
-
   if (!profile) {
     return (
       <Box
@@ -54,7 +53,7 @@ const ProfileCard = ({
       }}
     >
       <Image
-        src={photoUrl}
+        src={cidToUrl(profile?.photoCid ?? '')}
         width="100%"
         height="100%"
         objectFit="cover"

@@ -1,21 +1,49 @@
 import {Button, ButtonGroup} from '@chakra-ui/button'
 import {FormControl, FormHelperText, FormLabel} from '@chakra-ui/form-control'
 import {Heading, Stack, StackDivider, Text} from '@chakra-ui/layout'
-import {navigate, routes} from '@redwoodjs/router'
-import {MetaTags} from '@redwoodjs/web'
-import {useContext} from 'react'
-import {useFormContext} from 'react-hook-form'
+import {navigate, Redirect, routes} from '@redwoodjs/router'
+import {MetaTags, useQuery} from '@redwoodjs/web'
+import {useContext, useEffect} from 'react'
 import {Card} from 'src/components/Card'
+import UserContext from 'src/layouts/UserContext'
 import PhotoField from 'src/pages/SignUp/PhotoField'
-import ProfileStatus from 'src/pages/SignUp/ProfileStatus'
 import VideoField from 'src/pages/SignUp/VideoField'
-import {SignUpContext} from '../SignUpContext'
+import {useAppDispatch, useAppSelector} from 'src/state/store'
+import {signUpSlice} from 'src/state/signUpSlice'
+import {SignupEditPageQuery} from 'types/graphql'
+import ProfileStatus from '../ProfileStatus'
 
 const EditPage = () => {
-  const {formState} = useFormContext()
-  const {
-    data: {unsubmittedProfile},
-  } = useContext(SignUpContext)
+  const {photo, video} = useAppSelector((state) => state.signUp)
+  const dispatch = useAppDispatch()
+  const {ethereumAddress} = useContext(UserContext)
+  if (!ethereumAddress) return <Redirect to={routes.signUpIntro()} />
+
+  const isValid = photo != null && video != null
+
+  const {data} = useQuery<SignupEditPageQuery>(
+    gql`
+      query SignupEditPageQuery($ethereumAddress: ID!) {
+        unsubmittedProfile(ethereumAddress: $ethereumAddress) {
+          photoCid
+          videoCid
+          hasEmail
+          ethereumAddress
+          UnaddressedFeedback {
+            feedback
+          }
+        }
+      }
+    `,
+    {variables: {ethereumAddress}}
+  )
+
+  useEffect(() => {
+    data?.unsubmittedProfile?.photoCid &&
+      dispatch(signUpSlice.actions.setPhoto(data.unsubmittedProfile.photoCid))
+    data?.unsubmittedProfile?.videoCid &&
+      dispatch(signUpSlice.actions.setVideo(data.unsubmittedProfile.videoCid))
+  }, [data?.unsubmittedProfile?.photoCid, data?.unsubmittedProfile?.videoCid])
 
   return (
     <Stack spacing="6">
@@ -26,8 +54,8 @@ const EditPage = () => {
         only create a single profile. If you already have a Zorro profile,
         switch to that wallet.
       </Text>
-      {!formState.isDirty && unsubmittedProfile && (
-        <ProfileStatus profile={unsubmittedProfile} />
+      {data?.unsubmittedProfile && (
+        <ProfileStatus profile={data.unsubmittedProfile} />
       )}
       <Card>
         <Stack divider={<StackDivider />} spacing="8">
@@ -65,7 +93,7 @@ const EditPage = () => {
       <ButtonGroup alignSelf="flex-end">
         <Button
           colorScheme="purple"
-          disabled={!formState.isValid}
+          disabled={!isValid}
           onClick={() => navigate(routes.signUpPresubmit())}
         >
           Continue

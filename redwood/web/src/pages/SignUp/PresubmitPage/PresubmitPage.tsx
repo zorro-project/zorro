@@ -11,28 +11,96 @@ import {
 } from '@chakra-ui/layout'
 import {CircularProgress} from '@chakra-ui/progress'
 import {navigate, Redirect, routes} from '@redwoodjs/router'
-import {MetaTags} from '@redwoodjs/web'
+import {MetaTags, useMutation} from '@redwoodjs/web'
 import React, {useContext} from 'react'
-import {useFormContext} from 'react-hook-form'
 import {Card} from 'src/components/Card'
 import Identicon from 'src/components/Identicon'
 import UserContext from 'src/layouts/UserContext'
+import ipfsClient from 'src/lib/ipfs'
+import {dataUrlToBlob, isLocalUrl} from 'src/lib/util'
 import PhotoField from 'src/pages/SignUp/PhotoField'
 import VideoField from 'src/pages/SignUp/VideoField'
-import {SignUpContext, SignupFieldValues} from '../SignUpContext'
+import {useAppSelector} from 'src/state/store'
+import {
+  UpdateUnsubmittedProfileMutation,
+  UpdateUnsubmittedProfileMutationVariables,
+} from 'types/graphql'
 
 const PreSubmitPage = () => {
   const {ethereumAddress} = useContext(UserContext)
-  const {formState, watch} = useFormContext<SignupFieldValues>()
-  const {submitProgress} = useContext(SignUpContext)
+  if (!ethereumAddress) return <Redirect to={routes.signUpIntro()} />
 
-  if (!ethereumAddress) {
-    return <Redirect to={routes.signUpIntro()} />
-  }
+  const [submitProgress, setSubmitProgress] = React.useState(-1)
+  const signUpState = useAppSelector((state) => state.signUp)
 
-  if (watch('videoCid') == null || watch('photoCid') == null) {
-    return <Redirect to={routes.signUpEdit()} />
-  }
+  const isValid = signUpState.photo != null && signUpState.video != null
+  if (!isValid) return <Redirect to={routes.signUpEdit()} />
+
+  const [updateMutation] = useMutation<
+    UpdateUnsubmittedProfileMutation,
+    UpdateUnsubmittedProfileMutationVariables
+  >(gql`
+    mutation UpdateUnsubmittedProfileMutation(
+      $ethereumAddress: String!
+      $input: UpdateUnsubmittedProfileInput!
+    ) {
+      updateUnsubmittedProfile(
+        ethereumAddress: $ethereumAddress
+        input: $input
+      ) {
+        id
+      }
+    }
+  `)
+
+  const onSubmit = React.useCallback(async () => {
+    if (!isValid) return
+    setSubmitProgress(0)
+
+    const photoBlob = isLocalUrl(signUpState.photo)
+      ? await dataUrlToBlob(signUpState.photo!)
+      : null
+    const videoBlob = isLocalUrl(signUpState.video)
+      ? await dataUrlToBlob(signUpState.video!)
+      : null
+
+    const reportProgress = (bytes: number) =>
+      setSubmitProgress(
+        (100 * bytes) / ((photoBlob?.size ?? 0) + (videoBlob?.size ?? 0))
+      )
+
+    const photoCid = photoBlob
+      ? (
+          await ipfsClient.add(photoBlob, {
+            progress: reportProgress,
+          })
+        ).cid
+          .toV1()
+          .toString()
+      : signUpState.photo!
+
+    const videoCid = videoBlob
+      ? (
+          await ipfsClient.add(videoBlob, {
+            progress: reportProgress,
+          })
+        ).cid
+          .toV1()
+          .toString()
+      : signUpState.video!
+
+    await updateMutation({
+      variables: {
+        ethereumAddress,
+        input: {
+          photoCid,
+          videoCid,
+        },
+      },
+    })
+
+    navigate(routes.signUpSubmitted())
+  }, [ethereumAddress, updateMutation])
 
   return (
     <Stack spacing="6">
@@ -48,7 +116,7 @@ const PreSubmitPage = () => {
                 one or one you don't mind revealing publicly.
               </Text>
               <Stack direction="row" justify="center" align="center">
-                <Text fontWeight="bold" display="block">
+                <Text fontWeight="bold" display="block" wordBreak="break-all">
                   {ethereumAddress}
                 </Text>
                 <Identicon account={ethereumAddress} />
@@ -96,17 +164,10 @@ const PreSubmitPage = () => {
               </OrderedList>
             </FormControl>
             <VideoField readOnly />
-
-            {/* <VideoBox
-              video={watch('videoCid')}
-              width="36"
-              borderRadius="lg"
-              shadow="lg"
-            /> */}
           </Stack>
         </Stack>
       </Card>
-      {formState.isSubmitting ? (
+      {submitProgress >= 0 ? (
         <Stack align="center" justify="center" direction="row">
           <CircularProgress value={submitProgress} />
           <Text>Submitting...</Text>
@@ -119,7 +180,8 @@ const PreSubmitPage = () => {
           <Button
             colorScheme="blue"
             type="submit"
-            disabled={!formState.isValid}
+            disabled={!isValid}
+            onClick={onSubmit}
           >
             Submit
           </Button>

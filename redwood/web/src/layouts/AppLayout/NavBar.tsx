@@ -151,7 +151,7 @@ const NavBar = () => {
         <ConnectButton />
       </Flex>
       <Box position="relative" m="0">
-        <Box pos="absolute" top="0" left="0" right="0">
+        <Box pos="absolute" top="0" left="0" right="0" zIndex="10">
           <Collapse in={isOpen} animateOpacity>
             <MobileNav navItems={navItems} />
           </Collapse>
