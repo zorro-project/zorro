@@ -174,7 +174,7 @@ const PreSubmitPage = () => {
         </Stack>
       ) : (
         <ButtonGroup alignSelf="flex-end">
-          <Button onClick={() => navigate(routes.signUpEdit())}>
+          <Button onClick={() => navigate(routes.signUpRecord())}>
             Make Changes
           </Button>
           <Button
