@@ -1,11 +1,11 @@
-import {Box, Stack, useToast} from '@chakra-ui/react'
+import {Flex, useToast} from '@chakra-ui/react'
 import {useLocation} from '@redwoodjs/router'
 import {useEffect} from 'react'
 import NavBar from './NavBar'
 
 // Don't run this code within AppLayout itself to avoid re-rendering the page
 // chrome every time we navigate to a new page.
-const LayoutCallbacks = () => {
+const LayoutEffects = () => {
   const {pathname} = useLocation()
   const toast = useToast()
 
@@ -15,13 +15,13 @@ const LayoutCallbacks = () => {
 }
 
 const AppLayout: React.FC = ({children}) => (
-  <Stack minH="100vh">
+  <Flex flexDir="column" minH="100vh">
     <NavBar />
-    <Box p={8} flex="1" display="flex" alignItems="" width="100%">
+    <Flex flexDir="column" p={8} flex="1">
       {children}
-    </Box>
-    <LayoutCallbacks />
-  </Stack>
+    </Flex>
+    <LayoutEffects />
+  </Flex>
 )
 
 export default AppLayout

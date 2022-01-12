@@ -1,9 +1,9 @@
-import {Stack} from '@chakra-ui/react'
+import {Flex} from '@chakra-ui/react'
 
 const SignUpLayout: React.FC = ({children}) => (
-  <Stack maxW="xl" mx="auto">
+  <Flex flexDir="column" maxW="md" mx="auto" flex="1">
     {children}
-  </Stack>
+  </Flex>
 )
 
 export default SignUpLayout
