@@ -13,7 +13,6 @@ import {
 import React, {useContext} from 'react'
 import {Card} from 'src/components/Card'
 import requireEthAddress from 'src/components/requireEthAddress'
-// import RequireEthAddress from 'src/components/RequireEthAddress'
 import UserContext from 'src/layouts/UserContext'
 import {usePusher} from 'src/lib/pusher'
 import ProfileStatus from 'src/pages/SignUp/ProfileStatus'
@@ -70,7 +69,7 @@ const Success = (props: CellSuccessProps<SignUpSubmittedPageQuery>) => {
   }
 
   return (
-    <Stack maxW="xl" mx="auto">
+    <Stack>
       {/* @ts-expect-error TODO: typechecking for redwood forms */}
       <Form formMethods={methods} onSubmit={onSubmit}>
         <Stack spacing="6">
