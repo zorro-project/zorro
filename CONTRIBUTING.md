@@ -24,7 +24,7 @@ Our website is found at [https://zorro.xyz/](https://zorro.xyz/), and you can jo
 
 1. Clone the repository.
 
-```jsx
+```
 git clone https://github.com/zorro-project/zorro.git
 ```
 
