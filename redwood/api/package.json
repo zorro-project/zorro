@@ -6,6 +6,7 @@
     "@redwoodjs/api": "^1.0.0-rc.4",
     "@redwoodjs/api-server": "1.0.0-rc.4",
     "@redwoodjs/graphql-server": "^1.0.0-rc.4",
+    "axios": "^0.24.0",
     "dayjs": "^1.10.7",
     "ethers": "^5.5.2",
     "hex-to-array-buffer": "^2.0.0",

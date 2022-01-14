@@ -38,11 +38,9 @@ export function UserContextProvider({children}: {children: React.ReactNode}) {
           id
           hasEmail
         }
-
         unsubmittedProfile(ethereumAddress: $ethereumAddress) {
           id
         }
-
         cachedProfile: cachedProfileByEthereumAddress(
           ethereumAddress: $ethereumAddress
         ) {

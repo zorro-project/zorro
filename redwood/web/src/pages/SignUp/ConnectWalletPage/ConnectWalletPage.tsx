@@ -1,7 +1,7 @@
 import {Spacer, Text, VStack} from '@chakra-ui/layout'
 import {Redirect, routes} from '@redwoodjs/router'
 import {MetaTags} from '@redwoodjs/web'
-import {useContext} from 'react'
+import {useContext, useEffect, useState} from 'react'
 import ConnectButton from 'src/components/ConnectButton/ConnectButton'
 import UserContext from 'src/layouts/UserContext'
 import SignUpLogo from '../SignUpLogo'
@@ -10,7 +10,23 @@ const ConnectWalletPage: React.FC<{
   purposeIdentifier?: string
   externalAddress?: string
 }> = () => {
-  const {ethereumAddress} = useContext(UserContext)
+  const {ethereumAddress, isFreshAddress} = useContext(UserContext)
+
+  useEffect(() => {
+    getAddressTransactions(ethereumAddress)
+  }, [ethereumAddress])
+
+  const getAddressTransactions = (ethereumAddress: string) => {
+    gql`
+      query fetchAddressTransactions($ethereumAddress: ID!) {
+        addressInfo: fetchAddressTransactions(ethereumAddress: $ethereumAddress) {
+          transactionCount
+          isFreshAddress
+        }
+      }
+    `
+  }
+
   if (ethereumAddress != null)
     return <Redirect to={routes.signUpAllowCamera()} />
 

@@ -24,6 +24,7 @@
     "@redwoodjs/router": "^1.0.0-rc.4",
     "@redwoodjs/web": "^1.0.0-rc.4",
     "@usedapp/core": "^0.7.3",
+    "axios": "^0.24.0",
     "dayjs": "^1.10.7",
     "framer-motion": "^4",
     "ipfs-http-client": "^53.0.1",
