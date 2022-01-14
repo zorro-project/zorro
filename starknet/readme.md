@@ -5,6 +5,10 @@
 # Make sure you also configure your shell to use it
 brew install asdf
 
+# Install python with `asdf`
+# See more: https://skeptric.com/asdf-python/
+asdf plugin add python
+
 brew install gmp
 
 # Install the `poetry` dependency manager for Python
