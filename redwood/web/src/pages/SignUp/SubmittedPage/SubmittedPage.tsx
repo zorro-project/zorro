@@ -16,56 +16,55 @@ import requireEthAddress from 'src/components/requireEthAddress'
 import UserContext from 'src/layouts/UserContext'
 import {usePusher} from 'src/lib/pusher'
 import ProfileStatus from 'src/pages/SignUp/ProfileStatus'
-import {SignUpSubmittedPageQuery} from 'types/graphql'
+import {
+  CreateUserMutation,
+  CreateUserMutationVariables,
+  SignUpSubmittedPageQuery,
+} from 'types/graphql'
 
 type FormFields = {email: string}
 
 const Success = (props: CellSuccessProps<SignUpSubmittedPageQuery>) => {
-  const user = useContext(UserContext)
-  if (!user) return <Redirect to={routes.signUpIntro()} />
-  const {ethereumAddress} = user
+  if (!props.unsubmittedProfile) return <Redirect to={routes.signUpIntro()} />
 
-  if (!props.unsubmittedProfile) return <Redirect to={routes.signUpEdit()} />
+  const {ethereumAddress} = useContext(UserContext)
+  if (!ethereumAddress) return <Redirect to={routes.signUpIntro()} />
 
   const methods = useForm<FormFields>({
     defaultValues: {
-      email: props.unsubmittedProfile?.hasEmail ? '***@***.***' : undefined,
+      email: props.user?.hasEmail ? '***@***.***' : undefined,
     },
   })
 
-  const [saveEmail] = useMutation(gql`
-    mutation UnsubmittedProfileSetEmailMutation(
-      $ethereumAddress: String!
-      $email: String!
-    ) {
-      unsubmittedProfileSetEmail(
-        ethereumAddress: $ethereumAddress
-        email: $email
-      ) {
-        ethereumAddress
+  const [saveEmail] = useMutation<
+    CreateUserMutation,
+    CreateUserMutationVariables
+  >(gql`
+    mutation CreateUserMutation($input: CreateUserInput!) {
+      createUser(input: $input) {
+        id
+        hasEmail
       }
     }
   `)
 
   usePusher(
-    `unsubmittedProfile.${props.unsubmittedProfile?.id}`,
+    `unsubmittedProfile.${props.unsubmittedProfile?.ethereumAddress}`,
     'updated',
-    props.refetch
+    () => props.refetch?.()
   )
 
   const onSubmit = async (data: FormFields) => {
     await saveEmail({
       variables: {
-        ethereumAddress,
-        email: data.email,
+        input: {
+          ethereumAddress,
+          email: data.email,
+        },
       },
     })
     // Clear the form isDirty
     methods.reset(data)
-  }
-
-  if (props.unsubmittedProfile === null) {
-    return <Redirect to={routes.signUpEdit()} />
   }
 
   return (
@@ -77,7 +76,7 @@ const Success = (props: CellSuccessProps<SignUpSubmittedPageQuery>) => {
           <Heading size="lg">Profile Pending Approval</Heading>
           <ProfileStatus profile={props.unsubmittedProfile} />
           <ButtonGroup alignSelf="flex-end">
-            <Button onClick={() => navigate(routes.signUpEdit())}>
+            <Button onClick={() => navigate(routes.signUpRecord())}>
               Edit Profile
             </Button>
           </ButtonGroup>
@@ -109,9 +108,13 @@ const Success = (props: CellSuccessProps<SignUpSubmittedPageQuery>) => {
 const Cell = createCell({
   QUERY: gql`
     query SignUpSubmittedPageQuery($ethereumAddress: ID!) {
-      unsubmittedProfile(ethereumAddress: $ethereumAddress) {
+      user(ethereumAddress: $ethereumAddress) {
         id
         hasEmail
+      }
+      unsubmittedProfile(ethereumAddress: $ethereumAddress) {
+        id
+        ethereumAddress
         UnaddressedFeedback {
           feedback
         }
