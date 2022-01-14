@@ -6,7 +6,7 @@ import {IArbitrator} from '@kleros/erc-792/contracts/IArbitrator.sol';
 
 uint256 constant STARKNET_PRIME = 2**251 + 17 * 2**192 + 1;
 
-// XXX: this computation probalby isn't correct; verify it!
+// XXX: this selector computation probably isn't correct; verify it!
 uint256 constant MASK_250 = 2**250 - 1;
 uint256 constant ZORRO_SUPER_ADJUDICATE_SELECTOR = uint256(
   keccak256('super_adjudicate') & bytes32(MASK_250)
@@ -128,7 +128,8 @@ contract SuperAdjudicator {
     uint256 ruling = arbitrator.currentRuling(disputeId);
     uint256[] memory payload = new uint256[](2);
     payload[0] = profileId;
-    payload[1] = ruling;
+    payload[1] = ruling; // XXX: this ruling will be 0 if adjudicator was wrong, 1 if adjudicator is right, which is not what the Zorro starknet contract expects right now.
+
     starknetCore.sendMessageToL2(
       zorroL2Address,
       ZORRO_SUPER_ADJUDICATE_SELECTOR,
