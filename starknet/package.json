@@ -1,7 +1,6 @@
 {
-  "name": "Zorro",
+  "name": "zorro-starknet",
   "version": "1.0.0",
-  "main": "index.js",
   "scripts": {
     "//": "Fun fact! the '//' key in will never be used by npm and is reserved for commenting.",
 
