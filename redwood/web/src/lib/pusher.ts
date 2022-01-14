@@ -10,10 +10,15 @@ const pusher = process.env.PUSHER_KEY
 export const usePusher = (
   channel: string,
   event: string,
-  callback: Function | undefined
+  callback: Function
 ) => {
   useEffect(() => {
-    if (pusher == null || callback == null) return
+    if (pusher == null) {
+      console.warn(
+        'Pusher not configured, so realtime events will not work on this page. Have you set `PUSHER_KEY` in your .env file?'
+      )
+      return
+    }
     const pusherChannel = pusher.subscribe(channel)
     pusherChannel.bind(event, callback)
     return () => {

@@ -7,9 +7,10 @@ import useLocalStorageState from 'use-local-storage-state'
 
 type UserContextType = {
   ethereumAddress?: string
+  refetch: () => void
 } & UserContextQuery
 
-const UserContext = React.createContext<UserContextType>({})
+const UserContext = React.createContext<UserContextType>({refetch: () => {}})
 
 export function UserContextProvider({children}: {children: React.ReactNode}) {
   const ethers = useEthers()
@@ -27,12 +28,17 @@ export function UserContextProvider({children}: {children: React.ReactNode}) {
     useState(false)
   useTimeout(() => setInitialLoadTimeoutExpired(true), 1000)
 
-  const [queryUser, {data}] = useLazyQuery<
+  const [queryUser, {data, refetch}] = useLazyQuery<
     UserContextQuery,
     UserContextQueryVariables
   >(
     gql`
       query UserContextQuery($ethereumAddress: ID!) {
+        user(ethereumAddress: $ethereumAddress) {
+          id
+          hasEmail
+        }
+
         unsubmittedProfile(ethereumAddress: $ethereumAddress) {
           id
         }
@@ -58,6 +64,7 @@ export function UserContextProvider({children}: {children: React.ReactNode}) {
 
   const context: UserContextType = {
     ethereumAddress,
+    refetch,
     ...data,
   }
 

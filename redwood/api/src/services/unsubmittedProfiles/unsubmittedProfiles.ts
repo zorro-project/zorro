@@ -1,13 +1,7 @@
-import type {Prisma} from '@prisma/client'
-import {
-  MutationaddNotaryFeedbackArgs,
-  MutationapproveProfileArgs,
-  MutationunsubmittedProfileSetEmailArgs,
-  MutationupdateUnsubmittedProfileArgs,
-  QueryunsubmittedProfileArgs,
-  QueryunsubmittedProfilesArgs,
-  UnsubmittedProfile as UnsubmittedProfileType,
-} from 'api/types/graphql'
+import type {
+  Prisma,
+  UnsubmittedProfile as PrismaUnsubmittedProfile,
+} from '@prisma/client'
 import {db} from 'src/lib/db'
 import 'src/lib/pusher'
 import {pusher} from 'src/lib/pusher'
@@ -15,9 +9,23 @@ import {sendMessage} from 'src/lib/twilio'
 import sendNotaryApproved from 'src/mailers/sendNotaryApproved'
 import sendNotaryFeedback from 'src/mailers/sendNotaryFeedback'
 import syncStarknetState from 'src/tasks/syncStarknetState'
+import {
+  MutationaddNotaryFeedbackArgs,
+  MutationapproveProfileArgs,
+  MutationupdateUnsubmittedProfileArgs,
+  QueryunsubmittedProfileArgs,
+  QueryunsubmittedProfilesArgs,
+  UnsubmittedProfile as UnsubmittedProfileType,
+} from 'types/graphql'
 
-const alertProfileUpdated = (profile: {id: number}) =>
-  pusher?.trigger(`unsubmittedProfile.${profile.id}`, 'updated', {})
+const alertProfileUpdated = (
+  profile: Pick<PrismaUnsubmittedProfile, 'ethereumAddress'>
+) =>
+  pusher?.trigger(
+    `unsubmittedProfile.${profile.ethereumAddress}`,
+    'updated',
+    {}
+  )
 
 // Just hard-code these for now. Will get fancier later.
 export const NOTARIES = [
@@ -37,12 +45,8 @@ export const unsubmittedProfiles = async ({
 
 export const unsubmittedProfile = async ({
   ethereumAddress,
-}: QueryunsubmittedProfileArgs) => {
-  const record = await db.unsubmittedProfile.findUnique({
-    where: {ethereumAddress},
-  })
-  return record ? {...record, hasEmail: !!record.email} : null
-}
+}: QueryunsubmittedProfileArgs) =>
+  db.unsubmittedProfile.findUnique({where: {ethereumAddress}})
 
 export const updateUnsubmittedProfile = async ({
   ethereumAddress,
@@ -66,12 +70,6 @@ export const updateUnsubmittedProfile = async ({
   return profile
 }
 
-export const unsubmittedProfileSetEmail = ({
-  ethereumAddress,
-  email,
-}: MutationunsubmittedProfileSetEmailArgs) =>
-  db.unsubmittedProfile.update({where: {ethereumAddress}, data: {email}})
-
 export const addNotaryFeedback = async ({
   id,
   feedback,
@@ -82,41 +80,46 @@ export const addNotaryFeedback = async ({
     data: {UnsubmittedProfile: {connect: {id}}, feedback},
   })
 
-  await db.unsubmittedProfile.update({
+  const profile = await db.unsubmittedProfile.update({
     where: {id},
     data: {unaddressedFeedbackId: notaryFeedback.id},
-  })
-
-  const profile = await db.unsubmittedProfile.findUnique({
-    where: {id},
     include: {UnaddressedFeedback: true},
   })
 
-  if (profile?.email && profile.UnaddressedFeedback) {
-    alertProfileUpdated(profile)
-    await sendNotaryFeedback(
-      profile.email,
-      profile.UnaddressedFeedback.feedback
-    )
+  const user = await db.user.findUnique({
+    where: {ethereumAddress: profile.ethereumAddress},
+    select: {email: true},
+  })
+
+  alertProfileUpdated(profile)
+  if (profile.UnaddressedFeedback && user?.email) {
+    await sendNotaryFeedback(user.email, profile.UnaddressedFeedback.feedback)
   }
 
   return true
 }
 
 export const approveProfile = async ({id}: MutationapproveProfileArgs) => {
+  // TODO: authenticate that the given user is an approved notary
+
   const profile = await db.unsubmittedProfile.findUnique({
     where: {id},
   })
 
   if (!profile) return false
 
-  syncStarknetState(true)
-
+  await syncStarknetState(true)
   alertProfileUpdated(profile)
+
   await db.unsubmittedProfile.delete({where: {id}})
 
-  if (profile.email) {
-    await sendNotaryApproved(profile.email, profile.ethereumAddress)
+  const user = await db.user.findUnique({
+    where: {ethereumAddress: profile.ethereumAddress},
+    select: {email: true},
+  })
+
+  if (user?.email) {
+    await sendNotaryApproved(user?.email, profile.ethereumAddress)
   }
   return true
 }
