@@ -1,4 +1,8 @@
-import {parseStarknetAddress, parseEthereumAddress} from './serializers'
+import {
+  parseStarknetAddress,
+  parseEthereumAddress,
+  parseTimestamp,
+} from './serializers'
 
 describe('parseStarknetAddress', () => {
   test('parses even-length addresses to a canonical form', () => {
@@ -41,5 +45,11 @@ describe('parseEthereumAddress', () => {
   test('parses a null address', () => {
     expect(parseEthereumAddress('0x0')).toEqual(null)
     // expect(parseEthereumAddress(null)).toEqual(null)
+  })
+})
+
+describe('parseTimestamp', () => {
+  test('parses uninitialized values', () => {
+    expect(parseTimestamp('0x0')).toEqual(null)
   })
 })
