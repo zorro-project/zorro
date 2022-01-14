@@ -67,4 +67,37 @@ describe('importProfile', () => {
       challengeTimestamp: '1970-01-02T10:17:36.789Z',
     })
   })
+
+  test("doesn't send notifications for unchallenged profiles", async () => {
+    mocked(exportProfileById).mockResolvedValueOnce({
+      profile: {
+        cid: '0x170121b909f5bf9672d64c328fb6196c0042b5bac45a7ce829b3a161a186c',
+        ethereum_address: '0x4956f0cd',
+        submitter_address: '0x165dabd',
+        submission_timestamp: '0x929',
+        is_notarized: '0x1',
+        last_recorded_status: '0x0',
+        challenge_timestamp: '0x0',
+        challenger_address:
+          '0x7283241e75fe4bfa64af202c1243b56e7ab30c7ea41a6e2c6000c5874670dc4',
+        challenge_evidence_cid:
+          '0x170121b6e2ca4f121dea9096755acf32b4caa2d955b1a025b5ff8a8f7fdb6',
+        owner_evidence_cid: '0x0',
+        adjudication_timestamp: '0x0',
+        adjudicator_evidence_cid: '0x0',
+        did_adjudicator_verify_profile: '0x0',
+        appeal_timestamp: '0x0',
+        super_adjudication_timestamp: '0x0',
+        did_super_adjudicator_verify_profile: '0x0',
+      },
+      num_profiles: '0xa',
+      is_verified: '0x1',
+      current_status: '0x0',
+      now: '0x75bcd15',
+    })
+
+    await importProfile(1)
+
+    expect(mocked(sendMessage).mock.calls.length).toBe(0)
+  })
 })

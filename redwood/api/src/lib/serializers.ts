@@ -5,11 +5,14 @@ import {getAddress} from 'ethers/lib/utils'
 
 type Felt = string
 
+export const isInitialized = (felt: Felt) => felt && felt !== '0x0'
+
 // Note: only safe for numbers that can be represented as a Javascript int
 export const parseNumber = (number: Felt) => parseInt(number, 16)
 
-export const parseBoolean = (boolean: Felt) => parseInt(boolean) === 1
-export const parseTimestamp = (timestamp: Felt) => new Date(parseInt(timestamp))
+export const parseBoolean = (boolean: Felt) => parseNumber(boolean) === 1
+export const parseTimestamp = (timestamp: Felt) =>
+  isInitialized(timestamp) ? new Date(parseNumber(timestamp)) : null
 
 export const bytesToFelt = (bytes: Uint8Array) => {
   assert(bytes.length <= 31, 'Error: cids on Cairo must be 31 bytes')
@@ -58,7 +61,3 @@ export const parseEthereumAddress = (address: Felt) => {
     return null
   }
 }
-
-export const numToHex = (num: number) => '0x' + num.toString(16)
-
-export const isInitialized = (felt: Felt) => felt && felt !== '0x0'

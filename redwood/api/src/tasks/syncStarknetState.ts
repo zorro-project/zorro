@@ -65,7 +65,7 @@ export const importProfile = async (profileId: number) => {
     ...(await readCids(cid)),
 
     ethereumAddress: parseEthereumAddress(profile.ethereum_address),
-    submissionTimestamp: parseTimestamp(profile.submission_timestamp),
+    submissionTimestamp: parseTimestamp(profile.submission_timestamp)!,
 
     notarized: parseBoolean(profile.is_notarized),
 
