@@ -72,18 +72,23 @@
                 "type": "felt"
             },
             {
-                "name": "super_adjudication_timestamp",
+                "name": "appeal_id",
                 "offset": 14,
                 "type": "felt"
             },
             {
-                "name": "did_super_adjudicator_verify_profile",
+                "name": "super_adjudication_timestamp",
                 "offset": 15,
+                "type": "felt"
+            },
+            {
+                "name": "did_super_adjudicator_verify_profile",
+                "offset": 16,
                 "type": "felt"
             }
         ],
         "name": "Profile",
-        "size": 16,
+        "size": 17,
         "type": "struct"
     },
     {
@@ -250,6 +255,10 @@
             {
                 "name": "profile_id",
                 "type": "felt"
+            },
+            {
+                "name": "appeal_id",
+                "type": "felt"
             }
         ],
         "name": "appeal",
@@ -264,6 +273,10 @@
             },
             {
                 "name": "profile_id",
+                "type": "felt"
+            },
+            {
+                "name": "appeal_id",
                 "type": "felt"
             },
             {
