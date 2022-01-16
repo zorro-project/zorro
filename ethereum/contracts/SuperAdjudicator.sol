@@ -48,7 +48,7 @@ contract SuperAdjudicator {
     uint256 numberOfRulingOptions
   );
 
-  event DisputeCreated(uint256 indexed profileId, uint256 indexed disputeId);
+  event Appealed(uint256 indexed profileId, uint256 indexed disputeId);
 
   event RulingEnacted(
     uint256 indexed profileId,
@@ -110,7 +110,7 @@ contract SuperAdjudicator {
     );
   }
 
-  function createDispute(uint256 profileId)
+  function appeal(uint256 profileId)
     external
     payable
     returns (uint256 disputeId)
@@ -138,7 +138,7 @@ contract SuperAdjudicator {
       payload
     );
 
-    emit DisputeCreated(profileId, disputeId);
+    emit Appealed(profileId, disputeId);
     return disputeId;
   }
 
