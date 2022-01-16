@@ -8,6 +8,11 @@ type Felt = string
 // Note: only safe for numbers that can be represented as a Javascript int
 export const parseNumber = (number: Felt) => parseInt(number, 16)
 
+// Would love to return an actual javascript BigInt here instead of a string,
+// but it looks like Prisma might not support BigInts properly yet:
+// https://github.com/redwoodjs/redwood/issues/1733
+export const parseBigNumber = (number: Felt) => BigInt(number).toString(10)
+
 export const parseBoolean = (boolean: Felt) => parseInt(boolean) === 1
 export const parseTimestamp = (timestamp: Felt) => new Date(parseInt(timestamp))
 
