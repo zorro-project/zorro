@@ -1,6 +1,6 @@
 import * as dotenv from 'dotenv'
 
-import {HardhatUserConfig, task} from 'hardhat/config'
+import {HardhatUserConfig, task, types} from 'hardhat/config'
 import '@nomiclabs/hardhat-etherscan'
 import '@nomiclabs/hardhat-waffle'
 import '@typechain/hardhat'
@@ -28,6 +28,35 @@ task('accounts', 'Prints the list of accounts', async (taskArgs, hre) => {
     console.log(account.address)
   }
 })
+
+task('appeal', 'Appeal a decision by the adjudicator')
+  .addParam('address', 'The address of SuperAdjudicator on L1', types.string)
+  .addParam(
+    'profileId',
+    'The zorro profile id to create a dispute around',
+    types.int
+  )
+  .setAction(async (taskArgs, hre) => {
+    const {ethers} = hre
+
+    const [signer] = await ethers.getSigners()
+
+    const SuperAdjudicator = await ethers.getContractFactory('SuperAdjudicator')
+    console.log('Attaching...')
+    const superAdjudicator = await SuperAdjudicator.attach(taskArgs.address)
+
+    console.log('Creating dispute...')
+    const transactionHash = await signer.sendTransaction({
+      to: superAdjudicator.address,
+      value: ethers.utils.parseEther('0.03'),
+      data: superAdjudicator.interface.encodeFunctionData('appeal', [
+        taskArgs.profileId,
+      ]),
+    })
+    console.log('Tx hash', transactionHash)
+
+    // await superAdjudicator.createDispute(1)
+  })
 
 // You need to export an object to set up your config
 // Go to https://hardhat.org/config/ to learn more
