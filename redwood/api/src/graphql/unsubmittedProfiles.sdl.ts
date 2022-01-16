@@ -4,7 +4,6 @@ export const schema = gql`
     photoCid: String!
     videoCid: String!
     ethereumAddress: String!
-    hasEmail: Boolean!
     createdAt: DateTime!
     updatedAt: DateTime!
 
@@ -32,11 +31,6 @@ export const schema = gql`
     updateUnsubmittedProfile(
       ethereumAddress: String!
       input: UpdateUnsubmittedProfileInput!
-    ): UnsubmittedProfile! @skipAuth
-
-    unsubmittedProfileSetEmail(
-      ethereumAddress: String!
-      email: String!
     ): UnsubmittedProfile! @skipAuth
 
     addNotaryFeedback(id: Int!, feedback: String!): Boolean! @skipAuth

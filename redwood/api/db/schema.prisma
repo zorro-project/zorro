@@ -8,39 +8,6 @@ generator client {
   binaryTargets = "native"
 }
 
-model NotaryFeedback {
-  id                   Int    @id @default(autoincrement())
-  unsubmittedProfileId Int
-  feedback             String
-
-  UnsubmittedProfile UnsubmittedProfile @relation(fields: [unsubmittedProfileId], references: [id])
-
-  // We don't use this relation in this direction, but Prisma requires all relations to be listed bidirectionally.
-  isUnaddressed UnsubmittedProfile[] @relation("unaddressedFeedback")
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([unsubmittedProfileId])
-}
-
-model UnsubmittedProfile {
-  id       Int    @id @default(autoincrement())
-  photoCid String
-  videoCid String
-
-  ethereumAddress String  @unique
-  email           String?
-
-  unaddressedFeedbackId Int?
-  UnaddressedFeedback   NotaryFeedback? @relation("unaddressedFeedback", fields: [unaddressedFeedbackId], references: [id])
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  NotaryFeedback NotaryFeedback[]
-}
-
 // Keep in sync with `StatusEnum` in `starknet/contracts/profile.cairo`
 enum StatusEnum {
   NOT_CHALLENGED
@@ -108,6 +75,38 @@ model CachedProfile {
   @@index([cid])
 }
 
+model UnsubmittedProfile {
+  id Int @id @default(autoincrement())
+
+  ethereumAddress String @unique
+  photoCid        String
+  videoCid        String
+
+  unaddressedFeedbackId Int?
+  UnaddressedFeedback   NotaryFeedback? @relation("unaddressedFeedback", fields: [unaddressedFeedbackId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  NotaryFeedback NotaryFeedback[]
+}
+
+model NotaryFeedback {
+  id                   Int    @id @default(autoincrement())
+  unsubmittedProfileId Int
+  feedback             String
+
+  UnsubmittedProfile UnsubmittedProfile @relation(fields: [unsubmittedProfileId], references: [id])
+
+  // We don't use this relation in this direction, but Prisma requires all relations to be listed bidirectionally.
+  isUnaddressed UnsubmittedProfile[] @relation("unaddressedFeedback")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([unsubmittedProfileId])
+}
+
 model Connection {
   id Int @id @default(autoincrement())
 
@@ -128,6 +127,15 @@ model Notification {
   id Int @id @default(autoincrement())
 
   key Json @unique
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model User {
+  id              Int     @id @default(autoincrement())
+  ethereumAddress String  @unique
+  email           String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

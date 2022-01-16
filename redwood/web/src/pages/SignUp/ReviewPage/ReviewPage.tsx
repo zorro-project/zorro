@@ -42,7 +42,7 @@ const ReviewPage = () => {
       </Button>
       <Button
         as={RLink}
-        href={routes.signUpSubmit()}
+        href={routes.signUpEmail()}
         colorScheme="purple"
         alignSelf="center"
       >
