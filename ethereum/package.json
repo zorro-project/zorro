@@ -2,6 +2,9 @@
   "name": "zorro-ethereum",
   "version": "1.0.0",
   "license": "MIT",
+  "scripts": {
+    "deploy:goerli": "yarn hardhat run scripts/deploy.ts --network goerli"
+  },
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.0.0",
     "@nomiclabs/hardhat-etherscan": "^2.1.3",
