@@ -11,6 +11,9 @@ uint256 constant MASK_250 = 2**250 - 1;
 uint256 constant ZORRO_SUPER_ADJUDICATE_SELECTOR = uint256(
   keccak256('super_adjudicate') & bytes32(MASK_250)
 );
+uint256 constant ZORRO_APPEAL_SELECTOR = uint256(
+  keccak256('appeal') & bytes32(MASK_250)
+);
 
 interface IStarknetCore {
   // Sends a message to an L2 contract. Returns the hash of the message.
@@ -45,6 +48,14 @@ contract SuperAdjudicator {
     uint256 numberOfRulingOptions
   );
 
+  event DisputeCreated(uint256 indexed profileId, uint256 indexed disputeId);
+
+  event RulingEnacted(
+    uint256 indexed profileId,
+    uint256 indexed disputeId,
+    uint256 ruling
+  );
+
   // Set once during construction
   IStarknetCore public immutable starknetCore;
   IArbitrableProxy public immutable arbitrableProxy;
@@ -52,7 +63,7 @@ contract SuperAdjudicator {
 
   address public owner; // Owner can modify arbitrator configuration
   ArbitratorConfiguration public arbitratorConfiguration;
-  mapping(uint256 => uint256) profileIdToDisputeId;
+  mapping(uint256 => uint256) public disputeIdToProfileId;
 
   constructor(
     IStarknetCore _starknetCore,
@@ -85,8 +96,8 @@ contract SuperAdjudicator {
   }
 
   function _setPolicy(
-    bytes calldata arbitratorExtraData,
-    string calldata metaevidenceURI,
+    bytes memory arbitratorExtraData,
+    string memory metaevidenceURI,
     uint256 numberOfRulingOptions
   ) internal {
     arbitratorConfiguration.arbitratorExtraData = arbitratorExtraData;
@@ -99,36 +110,53 @@ contract SuperAdjudicator {
     );
   }
 
-  function createDispute(uint256 profileId) external {
+  function createDispute(uint256 profileId)
+    external
+    payable
+    returns (uint256 disputeId)
+  {
     // Require that `profileId` does not overflow a starknet field element
     // otherwise could create two disputes simultaneously for the same
     // `profileId` by calling `appeal(x)` and `appeal(x + STARKNET_PRIME)`
     require(profileId < STARKNET_PRIME, 'profileId overflow');
 
-    // Require that there is no current dispute
-    require(profileIdToDisputeId[profileId] == 0);
-
-    profileIdToDisputeId[profileId] = arbitrableProxy.createDispute(
+    disputeId = arbitrableProxy.createDispute{value: msg.value}(
       arbitratorConfiguration.arbitratorExtraData,
       arbitratorConfiguration.metaevidenceURI,
       arbitratorConfiguration.numberOfRulingOptions
     );
+
+    disputeIdToProfileId[disputeId] = profileId;
+
+    uint256[] memory payload = new uint256[](2);
+    payload[0] = profileId;
+    payload[1] = disputeId;
+
+    starknetCore.sendMessageToL2(
+      zorroL2Address,
+      ZORRO_APPEAL_SELECTOR,
+      payload
+    );
+
+    emit DisputeCreated(profileId, disputeId);
+    return disputeId;
   }
 
-  function enactRuling(uint256 profileId) external {
-    uint256 disputeId = profileIdToDisputeId[profileId];
-    require(disputeId != 0, "dispute doesn't exist");
+  function enactRuling(uint256 disputeId) external {
+    uint256 profileId = disputeIdToProfileId[disputeId];
+    require(profileId != 0, "dispute doesn't exist");
     IArbitrator arbitrator = arbitrableProxy.arbitrator();
     IArbitrator.DisputeStatus status = arbitrator.disputeStatus(disputeId);
     require(
       status == IArbitrator.DisputeStatus.Solved,
-      'dispute not solved yet'
+      'still waiting for final ruling'
     );
 
     uint256 ruling = arbitrator.currentRuling(disputeId);
     uint256[] memory payload = new uint256[](2);
     payload[0] = profileId;
-    payload[1] = ruling; // XXX: this ruling will be 0 if adjudicator was wrong, 1 if adjudicator is right, which is not what the Zorro starknet contract expects right now.
+    payload[1] = disputeId;
+    payload[2] = ruling; // XXX: this ruling will be 0 if adjudicator was wrong, 1 if adjudicator is right, which is not what the Zorro starknet contract expects right now.
 
     starknetCore.sendMessageToL2(
       zorroL2Address,
@@ -136,12 +164,11 @@ contract SuperAdjudicator {
       payload
     );
 
-    // The profile could be rechallenged, readjudicated, and reappealed — make
-    // space for that possibility
-    profileIdToDisputeId[profileId] = 0;
+    // prevent this same ruling from ever being enacted again. matters because
+    // a profile could be re-challenged, re-adjudicated, and re-appealed —
+    // we wouldn't want someone to be able to enact the old ruling against it.
+    disputeIdToProfileId[profileId] = 0;
 
-    // Question: after transferRuling is called... Could someone immediately
-    // `appeal` again? Then race condition between messages? Consider what would
-    // happen with each order of messages over the line
+    emit RulingEnacted(profileId, disputeId, ruling);
   }
 }
