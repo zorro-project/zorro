@@ -29,6 +29,7 @@ struct Profile:
 
     # Set in the same tx that shifts `last_recorded_status` to `appealed`
     member appeal_timestamp : felt  # nonzero iff there was an appeal
+    member appeal_id : felt # id which is opaque to Zorro but is in practice a kleros dispute id
 
     # Set in same tx that shifts `last_recorded_status` to `super_adjudicated`:
     member super_adjudication_timestamp : felt  # nonzero iff there was a super adjudication
@@ -248,7 +249,8 @@ func _get_dict_from_profile(profile : Profile) -> (res : DictAccess*):
         dict_write(13, [ptr + 13])
         dict_write(14, [ptr + 14])
         dict_write(15, [ptr + 15])
-        assert Profile.SIZE = 16 # ensure this gets updated if Profile expands
+        dict_write(16, [ptr + 16])
+        assert Profile.SIZE = 17 # ensure this gets updated if Profile expands
     end
 
     # Note: we skip default_dict_finalize() because we don't actually rely
@@ -275,7 +277,8 @@ func _get_profile_from_dict(dict_ptr : DictAccess*) -> (profile : Profile):
         let (v13) = dict_read(13)
         let (v14) = dict_read(14)
         let (v15) = dict_read(15)
-        assert Profile.SIZE = 16 # ensure this gets updated if Profile expands
+        let (v16) = dict_read(16)
+        assert Profile.SIZE = 17 # ensure this gets updated if Profile expands
     end
 
     let mem : felt* = alloc()
@@ -295,7 +298,8 @@ func _get_profile_from_dict(dict_ptr : DictAccess*) -> (profile : Profile):
     assert mem[13] = v13
     assert mem[14] = v14
     assert mem[15] = v15
-    assert Profile.SIZE = 16 # ensure this gets updated if Profile expands
+    assert mem[16] = v16
+    assert Profile.SIZE = 17 # ensure this gets updated if Profile expands
     let profile = cast(mem, Profile*)
     return ([profile])
 end

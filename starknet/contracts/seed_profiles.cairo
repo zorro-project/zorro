@@ -20,6 +20,7 @@ func _get_seed_profiles() -> (profiles_len : felt, profiles : Profile*):
         adjudicator_evidence_cid=0,
         did_adjudicator_verify_profile=0,
         appeal_timestamp=0,
+        appeal_id=0,
         super_adjudication_timestamp=0,
         did_super_adjudicator_verify_profile=0
         )
@@ -38,6 +39,7 @@ func _get_seed_profiles() -> (profiles_len : felt, profiles : Profile*):
         adjudicator_evidence_cid=0,
         did_adjudicator_verify_profile=0,
         appeal_timestamp=0,
+        appeal_id=0,
         super_adjudication_timestamp=0,
         did_super_adjudicator_verify_profile=0
         )
@@ -56,6 +58,7 @@ func _get_seed_profiles() -> (profiles_len : felt, profiles : Profile*):
         adjudicator_evidence_cid=0,
         did_adjudicator_verify_profile=0,
         appeal_timestamp=0,
+        appeal_id=0,
         super_adjudication_timestamp=0,
         did_super_adjudicator_verify_profile=0
         )
@@ -74,6 +77,7 @@ func _get_seed_profiles() -> (profiles_len : felt, profiles : Profile*):
         adjudicator_evidence_cid=0,
         did_adjudicator_verify_profile=0,
         appeal_timestamp=0,
+        appeal_id=0,
         super_adjudication_timestamp=0,
         did_super_adjudicator_verify_profile=0
         )
@@ -92,6 +96,7 @@ func _get_seed_profiles() -> (profiles_len : felt, profiles : Profile*):
         adjudicator_evidence_cid=0,
         did_adjudicator_verify_profile=0,
         appeal_timestamp=0,
+        appeal_id=0,
         super_adjudication_timestamp=0,
         did_super_adjudicator_verify_profile=0
         )
@@ -110,6 +115,7 @@ func _get_seed_profiles() -> (profiles_len : felt, profiles : Profile*):
         adjudicator_evidence_cid=0,
         did_adjudicator_verify_profile=0,
         appeal_timestamp=0,
+        appeal_id=0,
         super_adjudication_timestamp=0,
         did_super_adjudicator_verify_profile=0
         )
@@ -128,6 +134,7 @@ func _get_seed_profiles() -> (profiles_len : felt, profiles : Profile*):
         adjudicator_evidence_cid=0,
         did_adjudicator_verify_profile=0,
         appeal_timestamp=0,
+        appeal_id=0,
         super_adjudication_timestamp=0,
         did_super_adjudicator_verify_profile=0
         )
@@ -146,6 +153,7 @@ func _get_seed_profiles() -> (profiles_len : felt, profiles : Profile*):
         adjudicator_evidence_cid=0,
         did_adjudicator_verify_profile=0,
         appeal_timestamp=0,
+        appeal_id=0,
         super_adjudication_timestamp=0,
         did_super_adjudicator_verify_profile=0
         )
@@ -164,6 +172,7 @@ func _get_seed_profiles() -> (profiles_len : felt, profiles : Profile*):
         adjudicator_evidence_cid=0,
         did_adjudicator_verify_profile=0,
         appeal_timestamp=0,
+        appeal_id=0,
         super_adjudication_timestamp=0,
         did_super_adjudicator_verify_profile=0
         )
@@ -182,6 +191,7 @@ func _get_seed_profiles() -> (profiles_len : felt, profiles : Profile*):
         adjudicator_evidence_cid=0,
         did_adjudicator_verify_profile=0,
         appeal_timestamp=0,
+        appeal_id=0,
         super_adjudication_timestamp=0,
         did_super_adjudicator_verify_profile=0
         )

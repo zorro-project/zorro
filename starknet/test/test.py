@@ -84,25 +84,25 @@ async def _adjudicate(ctx, profile_id, evidence_cid, should_verify):
     )
 
 
-async def _appeal(ctx, profile_id, from_address=None):
+async def _appeal(ctx, profile_id, appeal_id, from_address=None):
     if from_address == None:
         from_address = ctx.consts.SUPER_ADJUDICATOR_L1_ADDRESS
     await ctx.starknet.send_message_to_l2(
         from_address,
         ctx.zorro.contract_address,
         "appeal",
-        [profile_id],
+        [profile_id, appeal_id],
     )
 
 
-async def _super_adjudicate(ctx, profile_id, should_verify, from_address=None):
+async def _super_adjudicate(ctx, profile_id, appeal_id, should_verify, from_address=None):
     if from_address == None:
         from_address = ctx.consts.SUPER_ADJUDICATOR_L1_ADDRESS
     await ctx.starknet.send_message_to_l2(
         from_address,
         ctx.zorro.contract_address,
         "super_adjudicate",
-        [profile_id, should_verify],
+        [profile_id, appeal_id, should_verify],
     )
 
 
@@ -131,6 +131,7 @@ class ScenarioState:
     ctx = None
     profile_id = None
     ethereum_address = None
+    appeal_id = None
 
     def __init__(self, ctx):
         self.ctx = ctx
@@ -168,11 +169,12 @@ class ScenarioState:
     async def adjudicate(self, should_verify, evidence_cid=300):
         await _adjudicate(self.ctx, self.profile_id, evidence_cid, should_verify)
 
-    async def appeal(self, from_address=None):
-        await _appeal(self.ctx, self.profile_id, from_address)
+    async def appeal(self, appeal_id=1, from_address=None):
+        self.appeal_id = appeal_id
+        await _appeal(self.ctx, self.profile_id, appeal_id, from_address)
 
     async def super_adjudicate(self, should_verify, from_address=None):
-        await _super_adjudicate(self.ctx, self.profile_id, should_verify, from_address)
+        await _super_adjudicate(self.ctx, self.profile_id, self.appeal_id or 123, should_verify, from_address)
 
     async def maybe_settle(self):
         await _maybe_settle(self.ctx, self.profile_id)
@@ -592,7 +594,7 @@ async def test_adding_seed_profiles(
 ):
     ctx = ctx_factory()
 
-    await ctx.zorro._test_add_seed_profiles().invoke()
+    await ctx.zorro._dev_add_seed_profiles().invoke()
 
     (num_profiles,) = (await ctx.zorro.get_num_profiles().call()).result
     assert num_profiles > 0

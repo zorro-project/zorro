@@ -193,6 +193,7 @@ type Profile = {
   adjudicator_evidence_cid: Felt
   did_adjudicator_verify_profile: Felt
   appeal_timestamp: Felt
+  appeal_id: Felt
   super_adjudication_timestamp: Felt
   did_super_adjudicator_verify_profile: Felt
 }

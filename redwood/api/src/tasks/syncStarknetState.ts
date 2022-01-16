@@ -6,6 +6,7 @@ import {
   parseCid,
   parseEthereumAddress,
   parseNumber,
+  parseBigNumber,
   parseStarknetAddress,
   parseTimestamp,
 } from 'src/lib/serializers'
@@ -90,6 +91,7 @@ export const importProfile = async (profileId: number) => {
     ),
 
     appealTimestamp: parseTimestamp(profile.appeal_timestamp),
+    appealId: parseBigNumber(profile.appeal_id),
     superAdjudicationTimestamp: parseTimestamp(
       profile.super_adjudication_timestamp
     ),
