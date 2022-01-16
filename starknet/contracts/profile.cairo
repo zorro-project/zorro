@@ -29,6 +29,7 @@ struct Profile:
 
     # Set in the same tx that shifts `last_recorded_status` to `appealed`
     member appeal_timestamp : felt  # nonzero iff there was an appeal
+    member appeal_id : felt # id which is opaque to Zorro but is in practice a kleros dispute id
 
     # Set in same tx that shifts `last_recorded_status` to `super_adjudicated`:
     member super_adjudication_timestamp : felt  # nonzero iff there was a super adjudication

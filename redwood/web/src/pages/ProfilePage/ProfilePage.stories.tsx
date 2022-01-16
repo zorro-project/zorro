@@ -21,6 +21,7 @@ const baseMock: ProfilePageQuery = {
     adjudicatorEvidenceCid: null,
     didAdjudicatorVerifyProfile: false,
     appealTimestamp: null,
+    appealId: null,
     superAdjudicationTimestamp: null,
     didSuperAdjudicatorVerifyProfile: false,
     __typename: 'CachedProfile',

@@ -98,8 +98,11 @@ const History: React.FC<{
           title="Appealed"
           timestamp={profile.appealTimestamp}
           description={
-            <Link href="https://kleros.io/" isExternal>
-              View case on Kleros
+            <Link
+              href={`https://resolve.kleros.io/cases/${profile.appealId}`}
+              isExternal
+            >
+              View case on Kleros (Case ${profile.appealId})
               <ExternalLinkIcon ml={1} />
             </Link>
           }

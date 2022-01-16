@@ -36,6 +36,7 @@ const QUERY = gql`
       didAdjudicatorVerifyProfile
 
       appealTimestamp
+      appealId
       superAdjudicationTimestamp
       didSuperAdjudicatorVerifyProfile
     }

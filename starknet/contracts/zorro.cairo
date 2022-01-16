@@ -186,6 +186,7 @@ func submit{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
         adjudicator_evidence_cid=0,
         did_adjudicator_verify_profile=0,
         appeal_timestamp=0,
+        appeal_id=0,
         super_adjudication_timestamp=0,
         did_super_adjudicator_verify_profile=0
         ))
@@ -274,6 +275,7 @@ func challenge{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*
         adjudicator_evidence_cid=0,  # Changed
         did_adjudicator_verify_profile=0,  # Changed
         appeal_timestamp=0,  # Changed
+        appeal_id=0,  # Changed
         super_adjudication_timestamp=0,  # Changed
         did_super_adjudicator_verify_profile=0  # Changed
         ))
@@ -338,7 +340,7 @@ end
 
 @l1_handler
 func appeal{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
-        from_address : felt, profile_id : felt):
+        from_address : felt, profile_id : felt, appeal_id : felt):
     alloc_locals
     let (super_adjudicator_l1_address) = _super_adjudicator_l1_address.read()
     assert from_address = super_adjudicator_l1_address
@@ -354,6 +356,7 @@ func appeal{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
     with dict_ptr:
         dict_write(Profile.last_recorded_status, StatusEnum.APPEALED)
         dict_write(Profile.appeal_timestamp, now)
+        dict_write(Profile.appeal_id, appeal_id)
     end
     let (new_profile) = _get_profile_from_dict(dict_ptr)
     _profiles.write(profile_id, new_profile)
@@ -363,13 +366,17 @@ end
 
 @l1_handler
 func super_adjudicate{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
-        from_address : felt, profile_id : felt, should_verify_profile : felt):
+        from_address : felt, profile_id : felt, appeal_id : felt, should_verify_profile : felt):
     alloc_locals
     let (super_adjudicator_l1_address) = _super_adjudicator_l1_address.read()
     assert from_address = super_adjudicator_l1_address
     assert_is_boolean(should_verify_profile)
 
     let (local profile) = get_profile_by_id(profile_id)
+
+    # Ensure that the ruling relates to *this* appeal, rather than to a previous
+    # appeal of the same profile
+    assert profile.appeal_id = appeal_id
 
     # Only super adjudicate things that are `appealed`
     let (now) = _timestamp.read()
