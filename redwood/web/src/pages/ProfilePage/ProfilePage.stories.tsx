@@ -60,6 +60,7 @@ const appealedMock: ProfilePageQuery = merge(
     cachedProfile: {
       currentStatus: 'APPEALED',
       appealTimestamp: '2021-05-03T12:17:36.789Z',
+      appealId: 3,
     },
   }
 )

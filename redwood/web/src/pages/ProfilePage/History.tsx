@@ -102,7 +102,7 @@ const History: React.FC<{
               href={`https://resolve.kleros.io/cases/${profile.appealId}`}
               isExternal
             >
-              View case on Kleros (Case ${profile.appealId})
+              View case on Kleros (Case {profile.appealId})
               <ExternalLinkIcon ml={1} />
             </Link>
           }
