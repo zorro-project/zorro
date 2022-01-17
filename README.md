@@ -8,32 +8,45 @@ Our website is found at [https://zorro.xyz/](https://zorro.xyz/), and you can jo
 
 # Introduction to Proof of Personhood
 
-### **Sybil attacks**
+## **Sybil attacks**
 
 Many services and protocols suffer from attackers generating many accounts and using them to manipulate votes, extract resources, promulgate disinformation, etc. These are are known as [sybil attacks](https://en.wikipedia.org/wiki/Sybil_attack).
 
 To secure themselves against sybil attacks, services would like to have evidence that each of their accounts is backed by a unique person acting under their own volition, i.e., to have some kind of *proof of personhood* for each account.
 
-### **Why Proof of Personhood matters**
+## The Zorro Protocol
 
-Proof of Personhood can enable critical societal infrastructure, for example:
+### Purpose
 
-- Democratic governance in DAOs
-- Universal basic income
-- Quadratic funding of public goods (e.g. Gitcoin)
-- Fair airdrops
-- Bot-resistant social media
+To date, there hasn't been broad adoption of proof of personhood. This is a loss because proof of personhood allows protocols and services to center more on *people* — on their preferences, their needs, their perspectives.
 
-Many DAOs want to govern themselves with the aid of proof of personhood, but they lack good options for doing so and instead rely on [coin voting](https://vitalik.ca/general/2021/08/16/voting3.html) which is plutocratic and [leads to all sorts of problems](https://www.coindesk.com/business/2021/11/11/curve-wars-heat-up-emergency-dao-invoked-after-clear-governance-attack/).
+One reason for lackluster adoption of proof of personhood is that many existing solutions are quite demanding, requiring some e.g. a multi-day wait periods, significant funds, attendance of scheduled events, pre-existing connections, or technical knowledge. Protocols and services are reluctant to require such hoops because they anticipate that many people won't be willing (or able) to jump through them.
 
-More broadly, there are many wonderful services that *don’t even exist* because their would-be creators know that they’d just be wrecked by sybils.
+Zorro is an experiment to see if making proof of personhood fast (<5 minutes) and cheap (free) will lead to more adoption. The aim is to increase adoption of proof of personhood quickly, while web3 norms, governance, and culture are still developing. Hopefully, giving naescent institutions the tools they need to focus on people will result in those institutions being more prosocial. If protocols can't count people, people won't count!
 
-### **Common misconceptions**
 
-### **CAPTCHAs**
+### Design goals
 
-Solving a CAPTCHA can prove that a user is a person, but it can’t prove that they’re a *unique* person (since one person could create many accounts and solve a CAPTCHA for each one). This means it can’t be used to e.g. protect a democratic vote. Proof of Personhood aims to offer the stronger guarantee that each account belongs to a unique person.
+Registering on Zorro should be:
 
-### **Identity**
+#### Frictionless:
+- **Free:** for people without much money
+- **Fast:** for people without much time
+- **Intuitive:** for people who aren't that technical
 
-Proving personhood does *not* require authenticating someone’s identity (official name, etc). Proving personhood only requires showing that someone is *a* unique person, not *which* person they are.
+#### Inclusive:
+- **Accessible:** to people who speak any language, have a speech disorder, etc
+- **Non-discriminatory:** not biased by ethnicity, gender, etc
+- **Pseudonymous:** for people that don't want to be publicly known
+
+#### Trustworthy:
+- **Robust:** sybil attacks should be expensive
+- **Legible:** it should be clear how things work
+- **Auditable:** decisions should be visible
+- **Available:** difficult to halt or censor
+- **Decentralized:** power should be distributed
+- **Forkable:** in case the project goes awry
+
+In practice, these various goals conflict and it's necessary to make tradeoffs. Zorro's intent is to occupy a pragmatic and pareto-efficient point in the space of possible designs.
+
+To learn more about our roadmap and current implementation, view our [whitepaper](https://hackmd.io/@zorro-project/zorro-whitepaper).
