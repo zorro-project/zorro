@@ -1,10 +1,10 @@
 export const schema = gql`
   type AddressInformation {
-    transactionCount: number
-    isFreshAddress: boolean
+    transactionCount: Int!
+    isFreshAddress: Boolean!
   }
 
   type Query {
-    fetchAddressTransactions(ethereumAddress: ID!) AddressInformation! @skipAuth
+    fetchAddressTransactions(ethereumAddress: ID!): AddressInformation! @skipAuth
   }
 `
