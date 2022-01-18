@@ -38,9 +38,12 @@ const TakePicture: React.FC<{webcam: RefObject<Webcam>}> = ({webcam}) => {
   )
 }
 
-const RecordVideo: React.FC<{webcam: RefObject<Webcam>}> = ({webcam}) => {
+const RecordVideo: React.FC<{
+  webcam: RefObject<Webcam>
+  mockRecording: boolean
+}> = ({webcam, mockRecording}) => {
   const dispatch = useAppDispatch()
-  const [recording, setRecording] = useState(false)
+  const [recording, setRecording] = useState(mockRecording)
   const mediaRecorderRef = React.useRef<MediaRecorder>(null)
 
   const startRecording = useCallback(async () => {
@@ -99,7 +102,7 @@ const RecordVideo: React.FC<{webcam: RefObject<Webcam>}> = ({webcam}) => {
   )
 }
 
-const RecordPage = () => {
+const RecordPage = ({mockRecording = false}) => {
   const {ethereumAddress} = useContext(UserContext)
   if (!ethereumAddress) return <Redirect to={routes.signUpIntro()} />
 
@@ -127,7 +130,9 @@ const RecordPage = () => {
       <Spacer display={['initial', 'none']} />
       <MetaTags title="Record Video" />
       {!photo && <TakePicture webcam={webcamRef} />}
-      {photo && <RecordVideo webcam={webcamRef} />}
+      {photo && (
+        <RecordVideo webcam={webcamRef} mockRecording={mockRecording} />
+      )}
     </Stack>
   )
 }
