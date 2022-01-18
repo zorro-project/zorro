@@ -5,7 +5,12 @@ import SubmitPage from './SubmitPage'
 export const Unsubmitted = () => (
   <StoryMocks
     user={{ethereumAddress: '0x4567'}}
-    state={{signUp: {photo: 'test', video: 'test'}}}
+    state={{
+      signUp: {
+        photo: 'bafybeicxoq24v5sxcz4myt5kx35kluclpoqhsfb2qdf5oevfuklprux2em',
+        video: 'bafybeiaxvwuj72kcknxm5ofryao4pkqpks5qtadrakzcw743jqruli5zku',
+      },
+    }}
   >
     <SignUpLayout>
       <SubmitPage />
