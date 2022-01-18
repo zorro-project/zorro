@@ -10,3 +10,11 @@ const withChakra = (StoryFn) => (
 )
 
 export const decorators = [withChakra]
+
+export const parameters = {
+  options: {
+    storySort: {
+      method: 'alphabetical',
+    },
+  },
+}

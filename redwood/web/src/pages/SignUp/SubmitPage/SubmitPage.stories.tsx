@@ -1,7 +1,27 @@
+import {StoryMocks} from 'src/lib/StoryMocks'
+import SignUpLayout from '../SignUpLayout'
 import SubmitPage from './SubmitPage'
 
-export const Submitting = () => {
-  return <SubmitPage initialSubmitProgress={23} />
-}
+export const Unsubmitted = () => (
+  <StoryMocks
+    user={{ethereumAddress: '0x4567'}}
+    state={{signUp: {photo: 'test', video: 'test'}}}
+  >
+    <SignUpLayout>
+      <SubmitPage />
+    </SignUpLayout>
+  </StoryMocks>
+)
 
-export default {title: 'Pages/SignUp/SubmitPage'}
+export const Submitting = () => (
+  <StoryMocks
+    user={{ethereumAddress: '0x4567'}}
+    state={{signUp: {photo: 'test', video: 'test'}}}
+  >
+    <SignUpLayout>
+      <SubmitPage initialSubmitProgress={23} />
+    </SignUpLayout>
+  </StoryMocks>
+)
+
+export default {title: 'Pages/Sign Up/6. Submit'}

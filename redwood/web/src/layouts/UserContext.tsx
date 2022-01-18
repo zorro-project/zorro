@@ -5,12 +5,13 @@ import {useState} from 'react'
 import {UserContextQuery, UserContextQueryVariables} from 'types/graphql'
 import useLocalStorageState from 'use-local-storage-state'
 
-type UserContextType = {
+export type UserContextType = {
   ethereumAddress?: string
   refetch: () => void
 } & UserContextQuery
 
-const UserContext = React.createContext<UserContextType>({refetch: () => {}})
+export const defaultValue = {refetch: () => {}}
+const UserContext = React.createContext<UserContextType>(defaultValue)
 
 export function UserContextProvider({children}: {children: React.ReactNode}) {
   const ethers = useEthers()
