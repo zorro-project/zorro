@@ -14,7 +14,7 @@ const AllowCameraPage: React.FC = () => {
 
   const requestPermissions = async () => {
     requestMediaPermissions()
-      .then(() => navigate(routes.signUpPhoto()))
+      .then(() => navigate(routes.signUpRecord()))
       .catch((err: MediaPermissionsError) => {
         if (err.type === MediaPermissionsErrorType.SystemPermissionDenied) {
           cameraError({
@@ -45,7 +45,7 @@ const AllowCameraPage: React.FC = () => {
     <VStack maxW="md" mx="auto" spacing="6" flex="1">
       <SignUpLogo />
       <MetaTags title="Allow Camera" />
-      <Spacer display={['initial', 'none']} />
+      <Spacer />
       <Text>Everyone who registers records a short video</Text>
       <Text>
         These videos help ensure that each unique person only registers once.

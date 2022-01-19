@@ -1,6 +1,6 @@
 import {Box, Spacer, Stack, Text} from '@chakra-ui/layout'
 import {Button, Image} from '@chakra-ui/react'
-import {navigate, Redirect, routes} from '@redwoodjs/router'
+import {navigate, routes} from '@redwoodjs/router'
 import {MetaTags} from '@redwoodjs/web'
 import {requestMediaPermissions} from 'mic-check'
 import {useCallback, useContext, useEffect, useRef} from 'react'
@@ -8,12 +8,13 @@ import Webcam from 'react-webcam'
 import {RLink} from 'src/components/links'
 import {maybeCidToUrl} from 'src/components/SquareBox'
 import UserContext from 'src/layouts/UserContext'
+import {appNav} from 'src/lib/util'
 import {signUpSlice} from 'src/state/signUpSlice'
 import {useAppDispatch, useAppSelector} from 'src/state/store'
 
 const PhotoPage = () => {
   const {ethereumAddress} = useContext(UserContext)
-  if (!ethereumAddress) return <Redirect to={routes.signUpIntro()} />
+  if (!ethereumAddress) return appNav(routes.signUpIntro(), {replace: true})
 
   // Make sure we have camera permissions
   useEffect(() => {
@@ -46,7 +47,7 @@ const PhotoPage = () => {
           />
         )}
       </Box>
-      <Spacer display={['initial', 'none']} />
+      <Spacer />
       <MetaTags title="Take photo" />
       {photo ? (
         <>

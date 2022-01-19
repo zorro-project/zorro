@@ -9,7 +9,7 @@ import ReactPlayer from 'react-player'
 import {maybeCidToUrl} from 'src/components/SquareBox'
 import UserContext from 'src/layouts/UserContext'
 import ipfsClient from 'src/lib/ipfs'
-import {dataUrlToBlob, isLocalUrl} from 'src/lib/util'
+import {appNav, dataUrlToBlob, isLocalUrl} from 'src/lib/util'
 import {useAppSelector} from 'src/state/store'
 import {
   UpdateUnsubmittedProfileMutation,
@@ -19,7 +19,7 @@ import SignUpLogo from '../SignUpLogo'
 
 const SubmitPage = ({initialSubmitProgress = -1}) => {
   const {ethereumAddress} = useContext(UserContext)
-  if (!ethereumAddress) return <Redirect to={routes.signUpIntro()} />
+  if (!ethereumAddress) return appNav(routes.signUpIntro(), {replace: true})
 
   const [submitProgress, setSubmitProgress] = React.useState(
     initialSubmitProgress
@@ -28,7 +28,7 @@ const SubmitPage = ({initialSubmitProgress = -1}) => {
   const signUpState = useAppSelector((state) => state.signUp)
 
   if (signUpState.photo == null || signUpState.video == null)
-    return <Redirect to={routes.signUpVideo()} />
+    return appNav(routes.signUpPhoto(), {replace: true})
 
   const [updateMutation] = useMutation<
     UpdateUnsubmittedProfileMutation,
@@ -129,7 +129,7 @@ const SubmitPage = ({initialSubmitProgress = -1}) => {
         </>
       )}
       <MetaTags title={title} />
-      <Spacer display={['initial', 'none']} />
+      <Spacer />
       <Button colorScheme="purple" onClick={submit} disabled={submitting}>
         Submit application
       </Button>

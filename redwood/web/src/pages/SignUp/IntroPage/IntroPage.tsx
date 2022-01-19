@@ -1,11 +1,12 @@
 import {Heading, Spacer, Text, VStack} from '@chakra-ui/layout'
 import {Button, useToast} from '@chakra-ui/react'
-import {Redirect, routes} from '@redwoodjs/router'
+import {routes} from '@redwoodjs/router'
 import {MetaTags} from '@redwoodjs/web'
 import {useContext, useEffect} from 'react'
 import {RLink} from 'src/components/links'
 import UserContext from 'src/layouts/UserContext'
 import {save as saveIntendedConnection} from 'src/lib/intendedConnectionStorage'
+import {appNav} from 'src/lib/util'
 import SignUpLogo from '../SignUpLogo'
 
 const IntroPage: React.FC<{
@@ -15,7 +16,7 @@ const IntroPage: React.FC<{
   const {cachedProfile} = useContext(UserContext)
 
   if (cachedProfile != null)
-    return <Redirect to={routes.profile({id: cachedProfile.id})} />
+    return appNav(routes.profile({id: cachedProfile.id}))
 
   useEffect(() => {
     if (purposeIdentifier && externalAddress) {
@@ -37,7 +38,7 @@ const IntroPage: React.FC<{
   return (
     <VStack spacing="6" flex="1">
       <SignUpLogo />
-      <MetaTags title="Connect Wallet" />
+      <MetaTags title="Sign Up" />
       <Heading size="lg" pb="4" alignSelf="flex-start">
         Zorro: web3 citizenship
       </Heading>
@@ -48,7 +49,7 @@ const IntroPage: React.FC<{
       <Text>
         It takes about 8 minutes. The costs are covered by the Zorro community.
       </Text>
-      <Spacer display={['initial', 'none']} />
+      <Spacer />
       <Button
         as={RLink}
         href={routes.signUpConnectWallet()}

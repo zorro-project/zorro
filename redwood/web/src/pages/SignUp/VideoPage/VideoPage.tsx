@@ -9,15 +9,22 @@ import Webcam from 'react-webcam'
 import {RLink} from 'src/components/links'
 import {maybeCidToUrl} from 'src/components/SquareBox'
 import UserContext from 'src/layouts/UserContext'
+import {appNav} from 'src/lib/util'
 import {signUpSlice} from 'src/state/signUpSlice'
 import {useAppDispatch, useAppSelector} from 'src/state/store'
 
 const VideoPage = ({mockRecording = false}) => {
   const {ethereumAddress} = useContext(UserContext)
-  if (!ethereumAddress) return <Redirect to={routes.signUpIntro()} />
+  if (!ethereumAddress)
+    return appNav(routes.signUpIntro(), {
+      toast: {
+        title: 'Please connect a wallet',
+        status: 'warning',
+      },
+    })
 
   const {photo, video} = useAppSelector((state) => state.signUp)
-  if (!photo) return <Redirect to={routes.signUpPhoto()} />
+  if (!photo) return appNav(routes.signUpPhoto({replace: true}))
 
   // Make sure we have camera permissions
   useEffect(() => {
@@ -74,7 +81,7 @@ const VideoPage = ({mockRecording = false}) => {
           />
         )}
       </Box>
-      <Spacer display={['initial', 'none']} />
+      <Spacer />
       <MetaTags title="Record Video" />
       {!recording && !video && (
         <>
