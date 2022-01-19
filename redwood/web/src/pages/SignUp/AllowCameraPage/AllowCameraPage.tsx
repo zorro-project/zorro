@@ -14,7 +14,7 @@ const AllowCameraPage: React.FC = () => {
 
   const requestPermissions = async () => {
     requestMediaPermissions()
-      .then(() => navigate(routes.signUpRecord()))
+      .then(() => navigate(routes.signUpPhoto()))
       .catch((err: MediaPermissionsError) => {
         if (err.type === MediaPermissionsErrorType.SystemPermissionDenied) {
           cameraError({

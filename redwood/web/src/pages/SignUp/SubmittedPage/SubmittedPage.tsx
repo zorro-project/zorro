@@ -45,7 +45,7 @@ const Success = (props: CellSuccessProps<SignUpSubmittedPageQuery>) => {
       <Heading size="lg">Profile Pending Approval</Heading>
       <ProfileStatus profile={props.unsubmittedProfile} />
       <ButtonGroup alignSelf="flex-end">
-        <Button onClick={() => navigate(routes.signUpRecord())}>
+        <Button onClick={() => navigate(routes.signUpVideo())}>
           Edit Profile
         </Button>
       </ButtonGroup>

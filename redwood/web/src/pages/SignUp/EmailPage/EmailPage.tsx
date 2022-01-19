@@ -64,7 +64,7 @@ const EmailPage = () => {
         <SignUpLogo />
         <MetaTags title="Email Notifications" />
         <Heading size="md" textAlign="center">
-          Enter email for notifications
+          Enter email
         </Heading>
         <Input
           type="email"

@@ -21,8 +21,8 @@ const Routes = () => {
           <Route path="/sign-up/{purposeIdentifier}/{externalAddress}" page={SignUpIntroPage} name="signUpAndconnect" />
           <Route path="/sign-up/connect" page={SignUpConnectWalletPage} name="signUpConnectWallet" />
           <Route path="/sign-up/allow-camera" page={SignUpAllowCameraPage} name="signUpAllowCamera" />
-          <Route path="/sign-up/record" page={SignUpRecordPage} name="signUpRecord" />
-          <Route path="/sign-up/review" page={SignUpReviewPage} name="signUpReview" />
+          <Route path="/sign-up/photo" page={SignUpPhotoPage} name="signUpPhoto" />
+          <Route path="/sign-up/video" page={SignUpVideoPage} name="signUpVideo" />
           <Route path="/sign-up/email" page={SignUpEmailPage} name="signUpEmail" />
           <Route path="/sign-up/submit" page={SignUpSubmitPage} name="signUpSubmit" />
           <Route path="/sign-up/submitted" page={SignUpSubmittedPage} name="signUpSubmitted" />

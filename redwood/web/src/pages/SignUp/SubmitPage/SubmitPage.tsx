@@ -1,10 +1,12 @@
 import {Button} from '@chakra-ui/button'
-import {Spacer, Text} from '@chakra-ui/layout'
+import {Box, Spacer, Stack, Text} from '@chakra-ui/layout'
 import {CircularProgress} from '@chakra-ui/progress'
-import {Heading, VStack} from '@chakra-ui/react'
+import {Heading, Image, VStack} from '@chakra-ui/react'
 import {navigate, Redirect, routes} from '@redwoodjs/router'
 import {MetaTags, useMutation} from '@redwoodjs/web'
 import React, {useContext} from 'react'
+import ReactPlayer from 'react-player'
+import {maybeCidToUrl} from 'src/components/SquareBox'
 import UserContext from 'src/layouts/UserContext'
 import ipfsClient from 'src/lib/ipfs'
 import {dataUrlToBlob, isLocalUrl} from 'src/lib/util'
@@ -26,7 +28,7 @@ const SubmitPage = ({initialSubmitProgress = -1}) => {
   const signUpState = useAppSelector((state) => state.signUp)
 
   if (signUpState.photo == null || signUpState.video == null)
-    return <Redirect to={routes.signUpRecord()} />
+    return <Redirect to={routes.signUpVideo()} />
 
   const [updateMutation] = useMutation<
     UpdateUnsubmittedProfileMutation,
@@ -105,10 +107,26 @@ const SubmitPage = ({initialSubmitProgress = -1}) => {
           color="purple.500"
         />
       ) : (
-        <Text>
-          A volunteer community notary will verify your application in
-          real-time.
-        </Text>
+        <>
+          <Stack direction="row">
+            <Box flex="1">
+              <Image src={maybeCidToUrl(signUpState.photo)} />
+            </Box>
+            <Box flex="1">
+              <ReactPlayer
+                url={maybeCidToUrl(signUpState.video)}
+                controls
+                width="100%"
+                height="100%"
+              />
+            </Box>
+          </Stack>
+
+          <Text>
+            A volunteer community notary will verify your application in
+            real-time.
+          </Text>
+        </>
       )}
       <MetaTags title={title} />
       <Spacer display={['initial', 'none']} />
