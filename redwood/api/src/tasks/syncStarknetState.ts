@@ -93,7 +93,7 @@ export const importProfile = async (profileId: number) => {
 
     appealTimestamp: parseTimestamp(profile.appeal_timestamp),
     appealId:
-      parseBigNumber(profile.appeal_id) == 0
+      parseBigNumber(profile.appeal_id) == BigInt(0)
         ? null
         : parseBigNumberAsDecimalString(profile.appeal_id),
     superAdjudicationTimestamp: parseTimestamp(
