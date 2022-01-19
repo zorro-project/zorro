@@ -6,9 +6,10 @@ import {
   parseCid,
   parseEthereumAddress,
   parseNumber,
-  parseBigNumber,
   parseStarknetAddress,
   parseTimestamp,
+  parseBigNumber,
+  parseBigNumberAsDecimalString,
 } from 'src/lib/serializers'
 import {exportProfileById, getNumProfiles} from 'src/lib/starknet'
 import {sendMessage} from 'src/lib/twilio'
@@ -91,7 +92,10 @@ export const importProfile = async (profileId: number) => {
     ),
 
     appealTimestamp: parseTimestamp(profile.appeal_timestamp),
-    appealId: parseBigNumber(profile.appeal_id),
+    appealId:
+      parseBigNumber(profile.appeal_id) == BigInt(0)
+        ? null
+        : parseBigNumberAsDecimalString(profile.appeal_id),
     superAdjudicationTimestamp: parseTimestamp(
       profile.super_adjudication_timestamp
     ),
