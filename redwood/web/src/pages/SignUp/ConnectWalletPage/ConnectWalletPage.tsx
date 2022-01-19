@@ -1,4 +1,4 @@
-import {Spacer, Text, VStack} from '@chakra-ui/layout'
+import {Spacer, Text, Stack} from '@chakra-ui/layout'
 import {routes} from '@redwoodjs/router'
 import {MetaTags} from '@redwoodjs/web'
 import {useContext} from 'react'
@@ -16,7 +16,7 @@ const ConnectWalletPage: React.FC<{
     return appNav(routes.signUpAllowCamera(), {replace: true})
 
   return (
-    <VStack spacing="6" flex="1">
+    <Stack spacing="6" flex="1">
       <SignUpLogo />
       <MetaTags title="Sign Up" />
       <Spacer />
@@ -24,10 +24,10 @@ const ConnectWalletPage: React.FC<{
         To protect your privacy, connect an Ethereum wallet and{' '}
         <strong>create a new address</strong>.
       </Text>
-      <ConnectButton colorScheme="purple" my="8">
+      <ConnectButton variant="signup-primary" my="8">
         Connect wallet
       </ConnectButton>
-    </VStack>
+    </Stack>
   )
 }
 

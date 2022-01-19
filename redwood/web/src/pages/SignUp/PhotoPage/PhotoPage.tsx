@@ -1,9 +1,9 @@
-import {Box, Spacer, Stack, Text} from '@chakra-ui/layout'
-import {Button, Image} from '@chakra-ui/react'
+import {Spacer, Stack, Text} from '@chakra-ui/layout'
+import {Fade, Image, Button} from '@chakra-ui/react'
 import {navigate, routes} from '@redwoodjs/router'
 import {MetaTags} from '@redwoodjs/web'
 import {requestMediaPermissions} from 'mic-check'
-import {useCallback, useContext, useEffect, useRef} from 'react'
+import {useCallback, useContext, useEffect, useRef, useState} from 'react'
 import Webcam from 'react-webcam'
 import {RLink} from 'src/components/links'
 import {maybeCidToUrl} from 'src/components/SquareBox'
@@ -11,6 +11,8 @@ import UserContext from 'src/layouts/UserContext'
 import {appNav} from 'src/lib/util'
 import {signUpSlice} from 'src/state/signUpSlice'
 import {useAppDispatch, useAppSelector} from 'src/state/store'
+import UserMediaBox from '../UserMediaBox'
+import {videoConstraints} from '../VideoPage/VideoPage'
 
 const PhotoPage = () => {
   const {ethereumAddress} = useContext(UserContext)
@@ -25,66 +27,74 @@ const PhotoPage = () => {
 
   const dispatch = useAppDispatch()
   const webcamRef = useRef<Webcam>(null)
+  const [webcamReady, setWebcamReady] = useState(false)
 
   const capturePicture = useCallback(async () => {
+    console.log(webcamRef.current)
     const photoUrl = webcamRef.current?.getScreenshot()
     if (!photoUrl) return
     dispatch(signUpSlice.actions.setPhoto(photoUrl))
   }, [dispatch, webcamRef])
 
   return (
-    <Stack spacing="6" flex="1">
-      <Box background="black" width="100%">
+    <Fade
+      in={true}
+      key={photo}
+      transition={{enter: {duration: 0.5}}}
+      style={{flex: 1, display: 'flex'}}
+    >
+      <Stack spacing="6" flex="1">
+        <UserMediaBox>
+          {photo ? (
+            <Image src={maybeCidToUrl(photo)} />
+          ) : (
+            <Webcam
+              videoConstraints={videoConstraints}
+              screenshotQuality={1}
+              forceScreenshotSourceSize={true}
+              mirrored
+              ref={webcamRef}
+              onUserMedia={() => setWebcamReady(true)}
+            />
+          )}
+        </UserMediaBox>
+        <Spacer />
+        <MetaTags title="Take photo" />
         {photo ? (
-          <Image src={maybeCidToUrl(photo)} />
+          <>
+            <Button
+              variant="signup-primary"
+              onClick={() => dispatch(signUpSlice.actions.setPhoto(undefined))}
+            >
+              Redo photo
+            </Button>
+            <Button
+              variant="signup-primary"
+              as={RLink}
+              href={routes.signUpVideo()}
+              px="12"
+            >
+              Use this photo
+            </Button>
+          </>
         ) : (
-          <Webcam
-            videoConstraints={{facingMode: 'user', width: 1280, height: 720}}
-            screenshotQuality={1}
-            forceScreenshotSourceSize={true}
-            mirrored
-            ref={webcamRef}
-          />
+          <>
+            <Text>
+              Make sure youre <strong>looking directly at the camera</strong> in{' '}
+              <strong>good lighting</strong> and that your{' '}
+              <strong>face is fully visible</strong>.
+            </Text>
+            <Button
+              variant="signup-primary"
+              onClick={capturePicture}
+              disabled={!webcamReady}
+            >
+              Take photo
+            </Button>
+          </>
         )}
-      </Box>
-      <Spacer />
-      <MetaTags title="Take photo" />
-      {photo ? (
-        <>
-          <Button
-            onClick={() => dispatch(signUpSlice.actions.setPhoto(undefined))}
-            colorScheme="purple"
-            alignSelf="center"
-          >
-            Redo photo
-          </Button>
-          <Button
-            as={RLink}
-            href={routes.signUpVideo()}
-            colorScheme="purple"
-            px="12"
-            alignSelf="center"
-          >
-            Use this photo
-          </Button>
-        </>
-      ) : (
-        <>
-          <Text>
-            Make sure youre <strong>looking directly at the camera</strong> in{' '}
-            <strong>good lighting</strong> and that your{' '}
-            <strong>face is fully visible</strong>.
-          </Text>
-          <Button
-            onClick={capturePicture}
-            colorScheme="purple"
-            alignSelf="center"
-          >
-            Take photo
-          </Button>
-        </>
-      )}
-    </Stack>
+      </Stack>
+    </Fade>
   )
 }
 

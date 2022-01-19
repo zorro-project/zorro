@@ -1,4 +1,4 @@
-import {Heading, Spacer, Text, VStack} from '@chakra-ui/layout'
+import {Heading, Spacer, Stack, Text} from '@chakra-ui/layout'
 import {Button, useToast} from '@chakra-ui/react'
 import {routes} from '@redwoodjs/router'
 import {MetaTags} from '@redwoodjs/web'
@@ -36,7 +36,7 @@ const IntroPage: React.FC<{
   }
 
   return (
-    <VStack spacing="6" flex="1">
+    <Stack spacing="6" flex="1">
       <SignUpLogo />
       <MetaTags title="Sign Up" />
       <Heading size="lg" pb="4" alignSelf="flex-start">
@@ -51,16 +51,16 @@ const IntroPage: React.FC<{
       </Text>
       <Spacer />
       <Button
+        variant="signup-primary"
         as={RLink}
         href={routes.signUpConnectWallet()}
-        colorScheme="purple"
       >
         Let's go!
       </Button>
-      <Button variant="link" colorScheme="purple" onClick={alreadyRegistered}>
+      <Button variant="signup-secondary" onClick={alreadyRegistered}>
         I'm already registered
       </Button>
-    </VStack>
+    </Stack>
   )
 }
 

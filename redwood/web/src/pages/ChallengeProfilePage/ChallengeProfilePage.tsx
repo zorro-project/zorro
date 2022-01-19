@@ -20,13 +20,12 @@ import {
   useToast,
 } from '@chakra-ui/react'
 import {Form, useForm} from '@redwoodjs/forms'
-import {Redirect, routes} from '@redwoodjs/router'
+import {routes} from '@redwoodjs/router'
 import {CellSuccessProps, createCell, MetaTags} from '@redwoodjs/web'
 import {ReactElement} from 'react'
 import ResizeTextarea from 'react-textarea-autosize'
 import {InternalLink, RLink} from 'src/components/links'
 import {cairoCompatibleAdd} from 'src/lib/ipfs'
-import {appNav} from 'src/lib/util'
 import NotFoundPage from 'src/pages/NotFoundPage'
 import {
   ChallengePageQuery,

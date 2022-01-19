@@ -15,10 +15,10 @@ const Routes = () => {
           <Route path="/sign-up/connect" page={SignUpConnectWalletPage} name="signUpConnectWallet" />
           <Route path="/sign-up/allow-camera" page={SignUpAllowCameraPage} name="signUpAllowCamera" />
           <Route path="/sign-up/photo" page={SignUpPhotoPage} name="signUpPhoto" />
-          {/* @ts-expect-error bad RW types */}
+          {/* @ts-expect-error https://github.com/redwoodjs/redwood/pull/4219 */}
           <Route path="/sign-up/video" page={SignUpVideoPage} name="signUpVideo" />
           <Route path="/sign-up/email" page={SignUpEmailPage} name="signUpEmail" />
-          {/* @ts-expect-error bad RW types */}
+          {/* @ts-expect-error https://github.com/redwoodjs/redwood/pull/4219 */}
           <Route path="/sign-up/submit" page={SignUpSubmitPage} name="signUpSubmit" />
           <Route path="/sign-up/submitted" page={SignUpSubmittedPage} name="signUpSubmitted" />
         </Set>
