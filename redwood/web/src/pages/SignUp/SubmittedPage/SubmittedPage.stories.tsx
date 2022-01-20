@@ -32,4 +32,4 @@ export const Unviewed = () => {
   )
 }
 
-export default {title: 'Pages/Sign Up/7. Submitted'}
+export default {title: 'Pages/Sign Up/8. Submitted'}

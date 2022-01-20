@@ -1,4 +1,5 @@
-import {extendTheme} from '@chakra-ui/react'
+import {extendTheme, theme as baseTheme} from '@chakra-ui/react'
+import {StyleFunctionProps} from '@chakra-ui/theme-tools'
 
 const theme = extendTheme({
   components: {
@@ -22,8 +23,27 @@ const theme = extendTheme({
         },
       },
       defaultProps: {
-        // you can name it whatever you want
         variant: 'primary',
+      },
+    },
+    Button: {
+      variants: {
+        'signup-primary': (props: StyleFunctionProps) => ({
+          alignSelf: 'center',
+          ...baseTheme.components.Button.variants.solid({
+            ...props,
+            colorScheme: 'purple',
+          }),
+          ...baseTheme.components.Button.sizes['lg'],
+        }),
+        'signup-secondary': (props: StyleFunctionProps) => ({
+          alignSelf: 'center',
+          ...baseTheme.components.Button.variants.link({
+            ...props,
+            colorScheme: 'purple',
+          }),
+          ...baseTheme.components.Button.sizes['lg'],
+        }),
       },
     },
   },

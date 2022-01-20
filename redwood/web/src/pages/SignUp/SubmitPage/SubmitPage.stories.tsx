@@ -29,4 +29,4 @@ export const Submitting = () => (
   </StoryMocks>
 )
 
-export default {title: 'Pages/Sign Up/6. Submit'}
+export default {title: 'Pages/Sign Up/7. Submit'}

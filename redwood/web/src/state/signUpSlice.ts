@@ -6,6 +6,9 @@ type SignUpState = {
 
   // CID or local URL of the profile's avatar video
   video?: string
+
+  // Best guess at the webcam's aspect ratio
+  aspectRatio?: number
 }
 
 const initialState: SignUpState = {}
@@ -19,6 +22,9 @@ export const signUpSlice = createSlice({
     },
     setVideo: (state, action: PayloadAction<SignUpState['video']>) => {
       state.video = action.payload
+    },
+    setAspectRatio: (state, action: PayloadAction<number>) => {
+      state.aspectRatio = action.payload
     },
     reset: () => initialState,
   },

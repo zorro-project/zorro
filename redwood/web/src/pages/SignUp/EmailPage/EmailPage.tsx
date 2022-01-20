@@ -1,7 +1,6 @@
 import {
   Box,
   Button,
-  Heading,
   Input,
   ListItem,
   Spacer,
@@ -9,21 +8,24 @@ import {
   Text,
   UnorderedList,
 } from '@chakra-ui/react'
-import {Redirect, routes} from '@redwoodjs/router'
-import {MetaTags, useMutation} from '@redwoodjs/web'
+import {routes} from '@redwoodjs/router'
+import {useMutation} from '@redwoodjs/web'
 import {useContext, useEffect, useRef, useState} from 'react'
 import {RLink} from 'src/components/links'
 import UserContext from 'src/layouts/UserContext'
+import {appNav} from 'src/lib/util'
 import {CreateUserMutation, CreateUserMutationVariables} from 'types/graphql'
 import SignUpLogo from '../SignUpLogo'
+import Title from '../Title'
 
 const EmailPage = () => {
   const user = useContext(UserContext)
-  if (!user?.ethereumAddress) return <Redirect to={routes.signUpIntro()} />
+  if (!user?.ethereumAddress)
+    return appNav(routes.signUpIntro(), {replace: true})
 
   if (user.user?.hasEmail) {
     // We don't support changing emails yet
-    return <Redirect to={routes.signUpSubmit()} />
+    return appNav(routes.signUpSubmit(), {replace: true})
   }
 
   const [email, setEmail] = useState<string>('')
@@ -62,10 +64,7 @@ const EmailPage = () => {
     <form onSubmit={handleSubmit} style={{display: 'flex', flex: '1'}}>
       <Stack spacing="6" flex="1">
         <SignUpLogo />
-        <MetaTags title="Email Notifications" />
-        <Heading size="md" textAlign="center">
-          Enter email
-        </Heading>
+        <Title title="Enter email" />
         <Input
           type="email"
           name="email"
@@ -81,20 +80,14 @@ const EmailPage = () => {
             <ListItem>Citizenship expiration</ListItem>
           </UnorderedList>
         </Box>
-        <Spacer display={['initial', 'none']} />
-        <Button
-          colorScheme="purple"
-          alignSelf="center"
-          type="submit"
-          disabled={!emailValid}
-        >
+        <Spacer />
+        <Button variant="signup-primary" type="submit" disabled={!emailValid}>
           Continue
         </Button>
         <Button
-          variant="link"
+          variant="signup-secondary"
           as={RLink}
           href={routes.signUpSubmit()}
-          colorScheme="purple"
         >
           Skip
         </Button>

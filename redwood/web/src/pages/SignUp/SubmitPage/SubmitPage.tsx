@@ -1,25 +1,26 @@
-import {Button} from '@chakra-ui/button'
-import {Box, Spacer, Stack, Text} from '@chakra-ui/layout'
+import {Spacer, Text} from '@chakra-ui/layout'
 import {CircularProgress} from '@chakra-ui/progress'
-import {Heading, Image, VStack} from '@chakra-ui/react'
-import {navigate, Redirect, routes} from '@redwoodjs/router'
-import {MetaTags, useMutation} from '@redwoodjs/web'
+import {Image, Stack, Button} from '@chakra-ui/react'
+import {navigate, routes} from '@redwoodjs/router'
+import {useMutation} from '@redwoodjs/web'
 import React, {useContext} from 'react'
 import ReactPlayer from 'react-player'
 import {maybeCidToUrl} from 'src/components/SquareBox'
 import UserContext from 'src/layouts/UserContext'
 import ipfsClient from 'src/lib/ipfs'
-import {dataUrlToBlob, isLocalUrl} from 'src/lib/util'
+import {appNav, dataUrlToBlob, isLocalUrl} from 'src/lib/util'
 import {useAppSelector} from 'src/state/store'
 import {
   UpdateUnsubmittedProfileMutation,
   UpdateUnsubmittedProfileMutationVariables,
 } from 'types/graphql'
 import SignUpLogo from '../SignUpLogo'
+import Title from '../Title'
+import UserMediaBox from '../UserMediaBox'
 
 const SubmitPage = ({initialSubmitProgress = -1}) => {
   const {ethereumAddress} = useContext(UserContext)
-  if (!ethereumAddress) return <Redirect to={routes.signUpIntro()} />
+  if (!ethereumAddress) return appNav(routes.signUpIntro(), {replace: true})
 
   const [submitProgress, setSubmitProgress] = React.useState(
     initialSubmitProgress
@@ -28,7 +29,7 @@ const SubmitPage = ({initialSubmitProgress = -1}) => {
   const signUpState = useAppSelector((state) => state.signUp)
 
   if (signUpState.photo == null || signUpState.video == null)
-    return <Redirect to={routes.signUpVideo()} />
+    return appNav(routes.signUpPhoto(), {replace: true})
 
   const [updateMutation] = useMutation<
     UpdateUnsubmittedProfileMutation,
@@ -95,11 +96,10 @@ const SubmitPage = ({initialSubmitProgress = -1}) => {
     navigate(routes.signUpSubmitted())
   }, [ethereumAddress, updateMutation])
 
-  const title = submitting ? 'Uploading video' : 'Ready to submit'
   return (
-    <VStack spacing="6" flex="1" width="100%">
+    <Stack spacing="6" flex="1" width="100%">
       <SignUpLogo />
-      <Heading size="md">{title}</Heading>
+      <Title title={submitting ? 'Uploading video' : 'Ready to submit'} />
       {submitting ? (
         <CircularProgress
           size="6rem"
@@ -109,17 +109,17 @@ const SubmitPage = ({initialSubmitProgress = -1}) => {
       ) : (
         <>
           <Stack direction="row">
-            <Box flex="1">
+            <UserMediaBox flex="1">
               <Image src={maybeCidToUrl(signUpState.photo)} />
-            </Box>
-            <Box flex="1">
+            </UserMediaBox>
+            <UserMediaBox flex="1">
               <ReactPlayer
                 url={maybeCidToUrl(signUpState.video)}
                 controls
                 width="100%"
                 height="100%"
               />
-            </Box>
+            </UserMediaBox>
           </Stack>
 
           <Text>
@@ -128,12 +128,11 @@ const SubmitPage = ({initialSubmitProgress = -1}) => {
           </Text>
         </>
       )}
-      <MetaTags title={title} />
-      <Spacer display={['initial', 'none']} />
-      <Button colorScheme="purple" onClick={submit} disabled={submitting}>
+      <Spacer />
+      <Button variant="signup-primary" onClick={submit} disabled={submitting}>
         Submit application
       </Button>
-    </VStack>
+    </Stack>
   )
 }
 

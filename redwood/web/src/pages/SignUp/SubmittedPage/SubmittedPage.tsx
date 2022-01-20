@@ -1,26 +1,41 @@
 import {Button, ButtonGroup} from '@chakra-ui/button'
 import {FormControl, FormHelperText, FormLabel} from '@chakra-ui/form-control'
-import {Heading, Stack} from '@chakra-ui/layout'
+import {Stack} from '@chakra-ui/layout'
 import {Input} from '@chakra-ui/react'
 import {useForm} from '@redwoodjs/forms'
-import {navigate, Redirect, routes} from '@redwoodjs/router'
-import {CellSuccessProps, createCell, MetaTags} from '@redwoodjs/web'
+import {navigate, routes} from '@redwoodjs/router'
+import {CellSuccessProps, createCell} from '@redwoodjs/web'
 import React, {useCallback, useContext} from 'react'
 import {Card} from 'src/components/Card'
 import requireEthAddress from 'src/components/requireEthAddress'
 import UserContext from 'src/layouts/UserContext'
 import {usePusher} from 'src/lib/pusher'
+import {appNav} from 'src/lib/util'
 import ProfileStatus from 'src/pages/SignUp/ProfileStatus'
 import {SignUpSubmittedPageQuery} from 'types/graphql'
 import {useInterval} from 'usehooks-ts'
+import Title from '../Title'
 
 type FormFields = {email: string}
 
 const Success = (props: CellSuccessProps<SignUpSubmittedPageQuery>) => {
-  if (!props.unsubmittedProfile) return <Redirect to={routes.signUpIntro()} />
-
   const {ethereumAddress} = useContext(UserContext)
-  if (!ethereumAddress) return <Redirect to={routes.signUpIntro()} />
+  if (!ethereumAddress)
+    return appNav(routes.signUpIntro(), {
+      toast: {
+        title: 'Please connect a wallet',
+        status: 'warning',
+      },
+    })
+
+  if (!props.unsubmittedProfile)
+    return appNav(routes.signUpIntro(), {
+      toast: {
+        title:
+          "Couldn't find your submitted profile. Are you connected to the correct wallet?",
+        status: 'warning',
+      },
+    })
 
   const methods = useForm<FormFields>({
     defaultValues: {
@@ -41,8 +56,7 @@ const Success = (props: CellSuccessProps<SignUpSubmittedPageQuery>) => {
 
   return (
     <Stack spacing="6" flex="1">
-      <MetaTags title="Profile Pending Approval" />
-      <Heading size="lg">Profile Pending Approval</Heading>
+      <Title title="Profile pending approval" />
       <ProfileStatus profile={props.unsubmittedProfile} />
       <ButtonGroup alignSelf="flex-end">
         <Button onClick={() => navigate(routes.signUpVideo())}>
@@ -60,6 +74,7 @@ const Success = (props: CellSuccessProps<SignUpSubmittedPageQuery>) => {
           </FormHelperText>
         </FormControl>
         <Button
+          variant="signup-primary"
           type="submit"
           colorScheme="blue"
           mt="6"

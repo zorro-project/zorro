@@ -20,7 +20,7 @@ import {
   useToast,
 } from '@chakra-ui/react'
 import {Form, useForm} from '@redwoodjs/forms'
-import {Redirect, routes} from '@redwoodjs/router'
+import {routes} from '@redwoodjs/router'
 import {CellSuccessProps, createCell, MetaTags} from '@redwoodjs/web'
 import {ReactElement} from 'react'
 import ResizeTextarea from 'react-textarea-autosize'
@@ -201,17 +201,19 @@ const Success = (props: CellSuccessProps<ChallengePageQuery>) => {
   const profile = props.cachedProfile
   if (!profile) return <NotFoundPage />
 
-  // TODO: use a flash message to explain why the challenge page isn't available in these states
-  const profileRedirect = <Redirect to={routes.profile({id: profile.id})} />
-
   const bodyContent: {[key in StatusEnum]: ReactElement | null} = {
     NOT_CHALLENGED: <NotChallenged query={props} />,
     CHALLENGED: <Text>profile challenged</Text>,
     ADJUDICATION_ROUND_COMPLETED: null,
-    APPEALED: profileRedirect,
-    APPEAL_OPPORTUNITY_EXPIRED: profileRedirect,
-    SUPER_ADJUDICATION_ROUND_COMPLETED: profileRedirect,
-    SETTLED: profileRedirect,
+    APPEALED: (
+      <Text>
+        You cannot challenge ths profile because the latest challenge has been
+        appealed.
+      </Text>
+    ),
+    APPEAL_OPPORTUNITY_EXPIRED: <NotChallenged query={props} />,
+    SUPER_ADJUDICATION_ROUND_COMPLETED: <NotChallenged query={props} />,
+    SETTLED: <NotChallenged query={props} />,
   }
 
   return (
