@@ -76,6 +76,7 @@ const VideoPage = ({mockRecording = false}) => {
       transition={{enter: {duration: 0.5}}}
       style={{flex: 1, display: 'flex'}}
     >
+      <MetaTags title="Record Video" />
       <Stack spacing="6" flex="1">
         <UserMediaBox>
           {video ? (
@@ -96,7 +97,6 @@ const VideoPage = ({mockRecording = false}) => {
           )}
         </UserMediaBox>
         <Spacer />
-        <MetaTags title="Record Video" />
         {!recording && !video && (
           <>
             <Text>

@@ -17,8 +17,8 @@ const ConnectWalletPage: React.FC<{
 
   return (
     <Stack spacing="6" flex="1">
-      <SignUpLogo />
       <MetaTags title="Sign Up" />
+      <SignUpLogo />
       <Spacer />
       <Text>
         To protect your privacy, connect an Ethereum wallet and{' '}

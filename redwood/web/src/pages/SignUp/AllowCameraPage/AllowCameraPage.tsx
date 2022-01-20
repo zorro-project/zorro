@@ -61,8 +61,8 @@ const AllowCameraPage: React.FC = () => {
 
   return (
     <Stack maxW="md" mx="auto" spacing="6" flex="1">
-      <SignUpLogo />
       <MetaTags title="Allow Camera" />
+      <SignUpLogo />
       <Spacer />
       <Text>Everyone who registers records a short video</Text>
       <Text>
