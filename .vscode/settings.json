@@ -5,7 +5,6 @@
 
   "editor.tabSize": 2,
   "files.trimTrailingWhitespace": true,
-  "editor.formatOnSave": false,
   "eslint.workingDirectories": ["./redwood"],
   "eslint.packageManager": "yarn",
   "editor.codeActionsOnSave": {
