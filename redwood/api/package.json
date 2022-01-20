@@ -3,9 +3,9 @@
   "version": "0.0.0",
   "private": true,
   "dependencies": {
-    "@redwoodjs/api": "^1.0.0-rc.4",
-    "@redwoodjs/api-server": "1.0.0-rc.4",
-    "@redwoodjs/graphql-server": "^1.0.0-rc.4",
+    "@redwoodjs/api": "^0.42.0",
+    "@redwoodjs/api-server": "^0.42.0",
+    "@redwoodjs/graphql-server": "^0.42.0",
     "dayjs": "^1.10.7",
     "ethers": "^5.5.2",
     "hex-to-array-buffer": "^2.0.0",

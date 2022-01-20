@@ -37,8 +37,8 @@ const IntroPage: React.FC<{
 
   return (
     <Stack spacing="6" flex="1">
-      <SignUpLogo />
       <MetaTags title="Sign Up" />
+      <SignUpLogo />
       <Heading size="lg" pb="4" alignSelf="flex-start">
         Zorro: web3 citizenship
       </Heading>
