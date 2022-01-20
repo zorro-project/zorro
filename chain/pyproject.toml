@@ -2,7 +2,7 @@
 name = "zorro-project"
 version = "0.1.0"
 description = ""
-authors = ["Ted Suzman <ted@suzman.net>"]
+authors = ["zorro-project"]
 
 [tool.poetry.dependencies]
 python = "^3.7"

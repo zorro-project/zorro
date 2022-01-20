@@ -95,7 +95,9 @@ async def _appeal(ctx, profile_id, appeal_id, from_address=None):
     )
 
 
-async def _super_adjudicate(ctx, profile_id, appeal_id, should_verify, from_address=None):
+async def _super_adjudicate(
+    ctx, profile_id, appeal_id, should_verify, from_address=None
+):
     if from_address == None:
         from_address = ctx.consts.SUPER_ADJUDICATOR_L1_ADDRESS
     await ctx.starknet.send_message_to_l2(
@@ -174,7 +176,13 @@ class ScenarioState:
         await _appeal(self.ctx, self.profile_id, appeal_id, from_address)
 
     async def super_adjudicate(self, should_verify, from_address=None):
-        await _super_adjudicate(self.ctx, self.profile_id, self.appeal_id or 123, should_verify, from_address)
+        await _super_adjudicate(
+            self.ctx,
+            self.profile_id,
+            self.appeal_id or 123,
+            should_verify,
+            from_address,
+        )
 
     async def maybe_settle(self):
         await _maybe_settle(self.ctx, self.profile_id)

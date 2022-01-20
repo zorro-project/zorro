@@ -1,6 +1,3 @@
-deploy:
-	poetry run ./deploy.py
-
 update-openzeppelin:
 	# Rather than playing around with git submodules, we're just doing this for now.
 	curl -L -o contracts/OpenZeppelin/Account.cairo https://raw.githubusercontent.com/OpenZeppelin/cairo-contracts/main/contracts/Account.cairo
