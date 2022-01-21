@@ -1,17 +1,19 @@
-import {Spacer, Stack, Text} from '@chakra-ui/layout'
-import {Fade, Button} from '@chakra-ui/react'
+import {Box, Spacer, Stack, Text} from '@chakra-ui/layout'
+import {Button, Fade, Icon} from '@chakra-ui/react'
 import {navigate, routes} from '@redwoodjs/router'
 import {MetaTags} from '@redwoodjs/web'
 import {requestMediaPermissions} from 'mic-check'
 import {useCallback, useContext, useEffect, useRef, useState} from 'react'
+import {BsRecord2Fill, BsRecordFill} from 'react-icons/bs'
 import ReactPlayer from 'react-player'
 import Webcam from 'react-webcam'
 import {RLink} from 'src/components/links'
 import {maybeCidToUrl} from 'src/components/SquareBox'
 import UserContext from 'src/layouts/UserContext'
-import {appNav} from 'src/lib/util'
+import {useNav} from 'src/lib/util'
 import {signUpSlice} from 'src/state/signUpSlice'
 import {useAppDispatch, useAppSelector} from 'src/state/store'
+import {useIsFirstRender} from 'usehooks-ts'
 import UserMediaBox from '../UserMediaBox'
 
 export const videoConstraints: MediaTrackConstraints = {
@@ -23,7 +25,7 @@ export const videoConstraints: MediaTrackConstraints = {
 const VideoPage = ({mockRecording = false}) => {
   const {ethereumAddress} = useContext(UserContext)
   if (!ethereumAddress)
-    return appNav(routes.signUpIntro(), {
+    return useNav(routes.signUpIntro(), {
       toast: {
         title: 'Please connect a wallet',
         status: 'warning',
@@ -31,7 +33,7 @@ const VideoPage = ({mockRecording = false}) => {
     })
 
   const {photo, video} = useAppSelector((state) => state.signUp)
-  if (!photo) return appNav(routes.signUpPhoto(), {replace: true})
+  if (!photo) return useNav(routes.signUpPhoto(), {replace: true})
 
   // Make sure we have camera permissions
   useEffect(() => {
@@ -58,7 +60,6 @@ const VideoPage = ({mockRecording = false}) => {
       // video/x-matroska;codecs=avc1,opus, which Infura refuses to accept
       // as a valid mime-type when uploading the video.
       const video = data.slice(0, data.size, 'video/webm')
-      console.log('video')
       dispatch(signUpSlice.actions.setVideo(URL.createObjectURL(video)))
     })
     mediaRecorderRef.current.start()
@@ -69,16 +70,18 @@ const VideoPage = ({mockRecording = false}) => {
     setRecording(false)
   }, [mediaRecorderRef, setRecording])
 
+  const firstRender = useIsFirstRender()
+
   return (
     <Fade
       in={true}
       key={video}
-      transition={{enter: {duration: 0.5}}}
+      transition={{enter: {duration: firstRender ? 0 : 0.25}}}
       style={{flex: 1, display: 'flex'}}
     >
       <MetaTags title="Record Video" />
       <Stack spacing="6" flex="1">
-        <UserMediaBox>
+        <UserMediaBox position="relative">
           {video ? (
             <ReactPlayer
               url={maybeCidToUrl(video)}
@@ -87,16 +90,29 @@ const VideoPage = ({mockRecording = false}) => {
               height="100%"
             />
           ) : (
-            <Webcam
-              videoConstraints={videoConstraints}
-              audio
-              muted
-              mirrored
-              ref={webcamRef}
-            />
+            <>
+              <Webcam
+                videoConstraints={videoConstraints}
+                audio
+                muted
+                mirrored
+                ref={webcamRef}
+              />
+              <Box position="absolute" top={4} right={4}>
+                <Fade in={recording}>
+                  <Box
+                    backgroundColor="red.500"
+                    shadow="md"
+                    // dropShadow="2xl"
+                    h={6}
+                    w={6}
+                    borderRadius="50%"
+                  />
+                </Fade>
+              </Box>
+            </>
           )}
         </UserMediaBox>
-        <Spacer />
         {!recording && !video && (
           <>
             <Text>

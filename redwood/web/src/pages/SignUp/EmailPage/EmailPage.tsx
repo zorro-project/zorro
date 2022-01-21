@@ -13,7 +13,7 @@ import {useMutation} from '@redwoodjs/web'
 import {useContext, useEffect, useRef, useState} from 'react'
 import {RLink} from 'src/components/links'
 import UserContext from 'src/layouts/UserContext'
-import {appNav} from 'src/lib/util'
+import {useNav} from 'src/lib/util'
 import {CreateUserMutation, CreateUserMutationVariables} from 'types/graphql'
 import SignUpLogo from '../SignUpLogo'
 import Title from '../Title'
@@ -21,11 +21,15 @@ import Title from '../Title'
 const EmailPage = () => {
   const user = useContext(UserContext)
   if (!user?.ethereumAddress)
-    return appNav(routes.signUpIntro(), {replace: true})
+    return useNav(routes.signUpIntro(), {replace: true})
 
   if (user.user?.hasEmail) {
     // We don't support changing emails yet
-    return appNav(routes.signUpSubmit(), {replace: true})
+    return useNav(routes.signUpSubmit(), {replace: true})
+  }
+
+  if (user.unsubmittedProfile) {
+    return useNav(routes.signUpSubmitted(), {replace: true})
   }
 
   const [email, setEmail] = useState<string>('')

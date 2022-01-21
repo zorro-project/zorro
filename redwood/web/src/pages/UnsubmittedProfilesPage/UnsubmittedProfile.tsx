@@ -17,6 +17,7 @@ import {notarySubmitProfile} from '../../../../api/src/lib/starknet'
 import {serializeCid} from '../../../../api/src/lib/serializers'
 
 import getNotaryKey from '../../lib/getNotaryKey'
+import {useEffect} from 'react'
 
 const UnsubmittedProfile: React.FC<{
   profile: ArrayElement<UnsubmittedProfilesQuery['unsubmittedProfiles']>
@@ -25,8 +26,19 @@ const UnsubmittedProfile: React.FC<{
   const [submitting, setSubmitting] = React.useState(false)
   const feedbackRef = React.useRef<HTMLTextAreaElement>(null)
 
+  const [markViewed] = useMutation(gql`
+    mutation MarkProfileViewed($id: ID!) {
+      markProfileViewed(id: $id) {
+        id
+      }
+    }
+  `)
+  useEffect(() => {
+    markViewed({variables: {id: profile.id}})
+  }, [])
+
   const [giveFeedback] = useMutation<MutationaddNotaryFeedbackArgs>(gql`
-    mutation AddNotaryFeedback($id: Int!, $feedback: String!) {
+    mutation AddNotaryFeedback($id: ID!, $feedback: String!) {
       addNotaryFeedback(id: $id, feedback: $feedback)
     }
   `)
@@ -43,7 +55,7 @@ const UnsubmittedProfile: React.FC<{
     ApproveProfileMutation,
     ApproveProfileMutationVariables
   >(gql`
-    mutation ApproveProfileMutation($id: Int!) {
+    mutation ApproveProfileMutation($id: ID!) {
       approveProfile(id: $id)
     }
   `)

@@ -13,6 +13,7 @@ import {
   MutationaddNotaryFeedbackArgs,
   MutationapproveProfileArgs,
   MutationupdateUnsubmittedProfileArgs,
+  MutationmarkNotaryViewedArgs,
   QueryunsubmittedProfileArgs,
   QueryunsubmittedProfilesArgs,
   UnsubmittedProfile as UnsubmittedProfileType,
@@ -70,6 +71,20 @@ export const updateUnsubmittedProfile = async ({
   return profile
 }
 
+export const markNotaryViewed = async ({id}: MutationmarkNotaryViewedArgs) => {
+  let profile = await db.unsubmittedProfile.findUnique({
+    where: {id},
+  })
+  if (profile?.notaryViewedAt == null) {
+    profile = await db.unsubmittedProfile.update({
+      where: {id},
+      data: {notaryViewedAt: new Date()},
+    })
+  }
+  profile && alertProfileUpdated(profile)
+  return profile
+}
+
 export const addNotaryFeedback = async ({
   id,
   feedback,
@@ -82,7 +97,7 @@ export const addNotaryFeedback = async ({
 
   const profile = await db.unsubmittedProfile.update({
     where: {id},
-    data: {unaddressedFeedbackId: notaryFeedback.id},
+    data: {unaddressedFeedbackId: notaryFeedback.id, notaryViewedAt: null},
     include: {UnaddressedFeedback: true},
   })
 
@@ -96,31 +111,33 @@ export const addNotaryFeedback = async ({
     await sendNotaryFeedback(user.email, profile.UnaddressedFeedback.feedback)
   }
 
-  return true
+  return profile
 }
 
 export const approveProfile = async ({id}: MutationapproveProfileArgs) => {
   // TODO: authenticate that the given user is an approved notary
 
-  const profile = await db.unsubmittedProfile.findUnique({
+  const profile = await db.unsubmittedProfile.update({
     where: {id},
+    data: {notaryApprovedAt: new Date()},
   })
 
   if (!profile) return false
 
-  await syncStarknetState(true)
   alertProfileUpdated(profile)
 
+  await syncStarknetState(true)
   await db.unsubmittedProfile.delete({where: {id}})
+  alertProfileUpdated(profile)
 
   const user = await db.user.findUnique({
     where: {ethereumAddress: profile.ethereumAddress},
     select: {email: true},
   })
 
-  if (user?.email) {
+  if (user?.email)
     await sendNotaryApproved(user?.email, profile.ethereumAddress)
-  }
+
   return true
 }
 

@@ -6,17 +6,20 @@ import {useContext, useEffect} from 'react'
 import {RLink} from 'src/components/links'
 import UserContext from 'src/layouts/UserContext'
 import {save as saveIntendedConnection} from 'src/lib/intendedConnectionStorage'
-import {appNav} from 'src/lib/util'
+import {useNav} from 'src/lib/util'
 import SignUpLogo from '../SignUpLogo'
 
 const IntroPage: React.FC<{
   purposeIdentifier?: string
   externalAddress?: string
 }> = ({purposeIdentifier, externalAddress}) => {
-  const {cachedProfile} = useContext(UserContext)
+  const {cachedProfile, unsubmittedProfile} = useContext(UserContext)
 
   if (cachedProfile != null)
-    return appNav(routes.profile({id: cachedProfile.id}))
+    return useNav(routes.profile({id: cachedProfile.id}))
+
+  if (unsubmittedProfile != null)
+    return useNav(routes.signUpSubmitted(), {replace: true})
 
   useEffect(() => {
     if (purposeIdentifier && externalAddress) {

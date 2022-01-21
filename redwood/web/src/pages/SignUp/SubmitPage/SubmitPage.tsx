@@ -1,15 +1,16 @@
-import {Spacer, Text} from '@chakra-ui/layout'
+import {Flex, Spacer, Text} from '@chakra-ui/layout'
 import {CircularProgress} from '@chakra-ui/progress'
 import {Image, Stack, Button} from '@chakra-ui/react'
 import {navigate, routes} from '@redwoodjs/router'
 import {useMutation} from '@redwoodjs/web'
-import React, {useContext} from 'react'
+import React, {useCallback, useContext} from 'react'
 import ReactPlayer from 'react-player'
 import {maybeCidToUrl} from 'src/components/SquareBox'
 import UserContext from 'src/layouts/UserContext'
 import ipfsClient from 'src/lib/ipfs'
-import {appNav, dataUrlToBlob, isLocalUrl} from 'src/lib/util'
-import {useAppSelector} from 'src/state/store'
+import {useNav, dataUrlToBlob, isLocalUrl} from 'src/lib/util'
+import {signUpSlice} from 'src/state/signUpSlice'
+import {useAppDispatch, useAppSelector} from 'src/state/store'
 import {
   UpdateUnsubmittedProfileMutation,
   UpdateUnsubmittedProfileMutationVariables,
@@ -19,17 +20,18 @@ import Title from '../Title'
 import UserMediaBox from '../UserMediaBox'
 
 const SubmitPage = ({initialSubmitProgress = -1}) => {
-  const {ethereumAddress} = useContext(UserContext)
-  if (!ethereumAddress) return appNav(routes.signUpIntro(), {replace: true})
+  const {ethereumAddress, unsubmittedProfile} = useContext(UserContext)
+  if (!ethereumAddress) return useNav(routes.signUpIntro(), {replace: true})
 
   const [submitProgress, setSubmitProgress] = React.useState(
     initialSubmitProgress
   )
   const submitting = submitProgress >= 0
   const signUpState = useAppSelector((state) => state.signUp)
+  const dispatch = useAppDispatch()
 
   if (signUpState.photo == null || signUpState.video == null)
-    return appNav(routes.signUpPhoto(), {replace: true})
+    return useNav(routes.signUpPhoto(), {replace: true})
 
   const [updateMutation] = useMutation<
     UpdateUnsubmittedProfileMutation,
@@ -47,6 +49,12 @@ const SubmitPage = ({initialSubmitProgress = -1}) => {
       }
     }
   `)
+
+  const startOver = useCallback(() => {
+    dispatch(signUpSlice.actions.setPhoto(undefined))
+    dispatch(signUpSlice.actions.setVideo(undefined))
+    navigate(routes.signUpPhoto())
+  }, [])
 
   const submit = React.useCallback(async () => {
     setSubmitProgress(0)
@@ -76,7 +84,7 @@ const SubmitPage = ({initialSubmitProgress = -1}) => {
     const videoCid = videoBlob
       ? (
           await ipfsClient.add(videoBlob, {
-            progress: reportProgress,
+            progress: (bytes) => reportProgress(bytes + (photoBlob?.size ?? 0)),
           })
         ).cid
           .toV1()
@@ -101,11 +109,13 @@ const SubmitPage = ({initialSubmitProgress = -1}) => {
       <SignUpLogo />
       <Title title={submitting ? 'Uploading video' : 'Ready to submit'} />
       {submitting ? (
-        <CircularProgress
-          size="6rem"
-          value={submitProgress}
-          color="purple.500"
-        />
+        <Flex flex="1" alignItems="center" justifyContent="center">
+          <CircularProgress
+            size="6rem"
+            value={submitProgress}
+            color="purple.500"
+          />
+        </Flex>
       ) : (
         <>
           <Stack direction="row">
@@ -126,11 +136,18 @@ const SubmitPage = ({initialSubmitProgress = -1}) => {
             A volunteer community notary will verify your application in
             real-time.
           </Text>
+          <Spacer />
         </>
       )}
-      <Spacer />
       <Button variant="signup-primary" onClick={submit} disabled={submitting}>
-        Submit application
+        {unsubmittedProfile ? 'Resubmit application' : 'Submit application'}
+      </Button>
+      <Button
+        variant="signup-secondary"
+        onClick={startOver}
+        disabled={submitting}
+      >
+        Start over
       </Button>
     </Stack>
   )

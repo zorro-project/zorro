@@ -8,15 +8,16 @@ import Webcam from 'react-webcam'
 import {RLink} from 'src/components/links'
 import {maybeCidToUrl} from 'src/components/SquareBox'
 import UserContext from 'src/layouts/UserContext'
-import {appNav} from 'src/lib/util'
+import {useNav} from 'src/lib/util'
 import {signUpSlice} from 'src/state/signUpSlice'
 import {useAppDispatch, useAppSelector} from 'src/state/store'
+import {useIsFirstRender} from 'usehooks-ts'
 import UserMediaBox from '../UserMediaBox'
 import {videoConstraints} from '../VideoPage/VideoPage'
 
 const PhotoPage = () => {
   const {ethereumAddress} = useContext(UserContext)
-  if (!ethereumAddress) return appNav(routes.signUpIntro(), {replace: true})
+  if (!ethereumAddress) return useNav(routes.signUpIntro(), {replace: true})
 
   // Make sure we have camera permissions
   useEffect(() => {
@@ -30,17 +31,18 @@ const PhotoPage = () => {
   const [webcamReady, setWebcamReady] = useState(false)
 
   const capturePicture = useCallback(async () => {
-    console.log(webcamRef.current)
     const photoUrl = webcamRef.current?.getScreenshot()
     if (!photoUrl) return
     dispatch(signUpSlice.actions.setPhoto(photoUrl))
   }, [dispatch, webcamRef])
 
+  const firstRender = useIsFirstRender()
+
   return (
     <Fade
       in={true}
       key={photo}
-      transition={{enter: {duration: 0.5}}}
+      transition={{enter: {duration: firstRender ? 0 : 0.25}}}
       style={{flex: 1, display: 'flex'}}
     >
       <Stack spacing="6" flex="1">

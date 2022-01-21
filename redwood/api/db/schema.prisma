@@ -85,6 +85,10 @@ model UnsubmittedProfile {
   unaddressedFeedbackId Int?
   UnaddressedFeedback   NotaryFeedback? @relation("unaddressedFeedback", fields: [unaddressedFeedbackId], references: [id])
 
+  lastSubmittedAt  DateTime  @default(now())
+  notaryViewedAt   DateTime?
+  notaryApprovedAt DateTime?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
