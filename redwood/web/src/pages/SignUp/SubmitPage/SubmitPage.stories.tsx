@@ -18,6 +18,22 @@ export const Unsubmitted = () => (
   </StoryMocks>
 )
 
+export const Resubmit = () => (
+  <StoryMocks
+    user={{ethereumAddress: '0x4567', unsubmittedProfile: {id: 1}}}
+    state={{
+      signUp: {
+        photo: 'bafybeicxoq24v5sxcz4myt5kx35kluclpoqhsfb2qdf5oevfuklprux2em',
+        video: 'bafybeiaxvwuj72kcknxm5ofryao4pkqpks5qtadrakzcw743jqruli5zku',
+      },
+    }}
+  >
+    <SignUpLayout>
+      <SubmitPage />
+    </SignUpLayout>
+  </StoryMocks>
+)
+
 export const Submitting = () => (
   <StoryMocks
     user={{ethereumAddress: '0x4567'}}

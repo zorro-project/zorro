@@ -1,5 +1,5 @@
-import {Spacer, Stack, Text} from '@chakra-ui/layout'
-import {Fade, Button} from '@chakra-ui/react'
+import {Box, Stack, Text} from '@chakra-ui/layout'
+import {Button, Fade, Spacer} from '@chakra-ui/react'
 import {navigate, routes} from '@redwoodjs/router'
 import {MetaTags} from '@redwoodjs/web'
 import {requestMediaPermissions} from 'mic-check'
@@ -9,9 +9,10 @@ import Webcam from 'react-webcam'
 import {RLink} from 'src/components/links'
 import {maybeCidToUrl} from 'src/components/SquareBox'
 import UserContext from 'src/layouts/UserContext'
-import {appNav} from 'src/lib/util'
+import {useNav} from 'src/lib/util'
 import {signUpSlice} from 'src/state/signUpSlice'
 import {useAppDispatch, useAppSelector} from 'src/state/store'
+import {useIsFirstRender} from 'usehooks-ts'
 import UserMediaBox from '../UserMediaBox'
 
 export const videoConstraints: MediaTrackConstraints = {
@@ -23,7 +24,7 @@ export const videoConstraints: MediaTrackConstraints = {
 const VideoPage = ({mockRecording = false}) => {
   const {ethereumAddress} = useContext(UserContext)
   if (!ethereumAddress)
-    return appNav(routes.signUpIntro(), {
+    return useNav(routes.signUpIntro(), {
       toast: {
         title: 'Please connect a wallet',
         status: 'warning',
@@ -31,7 +32,7 @@ const VideoPage = ({mockRecording = false}) => {
     })
 
   const {photo, video} = useAppSelector((state) => state.signUp)
-  if (!photo) return appNav(routes.signUpPhoto(), {replace: true})
+  if (!photo) return useNav(routes.signUpPhoto(), {replace: true})
 
   // Make sure we have camera permissions
   useEffect(() => {
@@ -58,7 +59,6 @@ const VideoPage = ({mockRecording = false}) => {
       // video/x-matroska;codecs=avc1,opus, which Infura refuses to accept
       // as a valid mime-type when uploading the video.
       const video = data.slice(0, data.size, 'video/webm')
-      console.log('video')
       dispatch(signUpSlice.actions.setVideo(URL.createObjectURL(video)))
     })
     mediaRecorderRef.current.start()
@@ -69,16 +69,18 @@ const VideoPage = ({mockRecording = false}) => {
     setRecording(false)
   }, [mediaRecorderRef, setRecording])
 
+  const firstRender = useIsFirstRender()
+
   return (
-    <Fade
-      in={true}
-      key={video}
-      transition={{enter: {duration: 0.5}}}
-      style={{flex: 1, display: 'flex'}}
-    >
+    <Stack spacing="6" flex="1">
       <MetaTags title="Record Video" />
-      <Stack spacing="6" flex="1">
-        <UserMediaBox>
+      <UserMediaBox position="relative">
+        <Fade
+          in={true}
+          key={video}
+          transition={{enter: {duration: firstRender ? 0 : 0.25}}}
+          style={{flex: 1, display: 'flex'}}
+        >
           {video ? (
             <ReactPlayer
               url={maybeCidToUrl(video)}
@@ -87,60 +89,77 @@ const VideoPage = ({mockRecording = false}) => {
               height="100%"
             />
           ) : (
-            <Webcam
-              videoConstraints={videoConstraints}
-              audio
-              muted
-              mirrored
-              ref={webcamRef}
-            />
+            <>
+              <Webcam
+                videoConstraints={videoConstraints}
+                audio
+                muted
+                mirrored
+                ref={webcamRef}
+              />
+              <Fade in={recording}>
+                <Box
+                  backgroundColor="red.500"
+                  shadow="md"
+                  top={2}
+                  right={2}
+                  position="absolute"
+                  h={4}
+                  w={4}
+                  borderRadius="50%"
+                />
+              </Fade>
+            </>
           )}
-        </UserMediaBox>
-        <Spacer />
-        {!recording && !video && (
-          <>
-            <Text>
-              Ready to be sworn in? Just read the words on the next screen.
-            </Text>
-            <Button variant="signup-primary" onClick={startRecording}>
-              I'm ready, start recording
-            </Button>
-          </>
-        )}
-        {recording && (
-          <>
-            <Text>
-              Say this:
-              <br />
-              <strong>
-                "I swear that this is my first time registering on Zorro"
-              </strong>
-            </Text>
-            <Button variant="signup-primary" onClick={stopRecording}>
-              Stop recording
-            </Button>
-          </>
-        )}
-        {video && !recording && (
-          <>
-            <Button
-              variant="signup-primary"
-              onClick={() => dispatch(signUpSlice.actions.setVideo(undefined))}
-            >
-              Redo video
-            </Button>
-            <Button
-              variant="signup-primary"
-              as={RLink}
-              href={routes.signUpEmail()}
-              px="12"
-            >
-              Continue
-            </Button>
-          </>
-        )}
-      </Stack>
-    </Fade>
+        </Fade>
+      </UserMediaBox>
+      {!recording && !video && (
+        <>
+          <Text>
+            Ready to be sworn in? Just read the words on the next screen.
+          </Text>
+          <Spacer />
+          <Button variant="signup-primary" onClick={startRecording}>
+            I'm ready, start recording
+          </Button>
+        </>
+      )}
+      {recording && (
+        <>
+          <Text>
+            Say this:
+            <br />
+            <strong>
+              "I swear that this is my first time registering on Zorro"
+            </strong>
+          </Text>
+          <Spacer />
+
+          <Button variant="signup-primary" onClick={stopRecording}>
+            Stop recording
+          </Button>
+        </>
+      )}
+      {video && !recording && (
+        <>
+          <Spacer />
+          <Button
+            variant="signup-primary"
+            onClick={() => dispatch(signUpSlice.actions.setVideo(undefined))}
+          >
+            Redo video
+          </Button>
+          <Button
+            variant="signup-primary"
+            as={RLink}
+            href={routes.signUpEmail()}
+            px="12"
+          >
+            Continue
+          </Button>
+        </>
+      )}
+    </Stack>
   )
 }
 

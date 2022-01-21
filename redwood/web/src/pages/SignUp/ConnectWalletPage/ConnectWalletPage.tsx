@@ -1,19 +1,22 @@
-import {Spacer, Text, Stack} from '@chakra-ui/layout'
+import {Spacer, Stack, Text} from '@chakra-ui/layout'
 import {routes} from '@redwoodjs/router'
 import {MetaTags} from '@redwoodjs/web'
 import {useContext} from 'react'
 import ConnectButton from 'src/components/ConnectButton/ConnectButton'
 import UserContext from 'src/layouts/UserContext'
-import {appNav} from 'src/lib/util'
+import {useNav} from 'src/lib/util'
 import SignUpLogo from '../SignUpLogo'
 
 const ConnectWalletPage: React.FC<{
   purposeIdentifier?: string
   externalAddress?: string
 }> = () => {
-  const {ethereumAddress} = useContext(UserContext)
+  const {ethereumAddress, unsubmittedProfile} = useContext(UserContext)
+  if (unsubmittedProfile != null)
+    return useNav(routes.signUpSubmitted(), {replace: true})
+
   if (ethereumAddress != null)
-    return appNav(routes.signUpAllowCamera(), {replace: true})
+    return useNav(routes.signUpAllowCamera(), {replace: true})
 
   return (
     <Stack spacing="6" flex="1">

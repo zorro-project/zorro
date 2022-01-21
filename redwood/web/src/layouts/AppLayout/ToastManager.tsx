@@ -6,7 +6,7 @@ const QUEUED_TOAST_KEY = 'ZORRO_QUEUED_TOAST'
 
 export const ToastManager = () => {
   const {pathname} = useLocation()
-  const toast = useToast()
+  const toast = useToast({position: 'top'})
 
   // dismiss all active toasts every time we change pages
   useEffect(() => {

@@ -21,6 +21,7 @@ const Routes = () => {
           {/* @ts-expect-error https://github.com/redwoodjs/redwood/pull/4219 */}
           <Route path="/sign-up/submit" page={SignUpSubmitPage} name="signUpSubmit" />
           <Route path="/sign-up/submitted" page={SignUpSubmittedPage} name="signUpSubmitted" />
+          <Route path="/sign-up/self-submit" page={SignUpSelfSubmitPage} name="signUpSelfSubmit" />
         </Set>
         <Set wrap={NavLayout}>
           <Route path="/profiles" page={ProfilesPage} name="profiles" />

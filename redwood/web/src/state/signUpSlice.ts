@@ -26,6 +26,9 @@ export const signUpSlice = createSlice({
     setAspectRatio: (state, action: PayloadAction<number>) => {
       state.aspectRatio = action.payload
     },
-    reset: () => initialState,
+    resetForm: (state) => {
+      state.photo = undefined
+      state.video = undefined
+    },
   },
 })

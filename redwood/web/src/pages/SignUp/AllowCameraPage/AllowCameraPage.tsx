@@ -7,12 +7,18 @@ import {
   MediaPermissionsErrorType,
   requestMediaPermissions,
 } from 'mic-check'
+import {useContext} from 'react'
+import UserContext from 'src/layouts/UserContext'
+import {useNav} from 'src/lib/util'
 import {signUpSlice} from 'src/state/signUpSlice'
 import {useAppDispatch} from 'src/state/store'
 import SignUpLogo from '../SignUpLogo'
 import {videoConstraints} from '../VideoPage/VideoPage'
 
 const AllowCameraPage: React.FC = () => {
+  const {ethereumAddress} = useContext(UserContext)
+  if (!ethereumAddress) return useNav(routes.signUpIntro(), {replace: true})
+
   const cameraError = useToast({status: 'error', position: 'top'})
   const dispatch = useAppDispatch()
 

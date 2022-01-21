@@ -5,15 +5,15 @@ const UserMediaBox: React.FC<AspectRatioProps> = (props) => {
   const {aspectRatio} = useAppSelector((state) => state.signUp)
 
   if (!aspectRatio) {
-    return <Box {...props} />
+    return <Box background="gray.200" {...props} />
   }
 
   return (
     <AspectRatio
-      {...props}
       ratio={aspectRatio}
-      background="black"
+      background="gray.200"
       width="100%"
+      {...props}
     />
   )
 }
