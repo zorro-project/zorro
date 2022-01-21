@@ -1,4 +1,4 @@
-import {Spacer, Text, VStack} from '@chakra-ui/layout'
+import {Spacer, Stack, Text} from '@chakra-ui/layout'
 import {Button, useToast} from '@chakra-ui/react'
 import {navigate, routes} from '@redwoodjs/router'
 import {MetaTags} from '@redwoodjs/web'
@@ -7,14 +7,37 @@ import {
   MediaPermissionsErrorType,
   requestMediaPermissions,
 } from 'mic-check'
+import {useContext} from 'react'
+import UserContext from 'src/layouts/UserContext'
+import {useNav} from 'src/lib/util'
+import {signUpSlice} from 'src/state/signUpSlice'
+import {useAppDispatch} from 'src/state/store'
 import SignUpLogo from '../SignUpLogo'
+import {videoConstraints} from '../VideoPage/VideoPage'
 
 const AllowCameraPage: React.FC = () => {
+  const {ethereumAddress} = useContext(UserContext)
+  if (!ethereumAddress) return useNav(routes.signUpIntro(), {replace: true})
+
   const cameraError = useToast({status: 'error', position: 'top'})
+  const dispatch = useAppDispatch()
 
   const requestPermissions = async () => {
     requestMediaPermissions()
-      .then(() => navigate(routes.signUpPhoto()))
+      .then(async () => {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: videoConstraints,
+        })
+
+        const settings = stream.getVideoTracks()[0].getSettings()
+
+        dispatch(
+          signUpSlice.actions.setAspectRatio(
+            (settings.width ?? 1) / (settings.height ?? 1)
+          )
+        )
+        navigate(routes.signUpPhoto())
+      })
       .catch((err: MediaPermissionsError) => {
         if (err.type === MediaPermissionsErrorType.SystemPermissionDenied) {
           cameraError({
@@ -34,6 +57,7 @@ const AllowCameraPage: React.FC = () => {
             title: "We couldn't activate your camera. Is another app using it?",
           })
         } else {
+          console.error(err)
           cameraError({
             title: "We couldn't activate your camera.",
           })
@@ -42,18 +66,18 @@ const AllowCameraPage: React.FC = () => {
   }
 
   return (
-    <VStack maxW="md" mx="auto" spacing="6" flex="1">
-      <SignUpLogo />
+    <Stack maxW="md" mx="auto" spacing="6" flex="1">
       <MetaTags title="Allow Camera" />
-      <Spacer display={['initial', 'none']} />
+      <SignUpLogo />
+      <Spacer />
       <Text>Everyone who registers records a short video</Text>
       <Text>
         These videos help ensure that each unique person only registers once.
       </Text>
-      <Button onClick={requestPermissions} colorScheme="purple">
+      <Button variant="signup-primary" onClick={requestPermissions}>
         Allow Camera
       </Button>
-    </VStack>
+    </Stack>
   )
 }
 

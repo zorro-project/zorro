@@ -13,4 +13,4 @@ export const Page = () => (
   </StoryMocks>
 )
 
-export default {title: 'Pages/Sign Up/5. Email'}
+export default {title: 'Pages/Sign Up/6. Email'}

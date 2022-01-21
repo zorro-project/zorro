@@ -1,3 +1,10 @@
+import {NavigateOptions} from '@redwoodjs/router/dist/history'
+import {navigate} from '@redwoodjs/router'
+import {UseToastOptions} from '@chakra-ui/react'
+import {queueToast} from 'src/layouts/AppLayout/ToastManager'
+import {omit} from 'lodash'
+import {useEffect} from 'react'
+
 export const dataUrlToBlob = async (dataUrl: string) =>
   await (await fetch(dataUrl)).blob()
 
@@ -9,4 +16,23 @@ export type ArrayElement<ArrayType extends readonly unknown[]> =
 
 export const assert = (condition: boolean, message: string) => {
   if (!condition) throw new Error(message)
+}
+
+export const appNav = (
+  url: string,
+  options?: NavigateOptions & {toast?: UseToastOptions}
+) => {
+  if (options?.toast) queueToast(options.toast)
+  navigate(url, omit(options, 'toast'))
+  return null
+}
+
+export const useNav = (
+  url: string,
+  options?: NavigateOptions & {toast?: UseToastOptions}
+) => {
+  useEffect(() => {
+    appNav(url, options)
+  }, [])
+  return null
 }

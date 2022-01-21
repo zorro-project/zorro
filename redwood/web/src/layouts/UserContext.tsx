@@ -69,6 +69,9 @@ export function UserContextProvider({children}: {children: React.ReactNode}) {
     ...data,
   }
 
+  // If we know we have a user, let's not render the page until we know who they are to avoid a flash.
+  if (ethereumAddress && !data) return null
+
   return <UserContext.Provider value={context}>{children}</UserContext.Provider>
 }
 

@@ -10,13 +10,17 @@ import {ArrayElement} from 'src/lib/util'
 import {
   ApproveProfileMutation,
   ApproveProfileMutationVariables,
+  MarkNotaryViewed,
+  MarkNotaryViewedVariables,
   MutationaddNotaryFeedbackArgs,
+  MutationmarkNotaryWillApproveArgs,
   UnsubmittedProfilesQuery,
 } from 'types/graphql'
 import {notarySubmitProfile} from '../../../../api/src/lib/starknet'
 import {serializeCid} from '../../../../api/src/lib/serializers'
 
 import getNotaryKey from '../../lib/getNotaryKey'
+import {useEffect} from 'react'
 
 const UnsubmittedProfile: React.FC<{
   profile: ArrayElement<UnsubmittedProfilesQuery['unsubmittedProfiles']>
@@ -25,9 +29,33 @@ const UnsubmittedProfile: React.FC<{
   const [submitting, setSubmitting] = React.useState(false)
   const feedbackRef = React.useRef<HTMLTextAreaElement>(null)
 
+  const [markViewed] = useMutation<
+    MarkNotaryViewed,
+    MarkNotaryViewedVariables
+  >(gql`
+    mutation MarkNotaryViewed($id: ID!) {
+      markNotaryViewed(id: $id) {
+        id
+      }
+    }
+  `)
+  useEffect(() => {
+    markViewed({variables: {id: profile.id.toString()}})
+  }, [])
+
+  const [markWillApprove] = useMutation<MutationmarkNotaryWillApproveArgs>(gql`
+    mutation MarkNotaryWillApprove($id: ID!) {
+      markNotaryWillApprove(id: $id) {
+        id
+      }
+    }
+  `)
+
   const [giveFeedback] = useMutation<MutationaddNotaryFeedbackArgs>(gql`
-    mutation AddNotaryFeedback($id: Int!, $feedback: String!) {
-      addNotaryFeedback(id: $id, feedback: $feedback)
+    mutation AddNotaryFeedback($id: ID!, $feedback: String!) {
+      addNotaryFeedback(id: $id, feedback: $feedback) {
+        id
+      }
     }
   `)
 
@@ -43,7 +71,7 @@ const UnsubmittedProfile: React.FC<{
     ApproveProfileMutation,
     ApproveProfileMutationVariables
   >(gql`
-    mutation ApproveProfileMutation($id: Int!) {
+    mutation ApproveProfileMutation($id: ID!) {
       approveProfile(id: $id)
     }
   `)
@@ -53,18 +81,18 @@ const UnsubmittedProfile: React.FC<{
     if (notaryKey == null) return
     setSubmitting(true)
 
+    markWillApprove({variables: {id: profile.id.toString()}})
     const cid = await cairoCompatibleAdd(
       JSON.stringify({photo: profile.photoCid, video: profile.videoCid})
     )
 
-    const submittedProfile = await notarySubmitProfile(
+    await notarySubmitProfile(
       serializeCid(cid),
       profile.ethereumAddress,
       notaryKey
     )
-    console.log(submittedProfile)
 
-    await markApproved({variables: {id: profile.id}})
+    await markApproved({variables: {id: profile.id.toString()}})
     setReviewed(true)
   }
 

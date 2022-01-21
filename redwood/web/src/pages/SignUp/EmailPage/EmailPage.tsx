@@ -1,7 +1,6 @@
 import {
   Box,
   Button,
-  Heading,
   Input,
   ListItem,
   Spacer,
@@ -9,22 +8,30 @@ import {
   Text,
   UnorderedList,
 } from '@chakra-ui/react'
-import {Redirect, routes} from '@redwoodjs/router'
-import {MetaTags, useMutation} from '@redwoodjs/web'
+import {routes} from '@redwoodjs/router'
+import {useMutation} from '@redwoodjs/web'
 import {useContext, useEffect, useRef, useState} from 'react'
 import {RLink} from 'src/components/links'
 import UserContext from 'src/layouts/UserContext'
+import {appNav, useNav} from 'src/lib/util'
 import {CreateUserMutation, CreateUserMutationVariables} from 'types/graphql'
 import SignUpLogo from '../SignUpLogo'
+import Title from '../Title'
 
-const EmailPage = () => {
+const EmailPage: React.FC<{next?: 'submitted' | undefined}> = ({next}) => {
   const user = useContext(UserContext)
-  if (!user?.ethereumAddress) return <Redirect to={routes.signUpIntro()} />
+  if (!user?.ethereumAddress)
+    return useNav(routes.signUpIntro(), {replace: true})
 
-  if (user.user?.hasEmail) {
-    // We don't support changing emails yet
-    return <Redirect to={routes.signUpSubmit()} />
-  }
+  const nextPage =
+    next === 'submitted' ? routes.signUpSubmitted() : routes.signUpSubmit()
+
+  useEffect(() => {
+    if (user.user?.hasEmail) {
+      // We don't support changing emails yet
+      appNav(nextPage, {replace: true})
+    }
+  }, [user.user?.hasEmail])
 
   const [email, setEmail] = useState<string>('')
   const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
@@ -44,7 +51,7 @@ const EmailPage = () => {
   const focusRef = useRef<HTMLInputElement>(null)
   useEffect(() => focusRef.current?.focus(), [focusRef.current])
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!user.ethereumAddress) return
     createUser({
@@ -55,17 +62,15 @@ const EmailPage = () => {
         },
       },
     })
-    user.refetch()
+    await user.refetch()
+    appNav(nextPage, {toast: {status: 'success', title: 'Email saved!'}})
   }
 
   return (
     <form onSubmit={handleSubmit} style={{display: 'flex', flex: '1'}}>
       <Stack spacing="6" flex="1">
         <SignUpLogo />
-        <MetaTags title="Email Notifications" />
-        <Heading size="md" textAlign="center">
-          Enter email
-        </Heading>
+        <Title title="Enter email" />
         <Input
           type="email"
           name="email"
@@ -81,21 +86,11 @@ const EmailPage = () => {
             <ListItem>Citizenship expiration</ListItem>
           </UnorderedList>
         </Box>
-        <Spacer display={['initial', 'none']} />
-        <Button
-          colorScheme="purple"
-          alignSelf="center"
-          type="submit"
-          disabled={!emailValid}
-        >
+        <Spacer />
+        <Button variant="signup-primary" type="submit" disabled={!emailValid}>
           Continue
         </Button>
-        <Button
-          variant="link"
-          as={RLink}
-          href={routes.signUpSubmit()}
-          colorScheme="purple"
-        >
+        <Button variant="signup-secondary" as={RLink} href={nextPage}>
           Skip
         </Button>
       </Stack>

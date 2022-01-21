@@ -1,7 +1,6 @@
 module.exports = {
-  // TODO: switch to the following after
-  // https://github.com/redwoodjs/redwood/pull/4068/files goes live addons:
-  // ['@storybook/addon-essentials'],
+  addons: ['@storybook/addon-essentials'],
 
-  addons: ['@storybook/addon-viewport'],
+  // Appears to speed up rebuild time https://github.com/storybookjs/storybook/issues/12585
+  typescript: {reactDocgen: 'react-docgen'},
 }

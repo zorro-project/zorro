@@ -41,4 +41,4 @@ export const Review = () => (
   </StoryMocks>
 )
 
-export default {title: 'Pages/Sign Up/4. Video'}
+export default {title: 'Pages/Sign Up/5. Video'}
