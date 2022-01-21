@@ -13,24 +13,25 @@ import {useMutation} from '@redwoodjs/web'
 import {useContext, useEffect, useRef, useState} from 'react'
 import {RLink} from 'src/components/links'
 import UserContext from 'src/layouts/UserContext'
-import {useNav} from 'src/lib/util'
+import {appNav, useNav} from 'src/lib/util'
 import {CreateUserMutation, CreateUserMutationVariables} from 'types/graphql'
 import SignUpLogo from '../SignUpLogo'
 import Title from '../Title'
 
-const EmailPage = () => {
+const EmailPage: React.FC<{next?: 'submitted' | undefined}> = ({next}) => {
   const user = useContext(UserContext)
   if (!user?.ethereumAddress)
     return useNav(routes.signUpIntro(), {replace: true})
 
-  if (user.user?.hasEmail) {
-    // We don't support changing emails yet
-    return useNav(routes.signUpSubmit(), {replace: true})
-  }
+  const nextPage =
+    next === 'submitted' ? routes.signUpSubmitted() : routes.signUpSubmit()
 
-  if (user.unsubmittedProfile) {
-    return useNav(routes.signUpSubmitted(), {replace: true})
-  }
+  useEffect(() => {
+    if (user.user?.hasEmail) {
+      // We don't support changing emails yet
+      appNav(nextPage, {replace: true})
+    }
+  }, [user.user?.hasEmail])
 
   const [email, setEmail] = useState<string>('')
   const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
@@ -50,7 +51,7 @@ const EmailPage = () => {
   const focusRef = useRef<HTMLInputElement>(null)
   useEffect(() => focusRef.current?.focus(), [focusRef.current])
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!user.ethereumAddress) return
     createUser({
@@ -61,7 +62,8 @@ const EmailPage = () => {
         },
       },
     })
-    user.refetch()
+    await user.refetch()
+    appNav(nextPage, {toast: {status: 'success', title: 'Email saved!'}})
   }
 
   return (
@@ -88,11 +90,7 @@ const EmailPage = () => {
         <Button variant="signup-primary" type="submit" disabled={!emailValid}>
           Continue
         </Button>
-        <Button
-          variant="signup-secondary"
-          as={RLink}
-          href={routes.signUpSubmit()}
-        >
+        <Button variant="signup-secondary" as={RLink} href={nextPage}>
           Skip
         </Button>
       </Stack>

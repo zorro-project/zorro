@@ -1,6 +1,6 @@
 import {Button} from '@chakra-ui/button'
-import {Flex, Heading, Spacer, Stack} from '@chakra-ui/layout'
-import {CircularProgress, Image, Text} from '@chakra-ui/react'
+import {Heading, Spacer, Stack} from '@chakra-ui/layout'
+import {Alert, AlertIcon, CircularProgress, Image, Text} from '@chakra-ui/react'
 import {navigate, routes} from '@redwoodjs/router'
 import {CellSuccessProps, createCell, MetaTags} from '@redwoodjs/web'
 import dayjs from 'dayjs'
@@ -12,6 +12,8 @@ import {maybeCidToUrl} from 'src/components/SquareBox'
 import UserContext from 'src/layouts/UserContext'
 import {usePusher} from 'src/lib/pusher'
 import {useNav} from 'src/lib/util'
+import {signUpSlice} from 'src/state/signUpSlice'
+import {useAppDispatch} from 'src/state/store'
 import {SignUpSubmittedPageQuery} from 'types/graphql'
 import {useInterval} from 'usehooks-ts'
 import SignUpLogo from '../SignUpLogo'
@@ -21,8 +23,18 @@ import UserMediaBox from '../UserMediaBox'
 const CitizenshipActive = () => {
   return (
     <>
-      <Title title="Citizenship active!" />
-      <Text>Success!</Text>
+      <Title title="Congratulations!" />
+      <Alert
+        status="success"
+        variant="solid"
+        alignSelf="center"
+        mt={6}
+        borderRadius={6}
+        width="initial"
+      >
+        <AlertIcon />
+        <Text fontSize="lg">You're now a citizen</Text>
+      </Alert>
     </>
   )
 }
@@ -47,11 +59,11 @@ const TakingTooLong: React.FC<{query: SignUpSubmittedPageQuery}> = ({
           <Text>
             Check back later, or get email notifications about your application.
           </Text>
-          <Text>It's fine to close this window</Text>
+          <Text>It's fine to close this window.</Text>
           <Spacer />
           <Button
             variant="signup-primary"
-            onClick={() => navigate(routes.signUpEmail())}
+            onClick={() => navigate(routes.signUpEmail({next: 'submitted'}))}
           >
             Get notified by email
           </Button>
@@ -75,17 +87,16 @@ const TakingTooLong: React.FC<{query: SignUpSubmittedPageQuery}> = ({
 const AwaitingCitizenship: React.FC<{query: SignUpSubmittedPageQuery}> = ({
   query,
 }) => {
-  if (!query.unsubmittedProfile) return
+  if (!query.unsubmittedProfile) return null
 
   const spinner = (
-    <Flex flex="1" alignItems="center" justifyContent="center">
-      <CircularProgress
-        size="6rem"
-        isIndeterminate
-        color="purple.500"
-        py="12"
-      />
-    </Flex>
+    <CircularProgress
+      size="6rem"
+      isIndeterminate
+      color="purple.500"
+      alignSelf="center"
+      py={12}
+    />
   )
 
   if (query.unsubmittedProfile.notaryApprovedAt) {
@@ -125,7 +136,7 @@ const AwaitingCitizenship: React.FC<{query: SignUpSubmittedPageQuery}> = ({
 
   return (
     <>
-      <Title title="Submitting" />
+      <Title title="Checking" />
       {spinner}
       <Text>
         Please stay on in case there are any problems with your application.
@@ -140,6 +151,13 @@ const ShowUnaddressedFeedback: React.FC<{
     SignUpSubmittedPageQuery['unsubmittedProfile']
   >
 }> = ({unsubmittedProfile}) => {
+  const dispatch = useAppDispatch()
+
+  const startOver = useCallback(() => {
+    dispatch(signUpSlice.actions.resetForm())
+    navigate(routes.signUpPhoto())
+  }, [])
+
   return (
     <>
       <Title title="Feedback from notary" />
@@ -159,7 +177,7 @@ const ShowUnaddressedFeedback: React.FC<{
       </Stack>
 
       <Spacer />
-      <Button as={RLink} variant="signup-primary" href={routes.signUpPhoto()}>
+      <Button variant="signup-primary" onClick={startOver}>
         Make adjustments
       </Button>
       <Button
@@ -171,7 +189,6 @@ const ShowUnaddressedFeedback: React.FC<{
       </Button>
     </>
   )
-  return <Text>{unsubmittedProfile.UnaddressedFeedback?.feedback}</Text>
 }
 
 const Success = (props: CellSuccessProps<SignUpSubmittedPageQuery>) => {
@@ -185,7 +202,6 @@ const Success = (props: CellSuccessProps<SignUpSubmittedPageQuery>) => {
     })
 
   const refetch = useCallback(() => {
-    console.log('refetching')
     props.refetch?.()
   }, [props.refetch])
 

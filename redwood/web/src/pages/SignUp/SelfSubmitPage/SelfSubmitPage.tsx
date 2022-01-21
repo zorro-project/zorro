@@ -3,7 +3,6 @@ import {Button, Text} from '@chakra-ui/react'
 import {back} from '@redwoodjs/router'
 import React from 'react'
 import {ZorroAddress} from '../../../../../api/src/lib/starknet'
-import SignUpLayout from '../SignUpLayout'
 import Title from '../Title'
 
 const SelfSubmitPage = () => {

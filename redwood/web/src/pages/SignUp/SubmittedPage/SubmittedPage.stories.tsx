@@ -81,11 +81,6 @@ export const Notary_Feedback = () => {
   return <Page />
 }
 
-export const Success = () => {
-  mockQuery({cachedProfile: {id: '3'}})
-  return <Page />
-}
-
 export const Timeout_With_Email = () => {
   mockQuery({
     unsubmittedProfile: {
@@ -102,6 +97,11 @@ export const Timeout_No_Email = () => {
       lastSubmittedAt: dayjs().subtract(1, 'day').toISOString(),
     },
   })
+  return <Page />
+}
+
+export const Citizenship_Active = () => {
+  mockQuery({cachedProfile: {id: '3'}})
   return <Page />
 }
 

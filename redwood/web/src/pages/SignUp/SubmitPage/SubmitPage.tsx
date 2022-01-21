@@ -1,6 +1,6 @@
-import {Flex, Spacer, Text} from '@chakra-ui/layout'
+import {Spacer, Text} from '@chakra-ui/layout'
 import {CircularProgress} from '@chakra-ui/progress'
-import {Image, Stack, Button} from '@chakra-ui/react'
+import {Button, Image, Stack} from '@chakra-ui/react'
 import {navigate, routes} from '@redwoodjs/router'
 import {useMutation} from '@redwoodjs/web'
 import React, {useCallback, useContext} from 'react'
@@ -8,7 +8,7 @@ import ReactPlayer from 'react-player'
 import {maybeCidToUrl} from 'src/components/SquareBox'
 import UserContext from 'src/layouts/UserContext'
 import ipfsClient from 'src/lib/ipfs'
-import {useNav, dataUrlToBlob, isLocalUrl} from 'src/lib/util'
+import {dataUrlToBlob, isLocalUrl, useNav} from 'src/lib/util'
 import {signUpSlice} from 'src/state/signUpSlice'
 import {useAppDispatch, useAppSelector} from 'src/state/store'
 import {
@@ -20,7 +20,11 @@ import Title from '../Title'
 import UserMediaBox from '../UserMediaBox'
 
 const SubmitPage = ({initialSubmitProgress = -1}) => {
-  const {ethereumAddress, unsubmittedProfile} = useContext(UserContext)
+  const {
+    ethereumAddress,
+    unsubmittedProfile,
+    refetch: refetchUser,
+  } = useContext(UserContext)
   if (!ethereumAddress) return useNav(routes.signUpIntro(), {replace: true})
 
   const [submitProgress, setSubmitProgress] = React.useState(
@@ -51,8 +55,7 @@ const SubmitPage = ({initialSubmitProgress = -1}) => {
   `)
 
   const startOver = useCallback(() => {
-    dispatch(signUpSlice.actions.setPhoto(undefined))
-    dispatch(signUpSlice.actions.setVideo(undefined))
+    dispatch(signUpSlice.actions.resetForm())
     navigate(routes.signUpPhoto())
   }, [])
 
@@ -101,6 +104,7 @@ const SubmitPage = ({initialSubmitProgress = -1}) => {
       },
     })
 
+    await refetchUser()
     navigate(routes.signUpSubmitted())
   }, [ethereumAddress, updateMutation])
 
@@ -109,13 +113,13 @@ const SubmitPage = ({initialSubmitProgress = -1}) => {
       <SignUpLogo />
       <Title title={submitting ? 'Uploading video' : 'Ready to submit'} />
       {submitting ? (
-        <Flex flex="1" alignItems="center" justifyContent="center">
-          <CircularProgress
-            size="6rem"
-            value={submitProgress}
-            color="purple.500"
-          />
-        </Flex>
+        <CircularProgress
+          size="6rem"
+          value={submitProgress}
+          color="purple.500"
+          alignSelf="center"
+          py={12}
+        />
       ) : (
         <>
           <Stack direction="row">
@@ -136,9 +140,10 @@ const SubmitPage = ({initialSubmitProgress = -1}) => {
             A volunteer community notary will verify your application in
             real-time.
           </Text>
-          <Spacer />
         </>
       )}
+      <Spacer />
+
       <Button variant="signup-primary" onClick={submit} disabled={submitting}>
         {unsubmittedProfile ? 'Resubmit application' : 'Submit application'}
       </Button>

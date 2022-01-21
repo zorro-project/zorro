@@ -21,7 +21,7 @@ import {
 import {maybeNotify} from 'src/services/notifications/notifications'
 import {NOTARIES} from 'src/services/unsubmittedProfiles/unsubmittedProfiles'
 
-export default async function syncStarknetState(onlyNewProfiles = false) {
+const syncStarknetState = async (onlyNewProfiles = false) => {
   console.log('Starting StarkNet sync')
   let currentId = 0
   let maxId = await getNumProfiles()
@@ -181,3 +181,5 @@ export const sendNotifications = async (profile: CachedProfile) => {
     )
   }
 }
+
+export default syncStarknetState

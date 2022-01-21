@@ -3,7 +3,6 @@ import type {
   UnsubmittedProfile as PrismaUnsubmittedProfile,
 } from '@prisma/client'
 import {db} from 'src/lib/db'
-import 'src/lib/pusher'
 import {pusher} from 'src/lib/pusher'
 import {sendMessage} from 'src/lib/twilio'
 import sendNotaryApproved from 'src/mailers/sendNotaryApproved'
@@ -17,6 +16,7 @@ import {
   QueryunsubmittedProfileArgs,
   QueryunsubmittedProfilesArgs,
   UnsubmittedProfile as UnsubmittedProfileType,
+  MutationmarkNotaryWillApproveArgs,
 } from 'types/graphql'
 
 const alertProfileUpdated = (
@@ -55,7 +55,11 @@ export const updateUnsubmittedProfile = async ({
 }: MutationupdateUnsubmittedProfileArgs) => {
   const profile = await db.unsubmittedProfile.upsert({
     create: {...input, ethereumAddress},
-    update: {...input, unaddressedFeedbackId: null},
+    update: {
+      ...input,
+      unaddressedFeedbackId: null,
+      lastSubmittedAt: new Date(),
+    },
     where: {ethereumAddress},
   })
 
@@ -73,12 +77,28 @@ export const updateUnsubmittedProfile = async ({
 
 export const markNotaryViewed = async ({id}: MutationmarkNotaryViewedArgs) => {
   let profile = await db.unsubmittedProfile.findUnique({
-    where: {id},
+    where: {id: parseInt(id)},
   })
   if (profile?.notaryViewedAt == null) {
     profile = await db.unsubmittedProfile.update({
-      where: {id},
+      where: {id: parseInt(id)},
       data: {notaryViewedAt: new Date()},
+    })
+  }
+  profile && alertProfileUpdated(profile)
+  return profile
+}
+
+export const markNotaryWillApprove = async ({
+  id,
+}: MutationmarkNotaryWillApproveArgs) => {
+  let profile = await db.unsubmittedProfile.findUnique({
+    where: {id: parseInt(id)},
+  })
+  if (profile?.notaryApprovedAt == null) {
+    profile = await db.unsubmittedProfile.update({
+      where: {id: parseInt(id)},
+      data: {notaryApprovedAt: new Date()},
     })
   }
   profile && alertProfileUpdated(profile)
@@ -92,11 +112,11 @@ export const addNotaryFeedback = async ({
   // TODO: authenticate that the given user is an approved notary
 
   const notaryFeedback = await db.notaryFeedback.create({
-    data: {UnsubmittedProfile: {connect: {id}}, feedback},
+    data: {UnsubmittedProfile: {connect: {id: parseInt(id)}}, feedback},
   })
 
   const profile = await db.unsubmittedProfile.update({
-    where: {id},
+    where: {id: parseInt(id)},
     data: {unaddressedFeedbackId: notaryFeedback.id, notaryViewedAt: null},
     include: {UnaddressedFeedback: true},
   })
@@ -117,17 +137,14 @@ export const addNotaryFeedback = async ({
 export const approveProfile = async ({id}: MutationapproveProfileArgs) => {
   // TODO: authenticate that the given user is an approved notary
 
-  const profile = await db.unsubmittedProfile.update({
-    where: {id},
-    data: {notaryApprovedAt: new Date()},
+  const profile = await db.unsubmittedProfile.findUnique({
+    where: {id: parseInt(id)},
   })
 
   if (!profile) return false
 
-  alertProfileUpdated(profile)
-
   await syncStarknetState(true)
-  await db.unsubmittedProfile.delete({where: {id}})
+  await db.unsubmittedProfile.delete({where: {id: parseInt(id)}})
   alertProfileUpdated(profile)
 
   const user = await db.user.findUnique({

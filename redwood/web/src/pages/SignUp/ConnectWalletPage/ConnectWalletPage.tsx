@@ -11,7 +11,10 @@ const ConnectWalletPage: React.FC<{
   purposeIdentifier?: string
   externalAddress?: string
 }> = () => {
-  const {ethereumAddress} = useContext(UserContext)
+  const {ethereumAddress, unsubmittedProfile} = useContext(UserContext)
+  if (unsubmittedProfile != null)
+    return useNav(routes.signUpSubmitted(), {replace: true})
+
   if (ethereumAddress != null)
     return useNav(routes.signUpAllowCamera(), {replace: true})
 

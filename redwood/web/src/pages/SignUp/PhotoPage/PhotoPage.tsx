@@ -39,14 +39,15 @@ const PhotoPage = () => {
   const firstRender = useIsFirstRender()
 
   return (
-    <Fade
-      in={true}
-      key={photo}
-      transition={{enter: {duration: firstRender ? 0 : 0.25}}}
-      style={{flex: 1, display: 'flex'}}
-    >
-      <Stack spacing="6" flex="1">
-        <UserMediaBox>
+    <Stack spacing="6" flex="1">
+      <MetaTags title="Take photo" />
+      <UserMediaBox>
+        <Fade
+          in={true}
+          key={photo}
+          transition={{enter: {duration: firstRender ? 0 : 0.25}}}
+          style={{flex: 1, display: 'flex'}}
+        >
           {photo ? (
             <Image src={maybeCidToUrl(photo)} />
           ) : (
@@ -59,44 +60,45 @@ const PhotoPage = () => {
               onUserMedia={() => setWebcamReady(true)}
             />
           )}
-        </UserMediaBox>
-        <Spacer />
-        <MetaTags title="Take photo" />
-        {photo ? (
-          <>
-            <Button
-              variant="signup-primary"
-              onClick={() => dispatch(signUpSlice.actions.setPhoto(undefined))}
-            >
-              Redo photo
-            </Button>
-            <Button
-              variant="signup-primary"
-              as={RLink}
-              href={routes.signUpVideo()}
-              px="12"
-            >
-              Use this photo
-            </Button>
-          </>
-        ) : (
-          <>
-            <Text>
-              Make sure youre <strong>looking directly at the camera</strong> in{' '}
-              <strong>good lighting</strong> and that your{' '}
-              <strong>face is fully visible</strong>.
-            </Text>
-            <Button
-              variant="signup-primary"
-              onClick={capturePicture}
-              disabled={!webcamReady}
-            >
-              Take photo
-            </Button>
-          </>
-        )}
-      </Stack>
-    </Fade>
+        </Fade>
+      </UserMediaBox>
+      {photo ? (
+        <>
+          <Spacer />
+
+          <Button
+            variant="signup-primary"
+            onClick={() => dispatch(signUpSlice.actions.setPhoto(undefined))}
+          >
+            Redo photo
+          </Button>
+          <Button
+            variant="signup-primary"
+            as={RLink}
+            href={routes.signUpVideo()}
+            px="12"
+          >
+            Use this photo
+          </Button>
+        </>
+      ) : (
+        <>
+          <Text>
+            Make sure you're <strong>looking directly at the camera</strong> in{' '}
+            <strong>good lighting</strong> and that your{' '}
+            <strong>face is fully visible</strong>.
+          </Text>
+          <Spacer />
+          <Button
+            variant="signup-primary"
+            onClick={capturePicture}
+            disabled={!webcamReady}
+          >
+            Take photo
+          </Button>
+        </>
+      )}
+    </Stack>
   )
 }
 
