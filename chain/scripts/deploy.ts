@@ -195,28 +195,6 @@ async function starknetDeploy(
   return contract
 }
 
-// Only use this for Kleros court policy documents (otherwise, we'd be abusing)
-// their pinning service).
-async function ipfsPublish(fileName, data) {
-  const buffer = await Buffer.from(data)
-
-  return new Promise((resolve, reject) => {
-    fetch('https://ipfs.kleros.io/add', {
-      method: 'POST',
-      body: JSON.stringify({
-        fileName,
-        buffer,
-      }),
-      headers: {
-        'content-type': 'application/json',
-      },
-    })
-      .then((response) => response.json())
-      .then((success) => resolve(success.data))
-      .catch((err) => reject(err))
-  })
-}
-
 main().catch((error) => {
   console.error(error)
   process.exitCode = 1
