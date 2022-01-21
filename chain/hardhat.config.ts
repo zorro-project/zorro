@@ -1,4 +1,4 @@
-import * as dotenv from 'dotenv'
+import 'dotenv-defaults/config'
 
 import '@shardlabs/starknet-hardhat-plugin'
 import {HardhatUserConfig, task} from 'hardhat/config'
@@ -8,11 +8,8 @@ import '@typechain/hardhat'
 import 'hardhat-gas-reporter'
 import 'solidity-coverage'
 
-// import './tasks'
+import './tasks'
 
-dotenv.config()
-
-// Ensure that we have all the environment variables we need.
 const mnemonic: string | undefined = process.env.MNEMONIC
 if (!mnemonic) {
   throw new Error('Please set your MNEMONIC in a .env file')
@@ -29,7 +26,7 @@ const config: HardhatUserConfig = {
     goerli: {
       url: `https://goerli.infura.io/v3/${infuraApiKey}`,
       accounts: {
-        count: 10,
+        count: 4,
         mnemonic,
         path: "m/44'/60'/0'/0",
       },

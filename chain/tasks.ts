@@ -1,7 +1,5 @@
 import {task, types} from 'hardhat/config'
 
-// This is a sample Hardhat task. To learn how to create your own go to
-// https://hardhat.org/guides/create-task.html
 task('accounts', 'Prints the list of accounts', async (taskArgs, hre) => {
   const accounts = await hre.ethers.getSigners()
 
@@ -11,10 +9,16 @@ task('accounts', 'Prints the list of accounts', async (taskArgs, hre) => {
 })
 
 task('appeal', 'Appeal a decision by the adjudicator')
-  .addParam('address', 'The address of SuperAdjudicator on L1', types.string)
+  .addParam(
+    'address',
+    'The address of SuperAdjudicator on L1',
+    undefined,
+    types.string
+  )
   .addParam(
     'profileId',
     'The zorro profile id to create a dispute around',
+    undefined,
     types.int
   )
   .setAction(async (taskArgs, hre) => {

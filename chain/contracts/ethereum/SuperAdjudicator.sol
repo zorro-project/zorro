@@ -2,12 +2,15 @@
 
 pragma solidity 0.8.4;
 
+import 'hardhat/console.sol';
 import {IArbitrator} from '@kleros/erc-792/contracts/IArbitrator.sol';
 
 uint256 constant STARKNET_PRIME = 2**251 + 17 * 2**192 + 1;
-
-// XXX: this selector computation probably isn't correct; verify it!
 uint256 constant MASK_250 = 2**250 - 1;
+
+// Solidity doesn't seem to support compile-time evaluation of user-defined
+// pure functions, so we inline these definitions here rather than employing
+// a function call.
 uint256 constant ZORRO_SUPER_ADJUDICATE_SELECTOR = uint256(
   keccak256('super_adjudicate') & bytes32(MASK_250)
 );

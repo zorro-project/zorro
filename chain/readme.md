@@ -43,3 +43,7 @@ poetry run starknet tx_status --network alpha-goerli --hash "0x4b956ab1ddfe43ed8
 
 - `poetry add cairo-lang@latest`
 - `yarn upgrade @shardlabs/starknet-hardhat-plugin --latest`
+
+# Goerli PNK faucet for testing super adjudication
+
+https://goerli.etherscan.io/address/0x4b89e798b10478a839ea0abcf86c4b94a3c782a4#writeContract

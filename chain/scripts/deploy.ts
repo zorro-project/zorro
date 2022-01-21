@@ -18,9 +18,35 @@ const DEV_MODE = !!process.env.DEV_MODE
 const NETWORK = hre.network.name
 const SAVE_PATH = `./deployments/${CHAIN_DEPLOYMENT}`
 
+const getStaticAddress = (network: string, layer: string, name: string) => {
+  const addresses: any = {
+    goerli: {
+      ethereum: {
+        arbitrableProxy: '0x78ac5F189FC6DAB261437a7B95D11cAcf0234FFe',
+        superAdjudicatorOwner: '0xEe5fe19b54DDDc740ebEB532B6ADA6F9Cce0512A',
+      },
+      // via `poetry run starknet --network alpha-goerli get_contract_addresses`
+      starknet: {starknetCore: '0xde29d060D45901Fb19ED6C6e959EB22d8626708e'},
+    },
+    mainnet: {
+      ethereum: {arbitrableProxy: null},
+      starknet: {starknetCore: null},
+    },
+  }
+
+  const result = addresses?.[network]?.[layer]?.[name]
+  if (!result) {
+    throw new Error(
+      `Unable to find static address for ${network}/${layer}/${name}`
+    )
+  }
+
+  return result
+}
+
 async function main() {
-  await hre.run('starknet-compile')
   await hre.run('compile')
+  await hre.run('starknet-compile')
 
   console.log(
     `Deploying to the '${NETWORK}' network for '${CHAIN_DEPLOYMENT}' (DEV_MODE=${
@@ -81,17 +107,15 @@ async function main() {
   await Promise.all([transferPromise, transferPromise2, zorroDeployPromise])
   const zorro = await zorroDeployPromise
 
-  const goerliArbitrableProxyAddress =
-    '0x78ac5F189FC6DAB261437a7B95D11cAcf0234FFe'
   const generateArbitratorExtraData = (subcourtId: number, numVotes: number) =>
     '0x' +
     subcourtId.toString(16).padStart(64, '0') +
     numVotes.toString(16).padStart(64, '0')
   const superAdjudicator = await ethereumDeploy('SuperAdjudicator', [
-    '0x0000000000000000000000000000000000000000', // starknet core
-    goerliArbitrableProxyAddress,
+    getStaticAddress(NETWORK, 'starknet', 'starknetCore'), // starnet core
+    getStaticAddress(NETWORK, 'ethereum', 'arbitrableProxy'), // arbitrable proxy
     zorro.address, // zorro address
-    '0xEe5fe19b54DDDc740ebEB532B6ADA6F9Cce0512A', // owner
+    getStaticAddress(NETWORK, 'ethereum', 'superAdjudicatorOwner'), // owner can update policy
     generateArbitratorExtraData(0, 3), // arbitratorExtraData
     '/ipfs/Qmczs7mGUox91g72kh7RQxVzU9FJWN7RitPiD77WSLnyrg/metaEvidence.json', // metaevidenceURI
     2, // num ruling options
@@ -169,6 +193,28 @@ async function starknetDeploy(
     `To verify: yarn hardhat starknet-verify --starknet-network ${NETWORK} --path contracts/starknet/${contractName}.cairo --address ${contract.address}`
   )
   return contract
+}
+
+// Only use this for Kleros court policy documents (otherwise, we'd be abusing)
+// their pinning service).
+async function ipfsPublish(fileName, data) {
+  const buffer = await Buffer.from(data)
+
+  return new Promise((resolve, reject) => {
+    fetch('https://ipfs.kleros.io/add', {
+      method: 'POST',
+      body: JSON.stringify({
+        fileName,
+        buffer,
+      }),
+      headers: {
+        'content-type': 'application/json',
+      },
+    })
+      .then((response) => response.json())
+      .then((success) => resolve(success.data))
+      .catch((err) => reject(err))
+  })
 }
 
 main().catch((error) => {
