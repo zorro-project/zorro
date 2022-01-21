@@ -10,8 +10,8 @@ import {
 } from 'starknet'
 import {BigNumberish} from 'starknet/dist/utils/number'
 import {bnToUint256, Uint256, uint256ToBN} from 'starknet/dist/utils/uint256'
-import ERC20_ABI from '../../../../starknet/starknet-artifacts/contracts/openzeppelin/ERC20.cairo/ERC20_abi.json'
-import ZORRO_ABI from '../../../../starknet/starknet-artifacts/contracts/zorro.cairo/zorro_abi.json'
+import ERC20_ABI from '../../../../chain/artifacts/contracts/starknet/openzeppelin/ERC20.cairo/ERC20_abi.json'
+import ZORRO_ABI from '../../../../chain/artifacts/contracts/starknet/zorro.cairo/zorro_abi.json'
 
 const CHAIN_DEPLOYMENT = process.env.CHAIN_DEPLOYMENT
 
@@ -22,7 +22,7 @@ const maybeRequireContract = (
   name: AvailableContract
 ) => {
   try {
-    return require(`../../../../starknet/chain-deployments/${chainDeployment}/${name}.json`)
+    return require(`../../../../chain/deployments/${chainDeployment}/${name}.json`)
   } catch (e) {
     return null
   }

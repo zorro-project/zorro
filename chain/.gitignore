@@ -1,0 +1,15 @@
+node_modules/
+.env
+coverage/
+coverage.json
+typechain/
+__pycache__
+
+# Hardhat
+.hardhat-cache/
+artifacts/
+
+# Starknet
+.venv/
+
+deployments/development
