@@ -11,7 +11,7 @@ import {
   getInsecureStarknetPublicKey,
   getStarknetAddressString,
   starknetCall,
-} from './deploy-utils'
+} from './deployUtils'
 
 const CHAIN_DEPLOYMENT = getRequiredEnv('CHAIN_DEPLOYMENT')
 const DEV_MODE = !!process.env.DEV_MODE
