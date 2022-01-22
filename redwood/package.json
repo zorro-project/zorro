@@ -8,7 +8,9 @@
     ]
   },
   "scripts": {
-    "dev": "rw dev"
+    "dev": "rw dev",
+    "//": "useful for updating your dev database with migrations created by other developers",
+    "apply-dev-migrations": "yarn redwood prisma migrate dev"
   },
   "devDependencies": {
     "@redwoodjs/core": "^0.42.0"
