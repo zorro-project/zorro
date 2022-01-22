@@ -117,7 +117,7 @@ async function main() {
     zorro.address,
     getStaticAddress(NETWORK, 'ethereum', 'superAdjudicatorOwner'),
     generateArbitratorExtraData(0, 3),
-    '/ipfs/QmeLeKbSpgFF2AzJmoZmQxBsHinerp8xUida9dgCqjUFpd/metaEvidence.json', // metaEvidenceURI
+    '/ipfs/QmeLeKbSpgFF2AzJmoZmQxBsHinerp8xUida9dgCqjUFpd/metaEvidence.json', // metaEvidenceURI (can be generated via `courtPolicy/deploy.js`)
     2, // num ruling options
   ])
 
