@@ -14,7 +14,7 @@ async function deploy() {
   console.log('Evidence display interface URI:', evidenceDisplayInterfaceURI)
 
   console.log('Deploying metaEvidence')
-  const metaEvidenceURI = await deploymetaEvidence(
+  const metaEvidenceURI = await deployMetaEvidence(
     primaryDocumentURI,
     evidenceDisplayInterfaceURI
   )
@@ -25,7 +25,7 @@ async function deploy() {
 
 // Partially based on https://github.com/kleros/pmw-contracts/blob/master/deploy/1_deploy_pmw.js
 
-async function deploymetaEvidence(
+async function deployMetaEvidence(
   primaryDocumentURI,
   evidenceDisplayInterfaceURI
 ) {
