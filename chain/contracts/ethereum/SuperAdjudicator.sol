@@ -33,22 +33,22 @@ interface IArbitrableProxy {
 
   function createDispute(
     bytes calldata _arbitratorExtraData,
-    string calldata _metaevidenceURI,
-    uint256 _numberOfRulingOptions
+    string calldata _metaEvidenceURI,
+    uint256 _numRulingOptions
   ) external payable returns (uint256 disputeID);
 }
 
 contract SuperAdjudicator {
   struct ArbitratorConfiguration {
     bytes arbitratorExtraData;
-    string metaevidenceURI;
-    uint256 numberOfRulingOptions;
+    string metaEvidenceURI;
+    uint256 numRulingOptions;
   }
 
   event ArbitratorConfigurationChanged(
     bytes arbitratorExtraData,
-    string metaevidenceURI,
-    uint256 numberOfRulingOptions
+    string metaEvidenceURI,
+    uint256 numRulingOptions
   );
 
   event Appealed(uint256 indexed profileId, uint256 indexed disputeId);
@@ -74,14 +74,14 @@ contract SuperAdjudicator {
     uint256 _zorroL2Address,
     address _owner,
     bytes memory _arbitratorExtraData,
-    string memory _metaevidenceURI,
-    uint256 _numberOfRulingOptions
+    string memory _metaEvidenceURI,
+    uint256 _numRulingOptions
   ) {
     starknetCore = _starknetCore;
     arbitrableProxy = _arbitrableProxy;
     zorroL2Address = _zorroL2Address;
     owner = _owner;
-    _setPolicy(_arbitratorExtraData, _metaevidenceURI, _numberOfRulingOptions);
+    _setPolicy(_arbitratorExtraData, _metaEvidenceURI, _numRulingOptions);
   }
 
   function setOwner(address newOwner) external {
@@ -91,25 +91,25 @@ contract SuperAdjudicator {
 
   function setPolicy(
     bytes calldata arbitratorExtraData,
-    string calldata metaevidenceURI,
-    uint256 numberOfRulingOptions
+    string calldata metaEvidenceURI,
+    uint256 numRulingOptions
   ) external {
     require(msg.sender == owner, 'caller is not the owner');
-    _setPolicy(arbitratorExtraData, metaevidenceURI, numberOfRulingOptions);
+    _setPolicy(arbitratorExtraData, metaEvidenceURI, numRulingOptions);
   }
 
   function _setPolicy(
     bytes memory arbitratorExtraData,
-    string memory metaevidenceURI,
-    uint256 numberOfRulingOptions
+    string memory metaEvidenceURI,
+    uint256 numRulingOptions
   ) internal {
     arbitratorConfiguration.arbitratorExtraData = arbitratorExtraData;
-    arbitratorConfiguration.metaevidenceURI = metaevidenceURI;
-    arbitratorConfiguration.numberOfRulingOptions = numberOfRulingOptions;
+    arbitratorConfiguration.metaEvidenceURI = metaEvidenceURI;
+    arbitratorConfiguration.numRulingOptions = numRulingOptions;
     emit ArbitratorConfigurationChanged(
       arbitratorExtraData,
-      metaevidenceURI,
-      numberOfRulingOptions
+      metaEvidenceURI,
+      numRulingOptions
     );
   }
 
@@ -125,8 +125,8 @@ contract SuperAdjudicator {
 
     disputeId = arbitrableProxy.createDispute{value: msg.value}(
       arbitratorConfiguration.arbitratorExtraData,
-      arbitratorConfiguration.metaevidenceURI,
-      arbitratorConfiguration.numberOfRulingOptions
+      arbitratorConfiguration.metaEvidenceURI,
+      arbitratorConfiguration.numRulingOptions
     );
 
     disputeIdToProfileId[disputeId] = profileId;

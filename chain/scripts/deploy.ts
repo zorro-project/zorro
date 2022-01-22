@@ -112,12 +112,12 @@ async function main() {
     subcourtId.toString(16).padStart(64, '0') +
     numVotes.toString(16).padStart(64, '0')
   const superAdjudicator = await ethereumDeploy('SuperAdjudicator', [
-    getStaticAddress(NETWORK, 'starknet', 'starknetCore'), // starnet core
-    getStaticAddress(NETWORK, 'ethereum', 'arbitrableProxy'), // arbitrable proxy
-    zorro.address, // zorro address
-    getStaticAddress(NETWORK, 'ethereum', 'superAdjudicatorOwner'), // owner can update policy
-    generateArbitratorExtraData(0, 3), // arbitratorExtraData
-    '/ipfs/Qmczs7mGUox91g72kh7RQxVzU9FJWN7RitPiD77WSLnyrg/metaEvidence.json', // metaevidenceURI
+    getStaticAddress(NETWORK, 'starknet', 'starknetCore'),
+    getStaticAddress(NETWORK, 'ethereum', 'arbitrableProxy'),
+    zorro.address,
+    getStaticAddress(NETWORK, 'ethereum', 'superAdjudicatorOwner'),
+    generateArbitratorExtraData(0, 3),
+    '/ipfs/QmeLeKbSpgFF2AzJmoZmQxBsHinerp8xUida9dgCqjUFpd/metaEvidence.json', // metaEvidenceURI
     2, // num ruling options
   ])
 
