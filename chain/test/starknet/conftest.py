@@ -15,7 +15,7 @@ from utils import uint
 sys.stdout = sys.stderr
 
 SUPER_ADJUDICATOR_L1_ADDRESS = 0
-CONTRACT_SRC = [os.path.dirname(__file__), "..", "contracts"]
+CONTRACT_SRC = [os.path.dirname(__file__), "..", "..", "contracts", "starknet"]
 
 
 def compile(path):
