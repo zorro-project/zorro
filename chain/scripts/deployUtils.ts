@@ -26,6 +26,10 @@ export function getStarknetAddressString(contract: any) {
   return BigInt(contract.address).toString()
 }
 
+export function getEthereumAddressAsFelt(ethereumAddress: string) {
+  return BigInt(ethereumAddress).toString()
+}
+
 export function save(
   path: string,
   network: string,
@@ -81,4 +85,16 @@ export async function getEthereumAddressOfNextDeployedContract(
     from: await signer.getAddress(),
     nonce: (await signer.getTransactionCount()) + offset,
   })
+}
+
+// For kleros arbitration
+export async function generateArbitratorExtraData(
+  subCourtId: number,
+  numVotes: number
+) {
+  return (
+    '0x' +
+    subCourtId.toString(16).padStart(64, '0') +
+    numVotes.toString(16).padStart(64, '0')
+  )
 }

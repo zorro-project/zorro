@@ -1,16 +1,16 @@
 // Inspired by https://github.com/makerdao/starknet-dai-bridge/blob/mk/draft/scripts/deploy.ts
 
-import fs from 'fs'
 import hre from 'hardhat'
 import {expect} from 'chai'
-import {isEmpty} from 'lodash'
 import {
   getRequiredEnv,
   save,
   getEthereumAddressOfNextDeployedContract,
   getInsecureStarknetPublicKey,
+  getEthereumAddressAsFelt,
   getStarknetAddressString,
   starknetCall,
+  generateArbitratorExtraData,
 } from './deployUtils'
 
 const CHAIN_DEPLOYMENT = getRequiredEnv('CHAIN_DEPLOYMENT')
@@ -18,27 +18,27 @@ const DEV_MODE = !!process.env.DEV_MODE
 const NETWORK = hre.network.name
 const SAVE_PATH = `./deployments/${CHAIN_DEPLOYMENT}`
 
-const getStaticAddress = (network: string, layer: string, name: string) => {
-  const addresses: any = {
+const getChainSetting = (network: string, layer: string, name: string) => {
+  const chainSettings: any = {
     goerli: {
       ethereum: {
-        arbitrableProxy: '0x78ac5F189FC6DAB261437a7B95D11cAcf0234FFe',
-        superAdjudicatorOwner: '0xEe5fe19b54DDDc740ebEB532B6ADA6F9Cce0512A',
+        arbitrableProxyAddress: '0x78ac5F189FC6DAB261437a7B95D11cAcf0234FFe',
+        superAdjudicatorOwnerAddress:
+          '0xEe5fe19b54DDDc740ebEB532B6ADA6F9Cce0512A',
+        klerosCourtId: 0,
+        klerosNumJurorsInFirstRound: 3,
       },
       // via `poetry run starknet --network alpha-goerli get_contract_addresses`
-      starknet: {starknetCore: '0xde29d060D45901Fb19ED6C6e959EB22d8626708e'},
+      starknet: {
+        starknetCoreAddress: '0xde29d060D45901Fb19ED6C6e959EB22d8626708e',
+      },
     },
-    mainnet: {
-      ethereum: {arbitrableProxy: null},
-      starknet: {starknetCore: null},
-    },
+    mainnet: {},
   }
 
-  const result = addresses?.[network]?.[layer]?.[name]
+  const result = chainSettings?.[network]?.[layer]?.[name]
   if (!result) {
-    throw new Error(
-      `Unable to find static address for ${network}/${layer}/${name}`
-    )
+    throw new Error(`Missing chain setting for ${network}:${layer}:${name}`)
   }
 
   return result
@@ -98,7 +98,9 @@ async function main() {
       admin_address: getStarknetAddressString(admin),
       notary_address: getStarknetAddressString(notary),
       adjudicator_address: getStarknetAddressString(adjudicator),
-      super_adjudicator_l1_address: 0,
+      super_adjudicator_l1_address: getEthereumAddressAsFelt(
+        futureEthereumSuperAdjudicatorAddress
+      ),
       token_address: getStarknetAddressString(erc20),
     },
     'zorro'
@@ -107,22 +109,18 @@ async function main() {
   await Promise.all([transferPromise, transferPromise2, zorroDeployPromise])
   const zorro = await zorroDeployPromise
 
-  const generateArbitratorExtraData = (subcourtId: number, numVotes: number) =>
-    '0x' +
-    subcourtId.toString(16).padStart(64, '0') +
-    numVotes.toString(16).padStart(64, '0')
   const superAdjudicator = await ethereumDeploy('SuperAdjudicator', [
-    getStaticAddress(NETWORK, 'starknet', 'starknetCore'),
-    getStaticAddress(NETWORK, 'ethereum', 'arbitrableProxy'),
+    getChainSetting(NETWORK, 'starknet', 'starknetCoreAddress'),
+    getChainSetting(NETWORK, 'ethereum', 'arbitrableProxyAddress'),
     zorro.address,
-    getStaticAddress(NETWORK, 'ethereum', 'superAdjudicatorOwner'),
-    generateArbitratorExtraData(0, 3),
+    getChainSetting(NETWORK, 'ethereum', 'superAdjudicatorOwnerAddress'),
+    generateArbitratorExtraData(
+      getChainSetting(NETWORK, 'ethereum', 'klerosCourtId'),
+      getChainSetting(NETWORK, 'ethereum', 'klerosNumJurorsInFirstRound')
+    ),
     '/ipfs/QmeLeKbSpgFF2AzJmoZmQxBsHinerp8xUida9dgCqjUFpd/metaEvidence.json', // metaEvidenceURI (can be generated via `courtPolicy/deploy.js`)
     2, // num ruling options
   ])
-
-  // console.log('Creating dispute...')
-  // await superAdjudicator.createDispute(1)
 
   expect(
     futureEthereumSuperAdjudicatorAddress === superAdjudicator.address,
@@ -144,33 +142,23 @@ async function main() {
 
     await Promise.all([p1, p2])
   }
-
-  /*
-  // We get the contract to deploy
-  const Greeter = await ethers.getContractFactory('Greeter')
-  const greeter = await Greeter.deploy('Hello, Hardhat!')
-
-  await greeter.deployed()
-
-  console.log('Greeter deployed to:', greeter.address)
-  */
 }
 
 async function ethereumDeploy(
   contractName: string,
-  calldata: any = [],
+  constructorArgs: any = [],
   saveName?: string
 ) {
   const humanName = `${contractName}${(saveName && '/' + saveName) || ''}`
-  console.log(`Deploying: ${humanName}`)
+  console.log(`Deploying to ethereum: ${humanName}`)
   const contractFactory = await hre.ethers.getContractFactory(contractName)
-  const contract = await contractFactory.deploy(...calldata)
+  const contract = await contractFactory.deploy(...constructorArgs)
   save(SAVE_PATH, NETWORK, saveName || contractName, contract.address)
   console.log(
-    `Deployed ${humanName} to: ${contract.address}.`,
-    `To verify: yarn hardhat verify ${contract.address} ${calldata
-      .filter((a: any) => !isEmpty(a))
-      .join(' ')}`
+    `Deployed ${humanName} to ethereum: ${contract.address}.`,
+    `To verify: yarn hardhat verify ${contract.address} ${constructorArgs.join(
+      ' '
+    )} --network ${NETWORK}`
   )
   await contract.deployed()
   return contract
@@ -178,18 +166,18 @@ async function ethereumDeploy(
 
 async function starknetDeploy(
   contractName: string,
-  calldata: any = {},
+  constructorArgs: any = {},
   saveName?: string
 ) {
   const humanName = `${contractName}${(saveName && '/' + saveName) || ''}`
-  console.log(`Deploying: ${humanName}`)
+  console.log(`Deploying to starknet: ${humanName}`)
   const contractFactory = await hre.starknet.getContractFactory(
     'starknet/' + contractName
   )
-  const contract = await contractFactory.deploy(calldata)
+  const contract = await contractFactory.deploy(constructorArgs)
   save(SAVE_PATH, NETWORK, saveName || contractName, contract.address)
   console.log(
-    `Deployed ${humanName} to: ${contract.address}.`,
+    `Deployed ${humanName} to starknet: ${contract.address}.`,
     `To verify: yarn hardhat starknet-verify --starknet-network ${NETWORK} --path contracts/starknet/${contractName}.cairo --address ${contract.address}`
   )
   return contract
