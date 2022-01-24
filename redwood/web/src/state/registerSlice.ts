@@ -6,9 +6,6 @@ type RegisterState = {
 
   // CID or local URL of the profile's avatar video
   video?: string
-
-  // Best guess at the webcam's aspect ratio
-  aspectRatio?: number
 }
 
 const initialState: RegisterState = {}
@@ -22,9 +19,6 @@ export const registerSlice = createSlice({
     },
     setVideo: (state, action: PayloadAction<RegisterState['video']>) => {
       state.video = action.payload
-    },
-    setAspectRatio: (state, action: PayloadAction<number>) => {
-      state.aspectRatio = action.payload
     },
     resetForm: (state) => {
       state.photo = undefined
