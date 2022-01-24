@@ -4,6 +4,7 @@ import {UseToastOptions} from '@chakra-ui/react'
 import {queueToast} from 'src/layouts/AppLayout/ToastManager'
 import {omit} from 'lodash'
 import {useEffect} from 'react'
+import {cidToUrl} from './ipfs'
 
 export const dataUrlToBlob = async (dataUrl: string) =>
   await (await fetch(dataUrl)).blob()
@@ -35,4 +36,9 @@ export const useNav = (
     appNav(url, options)
   }, [])
   return null
+}
+
+export const maybeCidToUrl: (value: string) => string = (value) => {
+  if (isLocalUrl(value)) return value
+  return cidToUrl(value)
 }

@@ -1,17 +1,16 @@
 import {Spacer, Stack, Text} from '@chakra-ui/layout'
-import {Fade, Image, Button} from '@chakra-ui/react'
-import {navigate, routes} from '@redwoodjs/router'
+import {Button, Fade, Image} from '@chakra-ui/react'
+import {routes} from '@redwoodjs/router'
 import {MetaTags} from '@redwoodjs/web'
-import {requestMediaPermissions} from 'mic-check'
-import {useCallback, useContext, useEffect, useRef, useState} from 'react'
+import {useCallback, useContext, useRef, useState} from 'react'
 import Webcam from 'react-webcam'
 import {RLink} from 'src/components/links'
-import {maybeCidToUrl} from 'src/components/SquareBox'
 import UserContext from 'src/layouts/UserContext'
-import {useNav} from 'src/lib/util'
+import {maybeCidToUrl, useNav} from 'src/lib/util'
 import {registerSlice} from 'src/state/registerSlice'
 import {useAppDispatch, useAppSelector} from 'src/state/store'
 import {useIsFirstRender} from 'usehooks-ts'
+import {requireCameraAllowed} from '../AllowCameraPage/AllowCameraPage'
 import UserMediaBox from '../UserMediaBox'
 import {videoConstraints} from '../VideoPage/VideoPage'
 
@@ -19,12 +18,7 @@ const PhotoPage = () => {
   const {ethereumAddress} = useContext(UserContext)
   if (!ethereumAddress) return useNav(routes.registerIntro(), {replace: true})
 
-  // Make sure we have camera permissions
-  useEffect(() => {
-    requestMediaPermissions().catch(() =>
-      navigate(routes.registerAllowCamera())
-    )
-  }, [])
+  requireCameraAllowed()
 
   const {photo} = useAppSelector((state) => state.register)
 

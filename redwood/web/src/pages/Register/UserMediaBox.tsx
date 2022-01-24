@@ -1,20 +1,18 @@
-import {AspectRatio, AspectRatioProps, Box} from '@chakra-ui/react'
-import {useAppSelector} from 'src/state/store'
+import {AspectRatio, Box, BoxProps} from '@chakra-ui/react'
 
-const UserMediaBox: React.FC<AspectRatioProps> = (props) => {
-  const {aspectRatio} = useAppSelector((state) => state.register)
-
-  if (!aspectRatio) {
-    return <Box background="gray.200" {...props} />
-  }
-
+const UserMediaBox: React.FC<BoxProps> = (props) => {
   return (
     <AspectRatio
-      ratio={aspectRatio}
-      background="gray.200"
+      ratio={4 / 3}
       width="100%"
-      {...props}
-    />
+      display="flex"
+      justifyContent="center"
+      alignItems="center"
+    >
+      <Box>
+        <Box {...props} />
+      </Box>
+    </AspectRatio>
   )
 }
 

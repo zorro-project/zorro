@@ -7,35 +7,30 @@ import {
   MediaPermissionsErrorType,
   requestMediaPermissions,
 } from 'mic-check'
-import {useContext} from 'react'
+import {useContext, useEffect, useState} from 'react'
 import UserContext from 'src/layouts/UserContext'
-import {useNav} from 'src/lib/util'
-import {registerSlice} from 'src/state/registerSlice'
-import {useAppDispatch} from 'src/state/store'
+import {appNav, useNav} from 'src/lib/util'
 import RegisterLogo from '../RegisterLogo'
-import {videoConstraints} from '../VideoPage/VideoPage'
+
+export const requireCameraAllowed = async () => {
+  // Make sure we have camera permissions
+  useEffect(() => {
+    requestMediaPermissions().catch(() => appNav(routes.registerAllowCamera()))
+  }, [])
+}
 
 const AllowCameraPage: React.FC = () => {
   const {ethereumAddress} = useContext(UserContext)
   if (!ethereumAddress) return useNav(routes.registerIntro(), {replace: true})
 
+  const [requestingPermissions, setRequestingPermissions] = useState(false)
+
   const cameraError = useToast({status: 'error', position: 'top'})
-  const dispatch = useAppDispatch()
 
   const requestPermissions = async () => {
+    setRequestingPermissions(true)
     requestMediaPermissions()
       .then(async () => {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: videoConstraints,
-        })
-
-        const settings = stream.getVideoTracks()[0].getSettings()
-
-        dispatch(
-          registerSlice.actions.setAspectRatio(
-            (settings.width ?? 1) / (settings.height ?? 1)
-          )
-        )
         navigate(routes.registerPhoto())
       })
       .catch((err: MediaPermissionsError) => {
@@ -62,6 +57,7 @@ const AllowCameraPage: React.FC = () => {
             title: "We couldn't activate your camera.",
           })
         }
+        setRequestingPermissions(false)
       })
   }
 
@@ -74,7 +70,11 @@ const AllowCameraPage: React.FC = () => {
       <Text>
         These videos help ensure that each unique person only registers once.
       </Text>
-      <Button variant="register-primary" onClick={requestPermissions}>
+      <Button
+        variant="register-primary"
+        onClick={requestPermissions}
+        disabled={requestingPermissions}
+      >
         Allow Camera
       </Button>
     </Stack>

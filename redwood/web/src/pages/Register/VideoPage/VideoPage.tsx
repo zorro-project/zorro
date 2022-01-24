@@ -1,18 +1,17 @@
-import {Box, Stack, Text} from '@chakra-ui/layout'
+import {AspectRatio, Box, Stack, Text} from '@chakra-ui/layout'
 import {Button, Fade, Spacer} from '@chakra-ui/react'
 import {routes} from '@redwoodjs/router'
 import {MetaTags} from '@redwoodjs/web'
-import {requestMediaPermissions} from 'mic-check'
-import {useCallback, useContext, useEffect, useRef, useState} from 'react'
+import {useCallback, useContext, useRef, useState} from 'react'
 import ReactPlayer from 'react-player'
 import Webcam from 'react-webcam'
 import {RLink} from 'src/components/links'
-import {maybeCidToUrl} from 'src/components/SquareBox'
 import UserContext from 'src/layouts/UserContext'
-import {appNav, useNav} from 'src/lib/util'
+import {maybeCidToUrl, useNav} from 'src/lib/util'
 import {registerSlice} from 'src/state/registerSlice'
 import {useAppDispatch, useAppSelector} from 'src/state/store'
 import {useIsFirstRender} from 'usehooks-ts'
+import {requireCameraAllowed} from '../AllowCameraPage/AllowCameraPage'
 import UserMediaBox from '../UserMediaBox'
 
 export const videoConstraints: MediaTrackConstraints = {
@@ -34,16 +33,21 @@ const VideoPage = ({mockRecording = false}) => {
   const {photo, video} = useAppSelector((state) => state.register)
   if (!photo) return useNav(routes.registerPhoto(), {replace: true})
 
-  // Make sure we have camera permissions
-  useEffect(() => {
-    requestMediaPermissions().catch(() => appNav(routes.registerAllowCamera()))
-  }, [])
+  requireCameraAllowed()
 
   const webcamRef = useRef<Webcam>(null)
+  const [webcamReady, setWebcamReady] = useState(false)
 
   const dispatch = useAppDispatch()
   const [recording, setRecording] = useState(mockRecording)
+  const [aspectRatio, setAspectRatio] = useState(1)
   const mediaRecorderRef = React.useRef<MediaRecorder>(null)
+
+  const onUserMedia = useCallback((stream: MediaStream) => {
+    const settings = stream.getVideoTracks()[0].getSettings()
+    setAspectRatio((settings.width ?? 1) / (settings.height ?? 1))
+    setWebcamReady(true)
+  }, [])
 
   const startRecording = useCallback(async () => {
     setRecording(true)
@@ -96,19 +100,42 @@ const VideoPage = ({mockRecording = false}) => {
                 muted
                 mirrored
                 ref={webcamRef}
+                style={{position: 'relative'}}
+                onUserMedia={onUserMedia}
               />
-              <Fade in={recording}>
-                <Box
-                  backgroundColor="red.500"
-                  shadow="md"
-                  top={3}
-                  right={3}
-                  position="absolute"
-                  h={6}
-                  w={6}
-                  borderRadius="50%"
-                />
+              {/* Recording indicator */}
+              <Fade
+                in={recording}
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  right: 0,
+                  bottom: 0,
+                  left: 0,
+                  display: 'flex',
+                  alignItems: 'center',
+                }}
+              >
+                <AspectRatio
+                  ratio={aspectRatio}
+                  width="100%"
+                  position="relative"
+                >
+                  <Box>
+                    <Box
+                      backgroundColor="red.500"
+                      shadow="md"
+                      top={3}
+                      right={3}
+                      position="absolute"
+                      h={6}
+                      w={6}
+                      borderRadius="50%"
+                    />
+                  </Box>
+                </AspectRatio>
               </Fade>
+              {/* End recording indicator */}
             </>
           )}
         </Fade>
@@ -119,7 +146,11 @@ const VideoPage = ({mockRecording = false}) => {
             Ready to be sworn in? Just read the words on the next screen.
           </Text>
           <Spacer />
-          <Button variant="register-primary" onClick={startRecording}>
+          <Button
+            variant="register-primary"
+            onClick={startRecording}
+            disabled={!webcamReady}
+          >
             I'm ready, start recording
           </Button>
         </>
@@ -133,8 +164,6 @@ const VideoPage = ({mockRecording = false}) => {
               "I swear that this is my first time registering on Zorro"
             </strong>
           </Text>
-          <Spacer />
-
           <Button variant="register-primary" onClick={stopRecording}>
             Stop recording
           </Button>
