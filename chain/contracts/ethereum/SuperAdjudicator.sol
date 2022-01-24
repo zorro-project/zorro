@@ -167,10 +167,11 @@ contract SuperAdjudicator {
       payload
     );
 
-    // prevent this same ruling from ever being enacted again. matters because
-    // a profile could be re-challenged, re-adjudicated, and re-appealed —
-    // we wouldn't want someone to be able to enact the old ruling against it.
-    disputeIdToProfileId[profileId] = 0;
+    // There's no need to prevent this same ruling from being enacted again:
+    // Even if a profile is re-challenged, re-adjudicated, and re-appealed,
+    // someone who attempts to enact an old ruling arbitrator ruling will be
+    // foiled because Zorro tracks the disputeId on L2 and makes sure it matches
+    // up.
 
     emit RulingEnacted(profileId, disputeId, ruling);
   }
