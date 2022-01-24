@@ -50,7 +50,7 @@ const IntroPage: React.FC<{
         other privileges.
       </Text>
       <Text>
-        It takes about 8 minutes. The costs are covered by the Zorro community.
+        It takes about 5 minutes. The costs are covered by the Zorro community.
       </Text>
       <Spacer />
       <Button
