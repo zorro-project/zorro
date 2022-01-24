@@ -101,7 +101,7 @@ func constructor{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : fel
     _super_adjudicator_l1_address.write(super_adjudicator_l1_address)
     _token_address.write(token_address)
 
-    _timestamp.write(123456789)
+    _timestamp.write(5000)
 
     return ()
 end

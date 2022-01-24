@@ -195,6 +195,44 @@ func _get_seed_profiles() -> (profiles_len : felt, profiles : Profile*):
         super_adjudication_timestamp=0,
         did_super_adjudicator_verify_profile=0
         )
+    assert profiles[10] = Profile(
+        cid=2540330837585055780539510783934115607915723316677950747298602475656452204,
+        ethereum_address=12304345091,
+        submitter_address=23452349,
+        submission_timestamp=2345,
+        is_notarized=1,
+        last_recorded_status=2,  # adjudication round completed
+        challenge_timestamp=123,
+        challenger_address=0,
+        challenge_evidence_cid=0,
+        owner_evidence_cid=0,
+        adjudication_timestamp=1234,
+        adjudicator_evidence_cid=0,
+        did_adjudicator_verify_profile=0,
+        appeal_timestamp=0,
+        appeal_id=0,
+        super_adjudication_timestamp=0,
+        did_super_adjudicator_verify_profile=0
+        )
+    assert profiles[11] = Profile(
+        cid=2540330837585055780539510783934115607915723316677950747298602475656452204,
+        ethereum_address=12304345092,
+        submitter_address=23452349,
+        submission_timestamp=2345,
+        is_notarized=1,
+        last_recorded_status=2,  # adjudication round completed
+        challenge_timestamp=123,
+        challenger_address=0,
+        challenge_evidence_cid=0,
+        owner_evidence_cid=0,
+        adjudication_timestamp=1234,
+        adjudicator_evidence_cid=0,
+        did_adjudicator_verify_profile=1,
+        appeal_timestamp=0,
+        appeal_id=0,
+        super_adjudication_timestamp=0,
+        did_super_adjudicator_verify_profile=0
+        )
 
-    return (10, profiles)
+    return (12, profiles)
 end
