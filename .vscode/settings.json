@@ -1,7 +1,7 @@
 {
   "python.formatting.provider": "black",
-  "cairols.venvCommand": "source ./starknet/.venv/bin/activate",
-  "cairo.cairoFormatPath": "./starknet/.venv/bin/cairo-format",
+  "cairols.venvCommand": "source ${workspaceFolder}/chain/.venv/bin/activate",
+  "cairo.cairoFormatPath": "${workspaceFolder}/chain/.venv/bin/cairo-format",
 
   "editor.tabSize": 2,
   "files.trimTrailingWhitespace": true,
