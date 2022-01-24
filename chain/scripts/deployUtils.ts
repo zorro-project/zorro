@@ -34,9 +34,13 @@ export function save(
   path: string,
   network: string,
   name: string,
-  address: string
+  address: string,
+  constructorArgs: any = []
 ) {
-  fs.writeFileSync(`${path}/${name}.json`, JSON.stringify({network, address}))
+  fs.writeFileSync(
+    `${path}/${name}.json`,
+    JSON.stringify({network, address, constructorArgs})
+  )
 }
 
 export function getSelectorFromName(name: string) {

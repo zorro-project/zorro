@@ -153,7 +153,13 @@ async function ethereumDeploy(
   console.log(`Deploying to ethereum: ${humanName}`)
   const contractFactory = await hre.ethers.getContractFactory(contractName)
   const contract = await contractFactory.deploy(...constructorArgs)
-  save(SAVE_PATH, NETWORK, saveName || contractName, contract.address)
+  save(
+    SAVE_PATH,
+    NETWORK,
+    saveName || contractName,
+    contract.address,
+    constructorArgs
+  )
   console.log(
     `Deployed ${humanName} to ethereum: ${contract.address}.`,
     `To verify: yarn hardhat verify ${contract.address} ${constructorArgs.join(
@@ -175,7 +181,13 @@ async function starknetDeploy(
     'starknet/' + contractName
   )
   const contract = await contractFactory.deploy(constructorArgs)
-  save(SAVE_PATH, NETWORK, saveName || contractName, contract.address)
+  save(
+    SAVE_PATH,
+    NETWORK,
+    saveName || contractName,
+    contract.address,
+    constructorArgs
+  )
   console.log(
     `Deployed ${humanName} to starknet: ${contract.address}.`,
     `To verify: yarn hardhat starknet-verify --starknet-network ${NETWORK} --path contracts/starknet/${contractName}.cairo --address ${contract.address}`
