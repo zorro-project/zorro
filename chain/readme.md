@@ -44,6 +44,13 @@ poetry run starknet tx_status --network alpha-goerli --hash "0x4b956ab1ddfe43ed8
 - `poetry add cairo-lang@latest`
 - `yarn upgrade @shardlabs/starknet-hardhat-plugin --latest`
 
-# Goerli PNK faucet for testing super adjudication
+# Faucets
 
-https://goerli.etherscan.io/address/0x4b89e798b10478a839ea0abcf86c4b94a3c782a4#writeContract
+Goerli eth: https://faucets.chain.link/goerli
+Goerli PNK for testing super adjudication: https://goerli.etherscan.io/address/0x4b89e798b10478a839ea0abcf86c4b94a3c782a4#writeContract
+
+# Useful etherscan links
+
+Goerli Kleros arbitrator https://goerli.etherscan.io/address/0x1128ed55ab2d796fa92d2f8e1f336d745354a77a#code
+
+- passPhase x2, drawJurors, passPhase?
