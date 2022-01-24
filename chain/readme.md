@@ -20,6 +20,9 @@ env "CFLAGS=-I/opt/homebrew/include" poetry install
 
 # Make sure the virtual environment was correctly installed within the working directory
 ls .venv
+
+# Install the development/deployment dependencies
+yarn install
 ```
 
 VS Code configuration
