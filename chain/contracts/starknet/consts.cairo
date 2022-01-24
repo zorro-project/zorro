@@ -1,7 +1,7 @@
 namespace consts:
-    const SUBMISSION_DEPOSIT_SIZE = 25
-    const CHALLENGE_DEPOSIT_SIZE = 25
-    const CHALLENGE_REWARD_SIZE = 25
+    const SUBMISSION_DEPOSIT_SIZE = 40
+    const CHALLENGE_DEPOSIT_SIZE = 5
+    const CHALLENGE_REWARD_SIZE = 40
 
     # Profiles challenged while still provision are presumed to be invalid; those challenged after are presumed valid
     const PROVISIONAL_TIME_WINDOW = 9 * 24 * 60 * 60  # 9 days
