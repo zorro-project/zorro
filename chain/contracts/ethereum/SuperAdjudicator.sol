@@ -156,7 +156,7 @@ contract SuperAdjudicator {
     );
 
     uint256 ruling = arbitrator.currentRuling(disputeId);
-    uint256[] memory payload = new uint256[](2);
+    uint256[] memory payload = new uint256[](3);
     payload[0] = profileId;
     payload[1] = disputeId;
     payload[2] = ruling; // XXX: this ruling will be 0 if adjudicator was wrong, 1 if adjudicator is right, which is not what the Zorro starknet contract expects right now.
