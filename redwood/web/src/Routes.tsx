@@ -2,26 +2,26 @@ import {Route, Router, Set} from '@redwoodjs/router'
 import AppLayout from './layouts/AppLayout/AppLayout'
 import NavLayout from './layouts/NavLayout/NavLayout'
 import ChallengeProfilePage from './pages/ChallengeProfilePage/ChallengeProfilePage'
-import SignUpLayout from 'src/pages/SignUp/SignUpLayout'
+import RegisterLayout from 'src/pages/Register/RegisterLayout'
 
 const Routes = () => {
   return (
     <Router>
       <Set wrap={AppLayout}>
         <Route path="/" page={SplashPage} name="splash" />
-        <Set wrap={SignUpLayout}>
-          <Route path="/sign-up" page={SignUpIntroPage} name="signUpIntro" />
-          <Route path="/sign-up/{purposeIdentifier}/{externalAddress}" page={SignUpIntroPage} name="signUpAndconnect" />
-          <Route path="/sign-up/connect" page={SignUpConnectWalletPage} name="signUpConnectWallet" />
-          <Route path="/sign-up/allow-camera" page={SignUpAllowCameraPage} name="signUpAllowCamera" />
-          <Route path="/sign-up/photo" page={SignUpPhotoPage} name="signUpPhoto" />
+        <Set wrap={RegisterLayout}>
+          <Route path="/register" page={RegisterIntroPage} name="registerIntro" />
+          <Route path="/register/{purposeIdentifier}/{externalAddress}" page={RegisterIntroPage} name="registerAndConnect" />
+          <Route path="/register/connect" page={RegisterConnectWalletPage} name="registerConnectWallet" />
+          <Route path="/register/allow-camera" page={RegisterAllowCameraPage} name="registerAllowCamera" />
+          <Route path="/register/photo" page={RegisterPhotoPage} name="registerPhoto" />
           {/* @ts-expect-error https://github.com/redwoodjs/redwood/pull/4219 */}
-          <Route path="/sign-up/video" page={SignUpVideoPage} name="signUpVideo" />
-          <Route path="/sign-up/email" page={SignUpEmailPage} name="signUpEmail" />
+          <Route path="/register/video" page={RegisterVideoPage} name="registerVideo" />
+          <Route path="/register/email" page={RegisterEmailPage} name="registerEmail" />
           {/* @ts-expect-error https://github.com/redwoodjs/redwood/pull/4219 */}
-          <Route path="/sign-up/submit" page={SignUpSubmitPage} name="signUpSubmit" />
-          <Route path="/sign-up/submitted" page={SignUpSubmittedPage} name="signUpSubmitted" />
-          <Route path="/sign-up/self-submit" page={SignUpSelfSubmitPage} name="signUpSelfSubmit" />
+          <Route path="/register/submit" page={RegisterSubmitPage} name="registerSubmit" />
+          <Route path="/register/submitted" page={RegisterSubmittedPage} name="registerSubmitted" />
+          <Route path="/register/self-submit" page={RegisterSelfSubmitPage} name="registerSelfSubmit" />
         </Set>
         <Set wrap={NavLayout}>
           <Route path="/profiles" page={ProfilesPage} name="profiles" />

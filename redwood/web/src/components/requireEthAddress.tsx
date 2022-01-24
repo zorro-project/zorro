@@ -6,7 +6,7 @@ import {useNav} from 'src/lib/util'
 const requireEthAddress = (element: ReactElement) => {
   const RequireEthAddress: React.FC = (props) => {
     const {ethereumAddress} = useContext(UserContext)
-    if (!ethereumAddress) return useNav(routes.signUpIntro(), {replace: true})
+    if (!ethereumAddress) return useNav(routes.registerIntro(), {replace: true})
     return React.cloneElement(element, {...props, ethereumAddress})
   }
 
