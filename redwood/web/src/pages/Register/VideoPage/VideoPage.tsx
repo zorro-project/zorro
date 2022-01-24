@@ -1,6 +1,6 @@
 import {Box, Stack, Text} from '@chakra-ui/layout'
 import {Button, Fade, Spacer} from '@chakra-ui/react'
-import {navigate, routes} from '@redwoodjs/router'
+import {routes} from '@redwoodjs/router'
 import {MetaTags} from '@redwoodjs/web'
 import {requestMediaPermissions} from 'mic-check'
 import {useCallback, useContext, useEffect, useRef, useState} from 'react'
@@ -9,7 +9,7 @@ import Webcam from 'react-webcam'
 import {RLink} from 'src/components/links'
 import {maybeCidToUrl} from 'src/components/SquareBox'
 import UserContext from 'src/layouts/UserContext'
-import {useNav} from 'src/lib/util'
+import {appNav, useNav} from 'src/lib/util'
 import {registerSlice} from 'src/state/registerSlice'
 import {useAppDispatch, useAppSelector} from 'src/state/store'
 import {useIsFirstRender} from 'usehooks-ts'
@@ -36,9 +36,7 @@ const VideoPage = ({mockRecording = false}) => {
 
   // Make sure we have camera permissions
   useEffect(() => {
-    requestMediaPermissions().catch(() =>
-      navigate(routes.registerAllowCamera())
-    )
+    requestMediaPermissions().catch(() => appNav(routes.registerAllowCamera()))
   }, [])
 
   const webcamRef = useRef<Webcam>(null)
@@ -103,11 +101,11 @@ const VideoPage = ({mockRecording = false}) => {
                 <Box
                   backgroundColor="red.500"
                   shadow="md"
-                  top={2}
-                  right={2}
+                  top={3}
+                  right={3}
                   position="absolute"
-                  h={4}
-                  w={4}
+                  h={6}
+                  w={6}
                   borderRadius="50%"
                 />
               </Fade>

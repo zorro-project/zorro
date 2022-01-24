@@ -4,7 +4,7 @@ import LogoSVG from 'src/logo.svg'
 export default function RegisterLogo() {
   return (
     <Box mx="auto">
-      <LogoSVG height="100" width="100" />
+      <LogoSVG height="80" width="80" />
     </Box>
   )
 }

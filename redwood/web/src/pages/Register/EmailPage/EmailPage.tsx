@@ -63,14 +63,14 @@ const EmailPage: React.FC<{next?: 'submitted' | undefined}> = ({next}) => {
       },
     })
     await user.refetch()
-    appNav(nextPage, {toast: {status: 'success', title: 'Email saved!'}})
+    appNav(nextPage)
   }
 
   return (
     <form onSubmit={handleSubmit} style={{display: 'flex', flex: '1'}}>
       <Stack spacing="6" flex="1">
         <RegisterLogo />
-        <Title title="Enter email" />
+        <Title title="Get important notifications" />
         <Input
           type="email"
           name="email"
