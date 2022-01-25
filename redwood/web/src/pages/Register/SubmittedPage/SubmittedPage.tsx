@@ -1,14 +1,15 @@
 import {Button} from '@chakra-ui/button'
 import {Heading, Spacer, Stack} from '@chakra-ui/layout'
 import {Alert, AlertIcon, CircularProgress, Image, Text} from '@chakra-ui/react'
-import {navigate, routes} from '@redwoodjs/router'
+import {navigate, Redirect, routes} from '@redwoodjs/router'
 import {MetaTags, useQuery} from '@redwoodjs/web'
 import dayjs from 'dayjs'
 import React, {useCallback} from 'react'
 import ReactPlayer from 'react-player'
 import {InternalLink, RLink} from 'src/components/links'
 import {usePusher} from 'src/lib/pusher'
-import {maybeCidToUrl, useNav} from 'src/lib/util'
+import {useGuard} from 'src/lib/useGuard'
+import {maybeCidToUrl} from 'src/lib/util'
 import {registerSlice} from 'src/state/registerSlice'
 import {useAppDispatch} from 'src/state/store'
 import {
@@ -129,7 +130,7 @@ const AwaitingCitizenship: React.FC<{query: RegisterSubmittedPageQuery}> = ({
 
   if (query.unsubmittedProfile.notaryApprovedAt) {
     const notaryApprovedAt = dayjs(query.unsubmittedProfile.notaryApprovedAt)
-    if (dayjs().subtract(60, 'seconds').isAfter(notaryApprovedAt))
+    if (dayjs().subtract(5, 'minutes').isAfter(notaryApprovedAt))
       return <TakingTooLong query={query} />
 
     return (
@@ -140,7 +141,7 @@ const AwaitingCitizenship: React.FC<{query: RegisterSubmittedPageQuery}> = ({
           Your application has been approved by a community notary! We're just
           waiting for the submission to go through on-chain.
         </Text>
-        <Text textAlign="center">Expected wait: 30 seconds</Text>
+        <Text textAlign="center">Expected wait: 5 minutes</Text>
       </>
     )
   }
@@ -226,16 +227,24 @@ const ShowUnaddressedFeedback: React.FC<{
 const SubmittedPage = () => {
   const ethereumAddress = requireWalletConnected()
 
-  const {data, refetch} = useQuery<
+  const {data, loading, refetch} = useQuery<
     RegisterSubmittedPageQuery,
     RegisterSubmittedPageQueryVariables
   >(QUERY, {
     variables: {ethereumAddress},
   })
 
-  // const refetch = useCallback(() => {
-  //   props.refetch?.()
-  // }, [props.refetch])
+  useGuard(
+    loading || data?.cachedProfile || data?.unsubmittedProfile,
+    routes.registerIntro(),
+    {
+      toast: {
+        title:
+          "Couldn't find your submitted profile. Are you connected to the correct wallet?",
+        status: 'warning',
+      },
+    }
+  )
 
   usePusher(
     `unsubmittedProfile.${data?.unsubmittedProfile?.ethereumAddress}`,
@@ -259,13 +268,7 @@ const SubmittedPage = () => {
       body = <AwaitingCitizenship query={data} />
     }
   } else {
-    return useNav(routes.registerIntro(), {
-      toast: {
-        title:
-          "Couldn't find your submitted profile. Are you connected to the correct wallet?",
-        status: 'warning',
-      },
-    })
+    body = <Redirect to={routes.registerIntro()} />
   }
 
   return (

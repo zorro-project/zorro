@@ -10,7 +10,6 @@ import {useGuard} from 'src/lib/useGuard'
 import {maybeCidToUrl} from 'src/lib/util'
 import {registerSlice} from 'src/state/registerSlice'
 import {useAppDispatch, useAppSelector} from 'src/state/store'
-import {useIsFirstRender} from 'usehooks-ts'
 import {requireCameraAllowed, requireWalletConnected} from '../guards'
 import UserMediaBox from '../UserMediaBox'
 
@@ -28,7 +27,12 @@ const VideoPage = ({mockRecording = false}) => {
   useGuard(photo, routes.registerPhoto())
 
   const webcamRef = useRef<Webcam>(null)
-  const [webcamReady, setWebcamReady] = useState(false)
+  const [buttonsEnabled, setButtonsEnabled] = useState(!!photo)
+
+  const temporarilyDisableButtons = useCallback(() => {
+    setButtonsEnabled(false)
+    setTimeout(() => setButtonsEnabled(true), 500)
+  }, [])
 
   const dispatch = useAppDispatch()
   const [recording, setRecording] = useState(mockRecording)
@@ -38,7 +42,7 @@ const VideoPage = ({mockRecording = false}) => {
   const onUserMedia = useCallback((stream: MediaStream) => {
     const settings = stream.getVideoTracks()[0].getSettings()
     setAspectRatio((settings.width ?? 1) / (settings.height ?? 1))
-    setWebcamReady(true)
+    temporarilyDisableButtons()
   }, [])
 
   const startRecording = useCallback(async () => {
@@ -63,74 +67,67 @@ const VideoPage = ({mockRecording = false}) => {
   const stopRecording = useCallback(() => {
     mediaRecorderRef.current?.stop()
     setRecording(false)
+    temporarilyDisableButtons()
   }, [mediaRecorderRef, setRecording])
 
-  const firstRender = useIsFirstRender()
+  const redoVideo = useCallback(() => {
+    temporarilyDisableButtons()
+    dispatch(registerSlice.actions.setVideo(undefined))
+  }, [])
 
   return (
     <Stack spacing="6" flex="1">
       <MetaTags title="Record Video" />
       <UserMediaBox position="relative">
-        <Fade
-          in={true}
-          key={video}
-          transition={{enter: {duration: firstRender ? 0 : 0.25}}}
-          style={{flex: 1, display: 'flex'}}
-        >
-          {video ? (
-            <ReactPlayer
-              url={maybeCidToUrl(video)}
-              controls
-              width="100%"
-              height="100%"
+        {video ? (
+          <ReactPlayer
+            url={maybeCidToUrl(video)}
+            controls
+            width="100%"
+            height="100%"
+          />
+        ) : (
+          <>
+            <Webcam
+              videoConstraints={videoConstraints}
+              audio
+              muted
+              mirrored
+              ref={webcamRef}
+              style={{position: 'relative'}}
+              onUserMedia={onUserMedia}
             />
-          ) : (
-            <>
-              <Webcam
-                videoConstraints={videoConstraints}
-                audio
-                muted
-                mirrored
-                ref={webcamRef}
-                style={{position: 'relative'}}
-                onUserMedia={onUserMedia}
-              />
-              {/* Recording indicator */}
-              <Fade
-                in={recording}
-                style={{
-                  position: 'absolute',
-                  top: 0,
-                  right: 0,
-                  bottom: 0,
-                  left: 0,
-                  display: 'flex',
-                  alignItems: 'center',
-                }}
-              >
-                <AspectRatio
-                  ratio={aspectRatio}
-                  width="100%"
-                  position="relative"
-                >
-                  <Box>
-                    <Box
-                      backgroundColor="red.500"
-                      shadow="md"
-                      top={3}
-                      right={3}
-                      position="absolute"
-                      h={6}
-                      w={6}
-                      borderRadius="50%"
-                    />
-                  </Box>
-                </AspectRatio>
-              </Fade>
-              {/* End recording indicator */}
-            </>
-          )}
-        </Fade>
+            {/* Recording indicator */}
+            <Fade
+              in={recording}
+              style={{
+                position: 'absolute',
+                top: 0,
+                right: 0,
+                bottom: 0,
+                left: 0,
+                display: 'flex',
+                alignItems: 'center',
+              }}
+            >
+              <AspectRatio ratio={aspectRatio} width="100%" position="relative">
+                <Box>
+                  <Box
+                    backgroundColor="red.500"
+                    shadow="md"
+                    top={3}
+                    right={3}
+                    position="absolute"
+                    h={6}
+                    w={6}
+                    borderRadius="50%"
+                  />
+                </Box>
+              </AspectRatio>
+            </Fade>
+            {/* End recording indicator */}
+          </>
+        )}
       </UserMediaBox>
       {!recording && !video && (
         <>
@@ -141,7 +138,7 @@ const VideoPage = ({mockRecording = false}) => {
           <Button
             variant="register-primary"
             onClick={startRecording}
-            disabled={!webcamReady}
+            disabled={!buttonsEnabled}
           >
             I'm ready, start recording
           </Button>
@@ -156,6 +153,7 @@ const VideoPage = ({mockRecording = false}) => {
               "I swear that this is my first time registering on Zorro"
             </strong>
           </Text>
+          <Spacer />
           <Button variant="register-primary" onClick={stopRecording}>
             Stop recording
           </Button>
@@ -166,7 +164,8 @@ const VideoPage = ({mockRecording = false}) => {
           <Spacer />
           <Button
             variant="register-primary"
-            onClick={() => dispatch(registerSlice.actions.setVideo(undefined))}
+            onClick={redoVideo}
+            disabled={!buttonsEnabled}
           >
             Redo video
           </Button>
@@ -175,6 +174,7 @@ const VideoPage = ({mockRecording = false}) => {
             as={RLink}
             href={routes.registerEmail()}
             px="12"
+            disabled={!buttonsEnabled}
           >
             Continue
           </Button>

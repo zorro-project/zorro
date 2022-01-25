@@ -1,9 +1,8 @@
-import {NavigateOptions} from '@redwoodjs/router/dist/history'
-import {navigate} from '@redwoodjs/router'
 import {UseToastOptions} from '@chakra-ui/react'
-import {queueToast} from 'src/layouts/AppLayout/ToastManager'
+import {navigate} from '@redwoodjs/router'
+import {NavigateOptions} from '@redwoodjs/router/dist/history'
 import {omit} from 'lodash'
-import {useEffect} from 'react'
+import {queueToast} from 'src/layouts/AppLayout/ToastManager'
 import {cidToUrl} from './ipfs'
 
 export const dataUrlToBlob = async (dataUrl: string) =>
@@ -25,16 +24,6 @@ export const appNav = (
 ) => {
   if (options?.toast) queueToast(options.toast)
   navigate(url, omit(options, 'toast'))
-  return null
-}
-
-export const useNav = (
-  url: string,
-  options?: NavigateOptions & {toast?: UseToastOptions}
-) => {
-  useEffect(() => {
-    appNav(url, options)
-  }, [])
   return null
 }
 

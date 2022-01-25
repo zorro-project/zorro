@@ -15,7 +15,7 @@ const RegisterLayout: React.FC = ({children}) => {
         maxW="lg"
         width="100%"
         mx="auto"
-        flex="0 1 600px"
+        flex="0 1 650px"
         background="white"
         px="12"
         py="16"

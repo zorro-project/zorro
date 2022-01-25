@@ -1,5 +1,5 @@
 import {Spacer, Stack, Text} from '@chakra-ui/layout'
-import {Button, Fade, Image} from '@chakra-ui/react'
+import {Button, Image, ScaleFade} from '@chakra-ui/react'
 import {routes} from '@redwoodjs/router'
 import {MetaTags} from '@redwoodjs/web'
 import {useCallback, useRef, useState} from 'react'
@@ -21,11 +21,22 @@ const PhotoPage = () => {
 
   const dispatch = useAppDispatch()
   const webcamRef = useRef<Webcam>(null)
-  const [webcamReady, setWebcamReady] = useState(false)
+  const [buttonsEnabled, setButtonsEnabled] = useState(!!photo)
+
+  const temporarilyDisableButtons = useCallback(() => {
+    setButtonsEnabled(false)
+    setTimeout(() => setButtonsEnabled(true), 500)
+  }, [])
+
+  const redoPhoto = useCallback(() => {
+    temporarilyDisableButtons()
+    dispatch(registerSlice.actions.setPhoto(undefined))
+  }, [])
 
   const capturePicture = useCallback(async () => {
     const photoUrl = webcamRef.current?.getScreenshot()
     if (!photoUrl) return
+    temporarilyDisableButtons()
     dispatch(registerSlice.actions.setPhoto(photoUrl))
   }, [dispatch, webcamRef])
 
@@ -35,10 +46,11 @@ const PhotoPage = () => {
     <Stack spacing="6" flex="1">
       <MetaTags title="Take photo" />
       <UserMediaBox>
-        <Fade
+        <ScaleFade
           in={true}
           key={photo}
-          transition={{enter: {duration: firstRender ? 0 : 0.25}}}
+          transition={{enter: {duration: firstRender ? 0 : 1}}}
+          initialScale={0.8}
           style={{flex: 1, display: 'flex'}}
         >
           {photo ? (
@@ -50,10 +62,10 @@ const PhotoPage = () => {
               forceScreenshotSourceSize={true}
               mirrored
               ref={webcamRef}
-              onUserMedia={() => setWebcamReady(true)}
+              onUserMedia={temporarilyDisableButtons}
             />
           )}
-        </Fade>
+        </ScaleFade>
       </UserMediaBox>
       {photo ? (
         <>
@@ -61,7 +73,8 @@ const PhotoPage = () => {
 
           <Button
             variant="register-primary"
-            onClick={() => dispatch(registerSlice.actions.setPhoto(undefined))}
+            onClick={redoPhoto}
+            disabled={!buttonsEnabled}
           >
             Redo photo
           </Button>
@@ -70,6 +83,7 @@ const PhotoPage = () => {
             as={RLink}
             href={routes.registerVideo()}
             px="12"
+            disabled={!buttonsEnabled}
           >
             Use this photo
           </Button>
@@ -85,7 +99,7 @@ const PhotoPage = () => {
           <Button
             variant="register-primary"
             onClick={capturePicture}
-            disabled={!webcamReady}
+            disabled={!buttonsEnabled}
           >
             Take photo
           </Button>

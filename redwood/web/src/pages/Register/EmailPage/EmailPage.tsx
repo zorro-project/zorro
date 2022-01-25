@@ -81,10 +81,11 @@ const EmailPage: React.FC<{next?: 'submitted' | undefined}> = ({next}) => {
         />
         <Box>
           <Text>Get notified about:</Text>
-          <UnorderedList stylePosition="inside">
+          <UnorderedList stylePosition="inside" mb={4}>
             <ListItem>Challenges to your citizenship</ListItem>
             <ListItem>Citizenship expiration</ListItem>
           </UnorderedList>
+          <Text>Your email will not be public on-chain.</Text>
         </Box>
         <Spacer />
         <Button variant="register-primary" type="submit" disabled={!emailValid}>
