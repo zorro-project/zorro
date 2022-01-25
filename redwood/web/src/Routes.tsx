@@ -15,10 +15,8 @@ const Routes = () => {
           <Route path="/register/connect" page={RegisterConnectWalletPage} name="registerConnectWallet" />
           <Route path="/register/allow-camera" page={RegisterAllowCameraPage} name="registerAllowCamera" />
           <Route path="/register/photo" page={RegisterPhotoPage} name="registerPhoto" />
-          {/* @ts-expect-error https://github.com/redwoodjs/redwood/pull/4219 */}
           <Route path="/register/video" page={RegisterVideoPage} name="registerVideo" />
           <Route path="/register/email" page={RegisterEmailPage} name="registerEmail" />
-          {/* @ts-expect-error https://github.com/redwoodjs/redwood/pull/4219 */}
           <Route path="/register/submit" page={RegisterSubmitPage} name="registerSubmit" />
           <Route path="/register/submitted" page={RegisterSubmittedPage} name="registerSubmitted" />
           <Route path="/register/self-submit" page={RegisterSelfSubmitPage} name="registerSelfSubmit" />

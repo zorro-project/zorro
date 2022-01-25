@@ -15,8 +15,8 @@ import {useEffect} from 'react'
 import {BsGrid, BsPersonBadge, BsPersonPlus} from 'react-icons/bs'
 import ConnectButton from 'src/components/ConnectButton/ConnectButton'
 import {RLink} from 'src/components/links'
-import UserContext from '../UserContext'
 import Logo from '../AppLayout/Logo'
+import {useUser} from '../UserContext'
 
 type NavItem = {
   label: string
@@ -80,7 +80,7 @@ const MobileNav = ({navItems}: {navItems: Array<NavItem>}) => (
 
 const NavBar = () => {
   const {isOpen, onToggle, onClose} = useDisclosure()
-  const user = React.useContext(UserContext)
+  const user = useUser()
 
   const {pathname} = useLocation()
 

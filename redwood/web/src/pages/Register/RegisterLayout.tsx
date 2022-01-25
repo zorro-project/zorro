@@ -1,4 +1,5 @@
 import {Flex} from '@chakra-ui/react'
+import {GuardHandler} from 'src/lib/useGuard'
 
 const RegisterLayout: React.FC = ({children}) => {
   return (
@@ -20,7 +21,7 @@ const RegisterLayout: React.FC = ({children}) => {
         py="16"
         shadow="md"
       >
-        {children}
+        <GuardHandler>{children}</GuardHandler>
       </Flex>
     </Flex>
   )

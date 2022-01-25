@@ -1,13 +1,13 @@
-import {Button, Stack, Text, useDisclosure, ButtonProps} from '@chakra-ui/react'
+import {Button, ButtonProps, Stack, Text, useDisclosure} from '@chakra-ui/react'
 import {useEthers} from '@usedapp/core'
-import AccountModal from './AccountModal'
 import Identicon from 'src/components/Identicon'
-import UserContext from 'src/layouts/UserContext'
+import {useUser} from 'src/layouts/UserContext'
+import AccountModal from './AccountModal'
 
 // Adapted from https://dev.to/jacobedawson/build-a-web3-dapp-in-react-login-with-metamask-4chp
 
 export default function ConnectButton(props: ButtonProps) {
-  const user = React.useContext(UserContext)
+  const user = useUser()
   const ethers = useEthers()
   const modalControl = useDisclosure()
 

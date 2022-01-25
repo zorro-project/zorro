@@ -10,9 +10,8 @@ import {
   ModalOverlay,
   Text,
 } from '@chakra-ui/react'
-import {useContext} from 'react'
 import Identicon from 'src/components/Identicon'
-import UserContext from 'src/layouts/UserContext'
+import {useUser} from 'src/layouts/UserContext'
 
 type Props = {
   isOpen: boolean
@@ -20,8 +19,7 @@ type Props = {
 }
 
 export default function AccountModal({isOpen, onClose}: Props) {
-  const {ethereumAddress} = useContext(UserContext)
-
+  const {ethereumAddress} = useUser()
   if (!ethereumAddress) return null
 
   return (
