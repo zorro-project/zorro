@@ -1,39 +1,65 @@
 import fs from 'fs'
-import {basename} from 'path'
+import {resolve as resolvePath, basename} from 'path'
 import fetch from 'node-fetch'
 
-async function deploy() {
+export default async function deploy(
+  superAdjudicatorAddress: string,
+  zorroProfileUrlPrefix: string
+) {
   console.log('Deploying primary document')
-  const primaryDocumentURI = await deployAsset('./assets/primaryDocument.txt')
+  const primaryDocumentURI = await publishAsset(
+    resolvePath(__dirname, 'primaryDocument.txt')
+  )
   console.log('Primary document URI:', primaryDocumentURI)
 
   console.log('Deploying evidence display interface')
-  const evidenceDisplayInterfaceURI = await deployAsset(
-    './assets/evidence-viewer.html'
+  const evidenceDisplayInterfaceURI = await publishEvidenceInterface(
+    superAdjudicatorAddress,
+    zorroProfileUrlPrefix
   )
   console.log('Evidence display interface URI:', evidenceDisplayInterfaceURI)
 
   console.log('Deploying metaEvidence')
-  const metaEvidenceURI = await deployMetaEvidence(
+  const {metaEvidenceURI, numRulingOptions} = await publishMetaEvidence(
     primaryDocumentURI,
     evidenceDisplayInterfaceURI
   )
   console.log(
-    `MetaEvidence URI: ${metaEvidenceURI} (https://ipfs.kleros.io${metaEvidenceURI})`
+    `metaEvidence URI: ${metaEvidenceURI} (https://ipfs.kleros.io${metaEvidenceURI})`
   )
+
+  return {metaEvidenceURI, numRulingOptions}
 }
 
-// Partially based on https://github.com/kleros/pmw-contracts/blob/master/deploy/1_deploy_pmw.js
+async function publishEvidenceInterface(
+  superAdjudicatorAddress: string,
+  zorroProfileUrlPrefix: string
+) {
+  const evidenceInterface = `
+<script>
+  SUPER_ADJUDICATOR_ADDRESS = ${JSON.stringify(superAdjudicatorAddress)}
+  ZORRO_PROFILE_URL_PREFIX = ${JSON.stringify(zorroProfileUrlPrefix)}
+</script>
+${fs.readFileSync(resolvePath(__dirname, 'evidenceInterface.html'), 'utf8')}
+`
 
-async function deployMetaEvidence(
-  primaryDocumentURI,
-  evidenceDisplayInterfaceURI
+  const evidenceInterfaceURI = await publishToIpfs(
+    'evidenceInterface.html',
+    evidenceInterface
+  )
+
+  return evidenceInterfaceURI
+}
+
+async function publishMetaEvidence(
+  primaryDocumentURI: string,
+  evidenceDisplayInterfaceURI: string
 ) {
   // Latest documentation of metaEvidence seems to be https://github.com/ethereum/EIPs/issues/1497
   const metaEvidence = {
-    _v: '1.0.0', // ERC-1497 version number
+    _v: '1.0.0', // ERC-1497 version number for metaEvidence standard
     category: '',
-    title: 'Zorro Adjducation Review',
+    title: 'Zorro Adjudication Review',
     description:
       'A request to review a decision by the Zorro protocol adjudicator',
     question:
@@ -58,19 +84,22 @@ async function deployMetaEvidence(
     JSON.stringify(metaEvidence)
   )
 
-  return metaEvidenceURI
+  return {
+    metaEvidenceURI,
+    numRulingOptions: metaEvidence.rulingOptions.titles.length,
+  }
 }
 
-async function deployAsset(path) {
+async function publishAsset(path: string): Promise<string> {
   if (!fs.existsSync(path)) throw new Error('Missing primary document')
   const fileName = basename(path)
-  const content = fs.readFileSync(path)
+  const content = fs.readFileSync(path, 'utf8')
   const uri = await publishToIpfs(fileName, content)
   return uri
 }
 
 // From https://github.com/kleros/pmw-contracts/blob/master/deploy/1_deploy_pmw.js
-async function publishToIpfs(fileName, str) {
+async function publishToIpfs(fileName: string, str: string): Promise<string> {
   const buffer = await Buffer.from(new TextEncoder().encode(str))
 
   return new Promise((resolve, reject) => {
@@ -91,9 +120,3 @@ async function publishToIpfs(fileName, str) {
       .catch((err) => reject(err))
   })
 }
-
-;(async () => {
-  console.log('Starting')
-  await deploy()
-  console.log('Done')
-})()

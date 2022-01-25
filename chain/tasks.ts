@@ -1,4 +1,5 @@
 import {task, types} from 'hardhat/config'
+import deployKlerosMetaEvidence from './klerosMetaEvidence/deploy'
 
 task('accounts', 'Prints the list of accounts', async (taskArgs, hre) => {
   const accounts = await hre.ethers.getSigners()
@@ -35,6 +36,7 @@ task('appeal', 'Appeal a decision by the adjudicator')
     )
 
     console.log('Creating dispute...')
+    // XXX: look up the court fee dynamically? or take it as a command line arg?
     const result = await signer.sendTransaction({
       to: superAdjudicator.address,
       value: ethers.utils.parseEther('0.03'), // court fee... may be different on L1?
@@ -69,4 +71,25 @@ task('enactRuling', 'Enact a decision resolved by the court')
     console.log('Enacting ruling...')
     const result = await superAdjudicator.enactRuling(taskArgs.disputeId)
     console.log('tx', result)
+  })
+
+task('deployKlerosMetaEvidence')
+  .addParam(
+    'superAdjudicatorAddress',
+    'The address of the SuperAdjudicator on L1',
+    undefined,
+    types.string
+  )
+  .addParam(
+    'zorroProfileUrlPrefix',
+    "Url to which `profileId` can be appended, e.g. 'https://zorroy.xyz/profiles/'",
+    undefined,
+    types.string
+  )
+  .setAction(async (taskArgs, hre) => {
+    const {metaEvidenceURI, numRulingOptions} = await deployKlerosMetaEvidence(
+      taskArgs.superAdjudicatorAddress,
+      taskArgs.zorroProfileUrlPrefix
+    )
+    return {metaEvidenceURI, numRulingOptions}
   })

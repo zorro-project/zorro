@@ -156,7 +156,7 @@ contract SuperAdjudicator {
     );
 
     uint256 ruling = arbitrator.currentRuling(disputeId);
-    uint256[] memory payload = new uint256[](2);
+    uint256[] memory payload = new uint256[](3);
     payload[0] = profileId;
     payload[1] = disputeId;
     payload[2] = ruling; // XXX: this ruling will be 0 if adjudicator was wrong, 1 if adjudicator is right, which is not what the Zorro starknet contract expects right now.
@@ -167,10 +167,11 @@ contract SuperAdjudicator {
       payload
     );
 
-    // prevent this same ruling from ever being enacted again. matters because
-    // a profile could be re-challenged, re-adjudicated, and re-appealed —
-    // we wouldn't want someone to be able to enact the old ruling against it.
-    disputeIdToProfileId[profileId] = 0;
+    // There's no need to prevent this same ruling from being enacted again:
+    // Even if a profile is re-challenged, re-adjudicated, and re-appealed,
+    // someone who attempts to enact an old ruling arbitrator ruling will be
+    // foiled because Zorro tracks the disputeId on L2 and makes sure it matches
+    // up.
 
     emit RulingEnacted(profileId, disputeId, ruling);
   }

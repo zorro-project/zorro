@@ -3,6 +3,7 @@ import {getContractAddress} from 'ethers/lib/utils'
 import fs from 'fs'
 import {ec} from 'starknet'
 import {StarknetContract} from 'hardhat/types/runtime'
+import mapValues from 'lodash/mapValues'
 
 export function getRequiredEnv(key: string): string {
   const value = process.env[key]
@@ -34,9 +35,21 @@ export function save(
   path: string,
   network: string,
   name: string,
-  address: string
+  address: string,
+  constructorArgs: Array<any> | {[key: string]: any} = [],
+  verificationCommand?: string
 ) {
-  fs.writeFileSync(`${path}/${name}.json`, JSON.stringify({network, address}))
+  fs.writeFileSync(
+    `${path}/${name}.json`,
+    JSON.stringify({
+      network,
+      address,
+      constructorArgs: Array.isArray(constructorArgs)
+        ? constructorArgs.map((x: any) => x.toString())
+        : mapValues(constructorArgs, (x) => x.toString()),
+      verificationCommand,
+    })
+  )
 }
 
 export function getSelectorFromName(name: string) {
@@ -88,7 +101,7 @@ export async function getEthereumAddressOfNextDeployedContract(
 }
 
 // For kleros arbitration
-export async function generateArbitratorExtraData(
+export function generateArbitratorExtraData(
   subCourtId: number,
   numVotes: number
 ) {

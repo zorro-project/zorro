@@ -18,29 +18,28 @@ const DEV_MODE = !!process.env.DEV_MODE
 const NETWORK = hre.network.name
 const SAVE_PATH = `./deployments/${CHAIN_DEPLOYMENT}`
 
-const getChainSetting = (network: string, layer: string, name: string) => {
-  const chainSettings: any = {
-    goerli: {
-      ethereum: {
-        arbitrableProxyAddress: '0x78ac5F189FC6DAB261437a7B95D11cAcf0234FFe',
-        superAdjudicatorOwnerAddress:
-          '0xEe5fe19b54DDDc740ebEB532B6ADA6F9Cce0512A',
-        klerosCourtId: 0,
-        klerosNumJurorsInFirstRound: 3,
-      },
-      // via `poetry run starknet --network alpha-goerli get_contract_addresses`
-      starknet: {
-        starknetCoreAddress: '0xde29d060D45901Fb19ED6C6e959EB22d8626708e',
-      },
+const getSetting = (chainDeployment: string, name: string): any => {
+  const settings: {[key: string]: {[key: string]: any}} = {
+    development: {
+      L1ArbitrableProxy: '0x78ac5F189FC6DAB261437a7B95D11cAcf0234FFe', // goerli
+      L1SuperAdjudicatorOwner: '0xEe5fe19b54DDDc740ebEB532B6ADA6F9Cce0512A', // goerli
+      L1StarknetCore: '0xde29d060D45901Fb19ED6C6e959EB22d8626708e', // goerli
+      klerosCourtId: 0, // General court is the only one that exists on goerli
+      klerosNumJurorsInFirstRound: 3,
+      zorroProfileUrlPrefix: 'http://localhost:8910/profiles/',
     },
-    mainnet: {},
+    production: {
+      klerosCourtId: 23, // Humanity court
+      klerosNumJurorsInFirstRound: 1,
+      zorroProfileUrlPrefix: 'https://zorro.xyz/profiles/',
+    },
   }
+  settings.staging = settings.development
 
-  const result = chainSettings?.[network]?.[layer]?.[name]
-  if (!result) {
-    throw new Error(`Missing chain setting for ${network}:${layer}:${name}`)
+  const result = settings?.[chainDeployment]?.[name]
+  if (result === undefined) {
+    throw new Error(`Missing setting for ${chainDeployment}:${name}`)
   }
-
   return result
 }
 
@@ -61,6 +60,17 @@ async function main() {
   console.log(
     'Future ethereum super adjudictor address',
     futureEthereumSuperAdjudicatorAddress
+  )
+
+  const {metaEvidenceURI, numRulingOptions} = await hre.run(
+    'deployKlerosMetaEvidence',
+    {
+      superAdjudicatorAddress: futureEthereumSuperAdjudicatorAddress,
+      zorroProfileUrlPrefix: getSetting(
+        CHAIN_DEPLOYMENT,
+        'zorroProfileUrlPrefix'
+      ),
+    }
   )
 
   const [admin, notary, adjudicator, challenger, minter] = await Promise.all([
@@ -110,16 +120,16 @@ async function main() {
   const zorro = await zorroDeployPromise
 
   const superAdjudicator = await ethereumDeploy('SuperAdjudicator', [
-    getChainSetting(NETWORK, 'starknet', 'starknetCoreAddress'),
-    getChainSetting(NETWORK, 'ethereum', 'arbitrableProxyAddress'),
+    getSetting(CHAIN_DEPLOYMENT, 'L1StarknetCore'),
+    getSetting(CHAIN_DEPLOYMENT, 'L1ArbitrableProxy'),
     zorro.address,
-    getChainSetting(NETWORK, 'ethereum', 'superAdjudicatorOwnerAddress'),
+    getSetting(CHAIN_DEPLOYMENT, 'L1SuperAdjudicatorOwner'),
     generateArbitratorExtraData(
-      getChainSetting(NETWORK, 'ethereum', 'klerosCourtId'),
-      getChainSetting(NETWORK, 'ethereum', 'klerosNumJurorsInFirstRound')
+      getSetting(CHAIN_DEPLOYMENT, 'klerosCourtId'),
+      getSetting(CHAIN_DEPLOYMENT, 'klerosNumJurorsInFirstRound')
     ),
-    '/ipfs/QmeLeKbSpgFF2AzJmoZmQxBsHinerp8xUida9dgCqjUFpd/metaEvidence.json', // metaEvidenceURI (can be generated via `courtPolicy/deploy.js`)
-    2, // num ruling options
+    metaEvidenceURI,
+    numRulingOptions,
   ])
 
   expect(
@@ -153,13 +163,20 @@ async function ethereumDeploy(
   console.log(`Deploying to ethereum: ${humanName}`)
   const contractFactory = await hre.ethers.getContractFactory(contractName)
   const contract = await contractFactory.deploy(...constructorArgs)
-  save(SAVE_PATH, NETWORK, saveName || contractName, contract.address)
-  console.log(
-    `Deployed ${humanName} to ethereum: ${contract.address}.`,
-    `To verify: yarn hardhat verify ${contract.address} ${constructorArgs.join(
-      ' '
-    )} --network ${NETWORK}`
+
+  const verificationCommand = `yarn hardhat verify ${
+    contract.address
+  } ${constructorArgs.join(' ')} --network ${NETWORK}`
+  save(
+    SAVE_PATH,
+    NETWORK,
+    saveName || contractName,
+    contract.address,
+    constructorArgs,
+    verificationCommand
   )
+  console.log(`Deployed ${humanName} to ethereum: ${contract.address}.`)
+  console.log('Verification command:', verificationCommand)
   await contract.deployed()
   return contract
 }
@@ -175,11 +192,18 @@ async function starknetDeploy(
     'starknet/' + contractName
   )
   const contract = await contractFactory.deploy(constructorArgs)
-  save(SAVE_PATH, NETWORK, saveName || contractName, contract.address)
-  console.log(
-    `Deployed ${humanName} to starknet: ${contract.address}.`,
-    `To verify: yarn hardhat starknet-verify --starknet-network ${NETWORK} --path contracts/starknet/${contractName}.cairo --address ${contract.address}`
+
+  const verificationCommand = `yarn hardhat starknet-verify --starknet-network ${NETWORK} --path contracts/starknet/${contractName}.cairo --address ${contract.address}`
+  save(
+    SAVE_PATH,
+    NETWORK,
+    saveName || contractName,
+    contract.address,
+    constructorArgs,
+    verificationCommand
   )
+  console.log(`Deployed ${humanName} to starknet: ${contract.address}.`)
+  console.log('Verification command:', verificationCommand)
   return contract
 }
 

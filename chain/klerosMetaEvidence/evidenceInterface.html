@@ -1,0 +1,98 @@
+<style>
+  * {
+    font-family: sans-serif;
+  }
+</style>
+
+<div id="content">Loading evidence...</div>
+
+<script>
+  // Using a simple raw inlined script to avoid maintaing infra for ipfs deploys
+  // of multiple files + dependencies + etc.
+
+  // Expected globals: `SUPER_ADJUDICATION_ADDRESS`, `ZORRO_PROFILE_URL_PREFIX`
+  // (The deploy script prefixes this file with a script tag that contains those
+  // globals)
+
+  // Uncomment to develop evidenceInterace.html locally (update super adj
+  // address if necessary):
+  //const SUPER_ADJUDICATOR_ADDRESS = '0x124802bd0325A707460622f26898234082194bAC'
+  //const ZORRO_PROFILE_URL_PREFIX = 'http://localhost:8910/profiles/'
+
+  const APPEALED_EVENT_TOPIC_0 =
+    '0x886dd5a70b24a05bd397ed55387ac4dc092ac391e6c49210133e7fd9d17bd896' // keccak256('Appealed(uint256,uint256)')
+  const APPEALED_EVENT_PROFILE_ID_INDEX = 1 // profileId is second event topic
+
+  const params = JSON.parse(
+    decodeURIComponent(window.location.search.substr(1))
+  )
+
+  console.log('External params', params)
+
+  // Aiming to exhaustively handle any errors, becuase if something goes wrong
+  // here it's important that jurors are aware
+  const fetchResponse = fetch(params.arbitrableJsonRpcUrl, {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({
+      jsonrpc: '2.0',
+      method: 'eth_getLogs',
+      params: [
+        {
+          address: SUPER_ADJUDICATOR_ADDRESS,
+          fromBlock: 'earliest',
+          toBlock: 'latest',
+          topics: [
+            APPEALED_EVENT_TOPIC_0,
+            null, // profileId
+            '0x' + BigInt(params.disputeID).toString(16).padStart(64, '0'), // disputeId
+          ],
+        },
+      ],
+      id: 1,
+    }),
+  })
+    .catch(handleError)
+    .then((response) => {
+      if (response.status !== 200) {
+        handleError(`json rpc response status: ${response.status}`)
+        return
+      }
+      response
+        .json()
+        .catch(handleError)
+        .then((resultWrapper) => {
+          console.log('json rpc result', resultWrapper)
+          if (resultWrapper.result.length == 0) {
+            handleError('Appeal event not found')
+            return
+          }
+          if (resultWrapper.result.length > 1) {
+            handleError('Got multiple appeal events for a single disputeId')
+            return
+          }
+          renderProfileLink(
+            BigInt(
+              resultWrapper.result[0].topics[APPEALED_EVENT_PROFILE_ID_INDEX]
+            ).toString()
+          )
+        })
+    })
+
+  function handleError(err) {
+    console.log('Unexpected error:', err)
+    render('Unable to display link to Zorro profile due to an expected error')
+  }
+
+  function renderProfileLink(profileId) {
+    render(
+      `<a href='${ZORRO_PROFILE_URL_PREFIX}${profileId}' target='_blank' rel='noopener noreferrer'>
+        Open the Zorro profile which may be associated with this dispute
+      </a>`
+    )
+  }
+
+  function render(str) {
+    document.getElementById('content').innerHTML = str
+  }
+</script>
