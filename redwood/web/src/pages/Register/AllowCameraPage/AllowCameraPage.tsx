@@ -7,21 +7,12 @@ import {
   MediaPermissionsErrorType,
   requestMediaPermissions,
 } from 'mic-check'
-import {useContext, useEffect, useState} from 'react'
-import UserContext from 'src/layouts/UserContext'
-import {appNav, useNav} from 'src/lib/util'
+import {useState} from 'react'
+import {requireWalletConnected} from '../guards'
 import RegisterLogo from '../RegisterLogo'
 
-export const requireCameraAllowed = async () => {
-  // Make sure we have camera permissions
-  useEffect(() => {
-    requestMediaPermissions().catch(() => appNav(routes.registerAllowCamera()))
-  }, [])
-}
-
 const AllowCameraPage: React.FC = () => {
-  const {ethereumAddress} = useContext(UserContext)
-  if (!ethereumAddress) return useNav(routes.registerIntro(), {replace: true})
+  requireWalletConnected()
 
   const [requestingPermissions, setRequestingPermissions] = useState(false)
 

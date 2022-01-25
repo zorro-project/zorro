@@ -3,29 +3,26 @@ import {CircularProgress} from '@chakra-ui/progress'
 import {Button, Image, Stack} from '@chakra-ui/react'
 import {navigate, routes} from '@redwoodjs/router'
 import {useMutation} from '@redwoodjs/web'
-import React, {useCallback, useContext} from 'react'
+import React, {useCallback} from 'react'
 import ReactPlayer from 'react-player'
-import {maybeCidToUrl} from 'src/lib/util'
-import UserContext from 'src/layouts/UserContext'
+import {useUser} from 'src/layouts/UserContext'
 import ipfsClient from 'src/lib/ipfs'
-import {dataUrlToBlob, isLocalUrl, useNav} from 'src/lib/util'
+import {useGuard} from 'src/lib/useGuard'
+import {dataUrlToBlob, isLocalUrl, maybeCidToUrl} from 'src/lib/util'
 import {registerSlice} from 'src/state/registerSlice'
 import {useAppDispatch, useAppSelector} from 'src/state/store'
 import {
   UpdateUnsubmittedProfileMutation,
   UpdateUnsubmittedProfileMutationVariables,
 } from 'types/graphql'
+import {requireWalletConnected} from '../guards'
 import RegisterLogo from '../RegisterLogo'
 import Title from '../Title'
 import UserMediaBox from '../UserMediaBox'
 
 const SubmitPage = ({initialSubmitProgress = -1}) => {
-  const {
-    ethereumAddress,
-    unsubmittedProfile,
-    refetch: refetchUser,
-  } = useContext(UserContext)
-  if (!ethereumAddress) return useNav(routes.registerIntro(), {replace: true})
+  const {unsubmittedProfile, refetch: refetchUser} = useUser()
+  const ethereumAddress = requireWalletConnected()
 
   const [submitProgress, setSubmitProgress] = React.useState(
     initialSubmitProgress
@@ -34,8 +31,7 @@ const SubmitPage = ({initialSubmitProgress = -1}) => {
   const registerState = useAppSelector((state) => state.register)
   const dispatch = useAppDispatch()
 
-  if (registerState.photo == null || registerState.video == null)
-    return useNav(routes.registerPhoto(), {replace: true})
+  useGuard(registerState.photo && registerState.video, routes.registerPhoto())
 
   const [updateMutation] = useMutation<
     UpdateUnsubmittedProfileMutation,

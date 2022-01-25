@@ -10,18 +10,18 @@ import {
 } from '@chakra-ui/react'
 import {routes} from '@redwoodjs/router'
 import {useMutation} from '@redwoodjs/web'
-import {useContext, useEffect, useRef, useState} from 'react'
+import {useEffect, useRef, useState} from 'react'
 import {RLink} from 'src/components/links'
-import UserContext from 'src/layouts/UserContext'
-import {appNav, useNav} from 'src/lib/util'
+import {useUser} from 'src/layouts/UserContext'
+import {appNav} from 'src/lib/util'
 import {CreateUserMutation, CreateUserMutationVariables} from 'types/graphql'
+import {requireWalletConnected} from '../guards'
 import RegisterLogo from '../RegisterLogo'
 import Title from '../Title'
 
 const EmailPage: React.FC<{next?: 'submitted' | undefined}> = ({next}) => {
-  const user = useContext(UserContext)
-  if (!user?.ethereumAddress)
-    return useNav(routes.registerIntro(), {replace: true})
+  requireWalletConnected()
+  const user = useUser()
 
   const nextPage =
     next === 'submitted' ? routes.registerSubmitted() : routes.registerSubmit()

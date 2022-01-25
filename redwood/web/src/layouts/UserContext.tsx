@@ -75,4 +75,6 @@ export function UserContextProvider({children}: {children: React.ReactNode}) {
   return <UserContext.Provider value={context}>{children}</UserContext.Provider>
 }
 
+export const useUser = () => React.useContext(UserContext)
+
 export default UserContext

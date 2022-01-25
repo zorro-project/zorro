@@ -2,16 +2,16 @@ import {AspectRatio, Box, Stack, Text} from '@chakra-ui/layout'
 import {Button, Fade, Spacer} from '@chakra-ui/react'
 import {routes} from '@redwoodjs/router'
 import {MetaTags} from '@redwoodjs/web'
-import {useCallback, useContext, useRef, useState} from 'react'
+import {useCallback, useRef, useState} from 'react'
 import ReactPlayer from 'react-player'
 import Webcam from 'react-webcam'
 import {RLink} from 'src/components/links'
-import UserContext from 'src/layouts/UserContext'
-import {maybeCidToUrl, useNav} from 'src/lib/util'
+import {useGuard} from 'src/lib/useGuard'
+import {maybeCidToUrl} from 'src/lib/util'
 import {registerSlice} from 'src/state/registerSlice'
 import {useAppDispatch, useAppSelector} from 'src/state/store'
 import {useIsFirstRender} from 'usehooks-ts'
-import {requireCameraAllowed} from '../AllowCameraPage/AllowCameraPage'
+import {requireCameraAllowed, requireWalletConnected} from '../guards'
 import UserMediaBox from '../UserMediaBox'
 
 export const videoConstraints: MediaTrackConstraints = {
@@ -21,19 +21,11 @@ export const videoConstraints: MediaTrackConstraints = {
 }
 
 const VideoPage = ({mockRecording = false}) => {
-  const {ethereumAddress} = useContext(UserContext)
-  if (!ethereumAddress)
-    return useNav(routes.registerIntro(), {
-      toast: {
-        title: 'Please connect a wallet',
-        status: 'warning',
-      },
-    })
+  requireWalletConnected()
+  requireCameraAllowed()
 
   const {photo, video} = useAppSelector((state) => state.register)
-  if (!photo) return useNav(routes.registerPhoto(), {replace: true})
-
-  requireCameraAllowed()
+  useGuard(photo, routes.registerPhoto())
 
   const webcamRef = useRef<Webcam>(null)
   const [webcamReady, setWebcamReady] = useState(false)
