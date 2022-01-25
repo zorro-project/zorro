@@ -100,7 +100,7 @@ const SubmitPage = ({initialSubmitProgress = -1}) => {
       },
     })
 
-    await refetchUser()
+    await refetchUser?.()
     navigate(routes.registerSubmitted())
   }, [ethereumAddress, updateMutation])
 

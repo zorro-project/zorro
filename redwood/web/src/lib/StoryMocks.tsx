@@ -1,10 +1,7 @@
 import {Store} from '@reduxjs/toolkit'
 import {merge} from 'lodash'
 import {Provider} from 'react-redux'
-import UserContext, {
-  defaultValue,
-  UserContextType,
-} from 'src/layouts/UserContext'
+import UserContext, {UserContextType} from 'src/layouts/UserContext'
 import store, {RootState} from 'src/state/store'
 import {PartialDeep} from 'type-fest'
 
@@ -24,7 +21,7 @@ export const StoryMocks: React.FC<{
   }
 
   return (
-    <UserContext.Provider value={merge({}, defaultValue, user)}>
+    <UserContext.Provider value={merge({}, user) as UserContextType}>
       <Provider store={mockStore}>{children}</Provider>
     </UserContext.Provider>
   )

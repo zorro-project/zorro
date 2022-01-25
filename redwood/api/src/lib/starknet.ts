@@ -94,7 +94,7 @@ export async function erc20Approve(
     type: 'INVOKE_FUNCTION',
     contract_address: ERC20Address,
     entry_point_selector: stark.getSelectorFromName('approve'),
-    calldata: [spender, uintAmount.low, uintAmount.high],
+    calldata: [spender, uintAmount.low.toString(), uintAmount.high.toString()],
   })
 
   return defaultProvider.waitForTx(resp.transaction_hash)
@@ -128,7 +128,7 @@ export async function erc20Mint(
     type: 'INVOKE_FUNCTION',
     contract_address: ERC20Address,
     entry_point_selector: stark.getSelectorFromName('mint'),
-    calldata: [owner, uintAmount.low, uintAmount.high],
+    calldata: [owner, uintAmount.low.toString(), uintAmount.high.toString()],
   })
 
   return defaultProvider.waitForTx(resp.transaction_hash)

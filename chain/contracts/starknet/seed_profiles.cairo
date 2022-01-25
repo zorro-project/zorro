@@ -7,7 +7,8 @@ func _get_seed_profiles() -> (profiles_len : felt, profiles : Profile*):
 
     assert profiles[0] = Profile(
         cid=2540330837585055780539510783934115607915723316677950747298602475656452204,
-        ethereum_address=123043450,
+        # Address 0x334230242D318b5CA159fc38E07dC1248B7b35e4
+        ethereum_address=292634572195081279459106569596060995238487602660,
         submitter_address=23452345,
         submission_timestamp=2345,
         is_notarized=1,
