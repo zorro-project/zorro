@@ -1,15 +1,16 @@
 import {CachedProfile} from '@prisma/client'
 import {CID} from 'ipfs-http-client'
 import {db} from 'src/lib/db'
+import {NOTARY_PHONE_NUMBERS} from 'src/lib/protocolNotifications'
 import {
+  parseBigNumber,
+  parseBigNumberAsDecimalString,
   parseBoolean,
   parseCid,
   parseEthereumAddress,
   parseNumber,
   parseStarknetAddress,
   parseTimestamp,
-  parseBigNumber,
-  parseBigNumberAsDecimalString,
 } from 'src/lib/serializers'
 import {exportProfileById, getNumProfiles} from 'src/lib/starknet'
 import {sendMessage} from 'src/lib/twilio'
@@ -19,7 +20,6 @@ import {
   parseChallengeStatus,
 } from 'src/services/cachedProfiles/cachedProfiles'
 import {maybeNotify} from 'src/services/notifications/notifications'
-import {NOTARIES} from 'src/services/unsubmittedProfiles/unsubmittedProfiles'
 
 const syncStarknetState = async (onlyNewProfiles = false) => {
   console.log('Starting StarkNet sync')
@@ -176,7 +176,10 @@ export const sendNotifications = async (profile: CachedProfile) => {
       async () => {
         // Just send a message to the notaries for now. Later we'll probably
         // want to post this to a Discord channel.
-        await sendMessage(NOTARIES, `New challenge to profile ${profile.id}`)
+        await sendMessage(
+          NOTARY_PHONE_NUMBERS,
+          `New challenge to profile ${profile.id}`
+        )
       }
     )
   }

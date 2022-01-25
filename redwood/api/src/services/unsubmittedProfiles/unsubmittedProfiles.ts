@@ -3,6 +3,7 @@ import type {
   UnsubmittedProfile as PrismaUnsubmittedProfile,
 } from '@prisma/client'
 import {db} from 'src/lib/db'
+import {NOTARY_PHONE_NUMBERS} from 'src/lib/protocolNotifications'
 import {pusher} from 'src/lib/pusher'
 import {sendMessage} from 'src/lib/twilio'
 import sendNotaryApproved from 'src/mailers/sendNotaryApproved'
@@ -27,12 +28,6 @@ const alertProfileUpdated = (
     'updated',
     {}
   )
-
-// Just hard-code these for now. Will get fancier later.
-export const NOTARIES = [
-  '+18016131318', // Kyle
-  '+16175958777', // Ted
-]
 
 export const unsubmittedProfiles = async ({
   pendingReview,
@@ -67,7 +62,7 @@ export const updateUnsubmittedProfile = async ({
 
   if (pendingCount > 0) {
     await sendMessage(
-      NOTARIES,
+      NOTARY_PHONE_NUMBERS,
       `${pendingCount} Zorro profiles awaiting review. http://localhost:8910/unsubmitted-profiles`
     )
   }

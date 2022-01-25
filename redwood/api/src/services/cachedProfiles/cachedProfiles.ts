@@ -8,8 +8,6 @@ import {
 } from 'types/graphql'
 import {ContractCache} from '../contractCache/contractCache'
 
-import * as testing from 'src/tasks/syncStarknetState'
-console.log('more testing', {testing})
 export const cachedProfiles = async ({
   first,
   cursor,
