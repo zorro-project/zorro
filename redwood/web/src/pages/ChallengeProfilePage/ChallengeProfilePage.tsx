@@ -88,7 +88,7 @@ const NotChallenged = (props: {query: ChallengePageQuery}) => {
     setSubmissionStatus('Ensuring sufficient balance...')
     const balance = await erc20GetBalanceOf(userWalletContractAddress)
 
-    if (balance < depositSize) {
+    if (balance.toNumber() < depositSize) {
       toast({
         title:
           'You have insufficient funds to submit a challenge. Add funds to your wallet and try again.',

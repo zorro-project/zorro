@@ -1,7 +1,7 @@
 import {ChakraProvider} from '@chakra-ui/react'
 import {FatalErrorBoundary, RedwoodProvider} from '@redwoodjs/web'
 import {RedwoodApolloProvider} from '@redwoodjs/web/apollo'
-import {DAppProvider} from '@usedapp/core'
+import {Provider as EthersProvider} from 'wagmi'
 import {Provider as ReactReduxProvider} from 'react-redux'
 import FatalErrorPage from 'src/pages/FatalErrorPage'
 import Routes from 'src/Routes'
@@ -16,13 +16,13 @@ const App = () => {
       <RedwoodProvider titleTemplate="%PageTitle | %AppTitle">
         <ReactReduxProvider store={store}>
           <RedwoodApolloProvider>
-            <DAppProvider config={{}}>
+            <EthersProvider autoConnect>
               <UserContextProvider>
                 <ChakraProvider theme={theme}>
                   <Routes />
                 </ChakraProvider>
               </UserContextProvider>
-            </DAppProvider>
+            </EthersProvider>
           </RedwoodApolloProvider>
         </ReactReduxProvider>
       </RedwoodProvider>

@@ -1,20 +1,23 @@
 import {useLazyQuery} from '@apollo/client'
 import {useTimeout} from '@chakra-ui/react'
-import {useEthers} from '@usedapp/core'
+import {getAddress} from 'ethers/lib/utils'
 import {useState} from 'react'
 import {UserContextQuery, UserContextQueryVariables} from 'types/graphql'
 import useLocalStorageState from 'use-local-storage-state'
+import {useAccount} from 'wagmi'
 
-export type UserContextType = {
-  ethereumAddress?: string
-  refetch: () => void
-} & UserContextQuery
+export type UserContextType =
+  | ({
+      ethereumAddress: string
+      refetch: () => void
+      loading: boolean
+    } & UserContextQuery)
+  | Record<string, undefined>
 
-export const defaultValue = {refetch: () => {}}
-const UserContext = React.createContext<UserContextType>(defaultValue)
+const UserContext = React.createContext<UserContextType>({})
 
 export function UserContextProvider({children}: {children: React.ReactNode}) {
-  const ethers = useEthers()
+  const [account] = useAccount()
 
   const [ethereumAddress, setEthereumAddress] = useLocalStorageState<
     string | undefined
@@ -29,7 +32,7 @@ export function UserContextProvider({children}: {children: React.ReactNode}) {
     useState(false)
   useTimeout(() => setInitialLoadTimeoutExpired(true), 1000)
 
-  const [queryUser, {data, refetch}] = useLazyQuery<
+  const [queryUser, userContextQuery] = useLazyQuery<
     UserContextQuery,
     UserContextQueryVariables
   >(
@@ -55,22 +58,26 @@ export function UserContextProvider({children}: {children: React.ReactNode}) {
 
   React.useEffect(() => {
     if (initialLoadTimeoutExpired) {
-      setEthereumAddress(ethers.account ?? undefined)
+      setEthereumAddress(
+        account.data?.address ? getAddress(account.data?.address) : undefined
+      )
     }
-  }, [ethers.account, initialLoadTimeoutExpired, setEthereumAddress])
+  }, [account.data?.address, initialLoadTimeoutExpired, setEthereumAddress])
 
   React.useEffect(() => {
     if (ethereumAddress) queryUser({variables: {ethereumAddress}})
   }, [ethereumAddress, queryUser])
 
-  const context: UserContextType = {
-    ethereumAddress,
-    refetch,
-    ...data,
-  }
+  let context = {} as UserContextType
 
-  // If we know we have a user, let's not render the page until we know who they are to avoid a flash.
-  if (ethereumAddress && !data) return null
+  if (ethereumAddress) {
+    context = {
+      ethereumAddress,
+      refetch: userContextQuery.refetch,
+      loading: userContextQuery.loading,
+      ...userContextQuery.data,
+    } as UserContextType
+  }
 
   return <UserContext.Provider value={context}>{children}</UserContext.Provider>
 }

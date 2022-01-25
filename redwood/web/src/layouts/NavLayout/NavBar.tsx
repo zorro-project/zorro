@@ -94,26 +94,27 @@ const NavBar = () => {
     },
   ]
 
-  if (user.cachedProfile) {
-    navItems.push({
-      label: 'My Profile',
-      href: routes.profile({id: user.cachedProfile.id}),
-      icon: BsPersonBadge,
-    })
-  } else if (user.unsubmittedProfile) {
-    navItems.push({
-      label: 'Complete Profile',
-      href: routes.registerSubmitted(),
-      icon: BsPersonPlus,
-    })
-  } else {
-    navItems.push({
-      label: 'Create Profile',
-      href: routes.registerIntro(),
-      icon: BsPersonPlus,
-    })
+  if (!user.loading) {
+    if (user.cachedProfile) {
+      navItems.push({
+        label: 'My Profile',
+        href: routes.profile({id: user.cachedProfile.id}),
+        icon: BsPersonBadge,
+      })
+    } else if (user.unsubmittedProfile) {
+      navItems.push({
+        label: 'Complete Registration',
+        href: routes.registerSubmitted(),
+        icon: BsPersonPlus,
+      })
+    } else {
+      navItems.push({
+        label: 'Register',
+        href: routes.registerIntro(),
+        icon: BsPersonPlus,
+      })
+    }
   }
-
   return (
     <Box>
       <Flex

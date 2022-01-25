@@ -15,7 +15,7 @@
     "nodemailer": "^6.7.0",
     "nodemailer-html-to-text": "^3.2.0",
     "pusher": "^5.0.0",
-    "starknet": "^2.5.0",
+    "starknet": "^2.5.1",
     "ts-jest": "^27.1.2",
     "twilio": "^3.70.0"
   },

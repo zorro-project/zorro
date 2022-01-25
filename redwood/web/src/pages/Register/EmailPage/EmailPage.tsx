@@ -62,7 +62,7 @@ const EmailPage: React.FC<{next?: 'submitted' | undefined}> = ({next}) => {
         },
       },
     })
-    await user.refetch()
+    await user.refetch?.()
     appNav(nextPage)
   }
 
