@@ -1,8 +1,7 @@
 import {Image} from '@chakra-ui/image'
 import {AspectRatio, AspectRatioProps, Box} from '@chakra-ui/layout'
 import ReactPlayer from 'react-player'
-import {cidToUrl} from 'src/lib/ipfs'
-import {isLocalUrl} from 'src/lib/util'
+import {maybeCidToUrl} from 'src/lib/util'
 
 const SquareBox = (props: AspectRatioProps) => (
   <AspectRatio
@@ -17,11 +16,6 @@ const SquareBox = (props: AspectRatioProps) => (
 )
 
 export default SquareBox
-
-export const maybeCidToUrl: (value: string) => string = (value) => {
-  if (isLocalUrl(value)) return value
-  return cidToUrl(value)
-}
 
 export const PhotoBox = ({
   photo,

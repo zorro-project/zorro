@@ -28,7 +28,7 @@ const theme = extendTheme({
     },
     Button: {
       variants: {
-        'signup-primary': (props: StyleFunctionProps) => ({
+        'register-primary': (props: StyleFunctionProps) => ({
           alignSelf: 'center',
           ...baseTheme.components.Button.variants.solid({
             ...props,
@@ -36,7 +36,7 @@ const theme = extendTheme({
           }),
           ...baseTheme.components.Button.sizes['lg'],
         }),
-        'signup-secondary': (props: StyleFunctionProps) => ({
+        'register-secondary': (props: StyleFunctionProps) => ({
           alignSelf: 'center',
           ...baseTheme.components.Button.variants.link({
             ...props,
