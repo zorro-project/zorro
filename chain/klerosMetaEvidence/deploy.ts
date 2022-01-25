@@ -2,26 +2,25 @@ import fs from 'fs'
 import {resolve as resolvePath, basename} from 'path'
 import fetch from 'node-fetch'
 
-// returns metaEvidenceURI
 export default async function deploy(
   superAdjudicatorAddress: string,
   zorroProfileUrlPrefix: string
 ) {
   console.log('Deploying primary document')
-  const primaryDocumentURI = await deployAsset(
-    resolvePath(__dirname, 'assets/primaryDocument.txt')
+  const primaryDocumentURI = await publishAsset(
+    resolvePath(__dirname, 'primaryDocument.txt')
   )
   console.log('Primary document URI:', primaryDocumentURI)
 
   console.log('Deploying evidence display interface')
-  const evidenceDisplayInterfaceURI = await deployEvidenceInterface(
+  const evidenceDisplayInterfaceURI = await publishEvidenceInterface(
     superAdjudicatorAddress,
     zorroProfileUrlPrefix
   )
   console.log('Evidence display interface URI:', evidenceDisplayInterfaceURI)
 
   console.log('Deploying metaEvidence')
-  const metaEvidenceURI = await deployMetaEvidence(
+  const {metaEvidenceURI, numRulingOptions} = await publishMetaEvidence(
     primaryDocumentURI,
     evidenceDisplayInterfaceURI
   )
@@ -29,10 +28,10 @@ export default async function deploy(
     `metaEvidence URI: ${metaEvidenceURI} (https://ipfs.kleros.io${metaEvidenceURI})`
   )
 
-  return metaEvidenceURI
+  return {metaEvidenceURI, numRulingOptions}
 }
 
-async function deployEvidenceInterface(
+async function publishEvidenceInterface(
   superAdjudicatorAddress: string,
   zorroProfileUrlPrefix: string
 ) {
@@ -41,10 +40,7 @@ async function deployEvidenceInterface(
   SUPER_ADJUDICATOR_ADDRESS = ${JSON.stringify(superAdjudicatorAddress)}
   ZORRO_PROFILE_URL_PREFIX = ${JSON.stringify(zorroProfileUrlPrefix)}
 </script>
-${fs.readFileSync(
-  resolvePath(__dirname, 'assets/evidenceInterface.html'),
-  'utf8'
-)}
+${fs.readFileSync(resolvePath(__dirname, 'evidenceInterface.html'), 'utf8')}
 `
 
   const evidenceInterfaceURI = await publishToIpfs(
@@ -55,7 +51,7 @@ ${fs.readFileSync(
   return evidenceInterfaceURI
 }
 
-async function deployMetaEvidence(
+async function publishMetaEvidence(
   primaryDocumentURI: string,
   evidenceDisplayInterfaceURI: string
 ) {
@@ -88,10 +84,13 @@ async function deployMetaEvidence(
     JSON.stringify(metaEvidence)
   )
 
-  return metaEvidenceURI
+  return {
+    metaEvidenceURI,
+    numRulingOptions: metaEvidence.rulingOptions.titles.length,
+  }
 }
 
-async function deployAsset(path: string): Promise<string> {
+async function publishAsset(path: string): Promise<string> {
   if (!fs.existsSync(path)) throw new Error('Missing primary document')
   const fileName = basename(path)
   const content = fs.readFileSync(path, 'utf8')

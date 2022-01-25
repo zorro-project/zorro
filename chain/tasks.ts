@@ -36,6 +36,7 @@ task('appeal', 'Appeal a decision by the adjudicator')
     )
 
     console.log('Creating dispute...')
+    // XXX: look up the court fee dynamically? or take it as a command line arg?
     const result = await signer.sendTransaction({
       to: superAdjudicator.address,
       value: ethers.utils.parseEther('0.03'), // court fee... may be different on L1?
@@ -86,9 +87,9 @@ task('deployKlerosMetaEvidence')
     types.string
   )
   .setAction(async (taskArgs, hre) => {
-    const metaEvidenceURI = deployKlerosMetaEvidence(
+    const {metaEvidenceURI, numRulingOptions} = await deployKlerosMetaEvidence(
       taskArgs.superAdjudicatorAddress,
       taskArgs.zorroProfileUrlPrefix
     )
-    return metaEvidenceURI
+    return {metaEvidenceURI, numRulingOptions}
   })

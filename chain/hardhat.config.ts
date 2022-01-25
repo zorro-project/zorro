@@ -10,10 +10,15 @@ import 'solidity-coverage'
 
 import './tasks'
 
-const mnemonic: string | undefined = process.env.MNEMONIC
-if (!mnemonic) {
-  throw new Error('Please set your MNEMONIC in a .env file')
+const mnemonicPartOne: string | undefined = process.env.MNEMONIC_PART_ONE
+const mnemonicPartTwo: string | undefined = process.env.MNEMONIC_PART_TWO
+if (!mnemonicPartOne || !mnemonicPartTwo) {
+  throw new Error(
+    'Please set MNEMONIC_PART_ONE and MNEMONIC_PART_TWO in a .env file'
+  )
 }
+
+const mnemonic = `${mnemonicPartOne} ${mnemonicPartTwo}`
 
 const infuraApiKey: string | undefined = process.env.INFURA_API_KEY
 if (!infuraApiKey) {

@@ -16,7 +16,7 @@
 
   // Uncomment to develop evidenceInterace.html locally (update super adj
   // address if necessary):
-  //const SUPER_ADJUDICATOR_ADDRESS = '0x09e5b8334bd71Dd50869F7F02C2e02E3c3a3627c'
+  //const SUPER_ADJUDICATOR_ADDRESS = '0x124802bd0325A707460622f26898234082194bAC'
   //const ZORRO_PROFILE_URL_PREFIX = 'http://localhost:8910/profiles/'
 
   const APPEALED_EVENT_TOPIC_0 =
@@ -45,7 +45,7 @@
           topics: [
             APPEALED_EVENT_TOPIC_0,
             null, // profileId
-            '0x' + params.disputeID.toString(16).padStart(64, '0'), // disputeId
+            '0x' + BigInt(params.disputeID).toString(16).padStart(64, '0'), // disputeId
           ],
         },
       ],
@@ -63,7 +63,11 @@
         .catch(handleError)
         .then((resultWrapper) => {
           console.log('json rpc result', resultWrapper)
-          if (resultWrapper.result.length !== 1) {
+          if (resultWrapper.result.length == 0) {
+            handleError('Appeal event not found')
+            return
+          }
+          if (resultWrapper.result.length > 1) {
             handleError('Got multiple appeal events for a single disputeId')
             return
           }
