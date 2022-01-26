@@ -4,9 +4,11 @@ import dill
 import os
 import sys
 from types import SimpleNamespace
+import time
 
 from starkware.starknet.compiler.compile import compile_starknet_files
 from starkware.starknet.testing.starknet import Starknet, StarknetContract
+from starkware.starknet.business_logic.state import BlockInfo
 
 from OpenZeppelin.Signer import Signer
 from utils import uint
@@ -23,6 +25,16 @@ def compile(path):
         files=[path],
         debug_info=True,
         cairo_path=CONTRACT_SRC,
+    )
+
+
+def get_block_timestamp(starknet_state):
+    return starknet_state.state.block_info.block_timestamp
+
+
+def set_block_timestamp(starknet_state, timestamp):
+    starknet_state.state.block_info = BlockInfo(
+        starknet_state.state.block_info.block_number, timestamp
     )
 
 
@@ -57,6 +69,9 @@ def event_loop():
 
 async def build_copyable_deployment():
     starknet = await Starknet.empty()
+
+    # initialize a realistic timestamp
+    set_block_timestamp(starknet.state, round(time.time()))
 
     defs = SimpleNamespace(
         account=compile("OpenZeppelin/account.cairo"),
@@ -182,8 +197,14 @@ async def ctx_factory(copyable_deployment):
                 calldata,
             )
 
+        def advance_clock(num_seconds):
+            set_block_timestamp(
+                starknet_state, get_block_timestamp(starknet_state) + num_seconds
+            )
+
         return SimpleNamespace(
             starknet=Starknet(starknet_state),
+            advance_clock=advance_clock,
             consts=consts,
             execute=execute,
             **contracts,  # notary, zorro, erc20, etc

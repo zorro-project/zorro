@@ -533,17 +533,6 @@
         "type": "function"
     },
     {
-        "inputs": [
-            {
-                "name": "duration",
-                "type": "felt"
-            }
-        ],
-        "name": "_dev_advance_clock",
-        "outputs": [],
-        "type": "function"
-    },
-    {
         "inputs": [],
         "name": "_dev_add_seed_profiles",
         "outputs": [],
