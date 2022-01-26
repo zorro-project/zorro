@@ -1,6 +1,6 @@
 // Inspired by https://github.com/makerdao/starknet-dai-bridge/blob/mk/draft/scripts/deploy.ts
 
-import hre from 'hardhat'
+import hre, {ethers} from 'hardhat'
 import {expect} from 'chai'
 import {
   getRequiredEnv,
@@ -27,11 +27,13 @@ const getSetting = (chainDeployment: string, name: string): any => {
       klerosCourtId: 0, // General court is the only one that exists on goerli
       klerosNumJurorsInFirstRound: 3,
       zorroProfileUrlPrefix: 'http://localhost:8910/profiles/',
+      appealBountySize: ethers.utils.parseEther('0.0001'),
     },
     production: {
       klerosCourtId: 23, // Humanity court
       klerosNumJurorsInFirstRound: 1,
       zorroProfileUrlPrefix: 'https://zorro.xyz/profiles/',
+      appealBountySize: ethers.utils.parseEther('0.25'),
     },
   }
   settings.staging = settings.development
@@ -124,6 +126,7 @@ async function main() {
     getSetting(CHAIN_DEPLOYMENT, 'L1ArbitrableProxy'),
     zorro.address,
     getSetting(CHAIN_DEPLOYMENT, 'L1SuperAdjudicatorOwner'),
+    getSetting(CHAIN_DEPLOYMENT, 'appealBountySize'),
     generateArbitratorExtraData(
       getSetting(CHAIN_DEPLOYMENT, 'klerosCourtId'),
       getSetting(CHAIN_DEPLOYMENT, 'klerosNumJurorsInFirstRound')

@@ -18,7 +18,7 @@ uint256 constant ZORRO_APPEAL_SELECTOR = uint256(
   keccak256('appeal') & bytes32(MASK_250)
 );
 
-interface IStarknetCore {
+interface IStarknetCoreLike {
   // Sends a message to an L2 contract. Returns the hash of the message.
   function sendMessageToL2(
     uint256 to_address,
@@ -28,7 +28,7 @@ interface IStarknetCore {
 }
 
 // Interface for https://github.com/kleros/arbitrable-proxy-contracts/blob/master/contracts/ArbitrableProxy.sol
-interface IArbitrableProxy {
+interface IArbitrableProxyLike {
   function arbitrator() external returns (IArbitrator);
 
   function createDispute(
@@ -51,7 +51,11 @@ contract SuperAdjudicator {
     uint256 numRulingOptions
   );
 
-  event Appealed(uint256 indexed profileId, uint256 indexed disputeId);
+  event Appealed(
+    uint256 indexed profileId,
+    uint256 indexed disputeId,
+    address appellant
+  );
 
   event RulingEnacted(
     uint256 indexed profileId,
@@ -59,20 +63,29 @@ contract SuperAdjudicator {
     uint256 ruling
   );
 
+  event Funded(address funder, uint256 amount);
+
+  struct Appeal {
+    uint256 profileId; // a profileId of 0 denotes an appeal which does not exist (was resolved, or never was created)
+    address appellant;
+  }
+
   // Set once during construction
-  IStarknetCore public immutable starknetCore;
-  IArbitrableProxy public immutable arbitrableProxy;
+  IStarknetCoreLike public immutable starknetCore;
+  IArbitrableProxyLike public immutable arbitrableProxy;
   uint256 public immutable zorroL2Address;
 
   address public owner; // Owner can modify arbitrator configuration
+  uint256 public bountySize; // wei
   ArbitratorConfiguration public arbitratorConfiguration;
-  mapping(uint256 => uint256) public disputeIdToProfileId;
+  mapping(uint256 => Appeal) public disputeIdToAppeal;
 
   constructor(
-    IStarknetCore _starknetCore,
-    IArbitrableProxy _arbitrableProxy,
+    IStarknetCoreLike _starknetCore,
+    IArbitrableProxyLike _arbitrableProxy,
     uint256 _zorroL2Address,
     address _owner,
+    uint256 _bountySize,
     bytes memory _arbitratorExtraData,
     string memory _metaEvidenceURI,
     uint256 _numRulingOptions
@@ -81,12 +94,18 @@ contract SuperAdjudicator {
     arbitrableProxy = _arbitrableProxy;
     zorroL2Address = _zorroL2Address;
     owner = _owner;
+    bountySize = _bountySize;
     _setPolicy(_arbitratorExtraData, _metaEvidenceURI, _numRulingOptions);
   }
 
   function setOwner(address newOwner) external {
     require(msg.sender == owner, 'caller is not the owner');
     owner = newOwner;
+  }
+
+  function setBounty(uint256 newBountySize) external {
+    require(msg.sender == owner, 'caller is not the owner');
+    bountySize = newBountySize;
   }
 
   function setPolicy(
@@ -129,7 +148,9 @@ contract SuperAdjudicator {
       arbitratorConfiguration.numRulingOptions
     );
 
-    disputeIdToProfileId[disputeId] = profileId;
+    Appeal storage _appeal = disputeIdToAppeal[disputeId];
+    _appeal.profileId = profileId;
+    _appeal.appellant = msg.sender;
 
     uint256[] memory payload = new uint256[](2);
     payload[0] = profileId;
@@ -141,13 +162,16 @@ contract SuperAdjudicator {
       payload
     );
 
-    emit Appealed(profileId, disputeId);
+    emit Appealed(profileId, disputeId, msg.sender);
     return disputeId;
   }
 
   function enactRuling(uint256 disputeId) external {
-    uint256 profileId = disputeIdToProfileId[disputeId];
-    require(profileId != 0, "dispute doesn't exist");
+    Appeal storage _appeal = disputeIdToAppeal[disputeId];
+    require(
+      _appeal.profileId != 0,
+      'dispute never existed or was already enacted'
+    );
     IArbitrator arbitrator = arbitrableProxy.arbitrator();
     IArbitrator.DisputeStatus status = arbitrator.disputeStatus(disputeId);
     require(
@@ -157,9 +181,14 @@ contract SuperAdjudicator {
 
     uint256 ruling = arbitrator.currentRuling(disputeId);
     uint256[] memory payload = new uint256[](3);
-    payload[0] = profileId;
+    payload[0] = _appeal.profileId;
     payload[1] = disputeId;
-    payload[2] = ruling; // XXX: this ruling will be 0 if adjudicator was wrong, 1 if adjudicator is right, which is not what the Zorro starknet contract expects right now.
+    payload[2] = ruling; // 0 if upholding adjudicator; 1 if overturning adjudicator
+
+    // mark the appeal as handled prior to triggering any
+    // side effects (there shouldn't be any opportunities for re-entrancy, but
+    // the memory of The DAO lives on.)
+    _appeal.profileId = 0;
 
     starknetCore.sendMessageToL2(
       zorroL2Address,
@@ -167,12 +196,22 @@ contract SuperAdjudicator {
       payload
     );
 
-    // There's no need to prevent this same ruling from being enacted again:
-    // Even if a profile is re-challenged, re-adjudicated, and re-appealed,
-    // someone who attempts to enact an old ruling arbitrator ruling will be
-    // foiled because Zorro tracks the disputeId on L2 and makes sure it matches
-    // up.
+    // If the appellant won, pay them a bounty if possible.
+    if (ruling == 1) {
+      uint256 balance = address(this).balance;
 
-    emit RulingEnacted(profileId, disputeId, ruling);
+      // using `send` rather than `transfer` because we don't want the caller
+      // to be able to block this transaction from going through.
+      payable(_appeal.appellant).send(
+        bountySize < balance ? bountySize : balance
+      );
+    }
+
+    emit RulingEnacted(_appeal.profileId, disputeId, ruling);
+  }
+
+  // Be able to receive eth (forms appeal bounty pool)
+  receive() external payable {
+    emit Funded(msg.sender, msg.value);
   }
 }
