@@ -149,7 +149,7 @@ export const isVerified = (
     | 'challengeTimestamp'
     | 'superAdjudicationTimestamp'
     | 'didAdjudicatorVerifyProfile'
-    | 'didSuperAdjudicatorOverturnAdjudciator'
+    | 'didSuperAdjudicatorOverturnAdjudicator'
     | 'adjudicationTimestamp'
     | 'appealTimestamp'
     | 'submissionTimestamp'
