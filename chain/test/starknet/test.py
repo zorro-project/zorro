@@ -55,9 +55,9 @@ async def _maybe_return_submission_deposit(ctx, profile_id):
 
 async def _get_balances(ctx):
     return Counter(
-        notary=(await _get_balance(ctx, ctx.accounts.notary.contract_address)),
-        challenger=(await _get_balance(ctx, ctx.accounts.challenger.contract_address)),
-        rando=(await _get_balance(ctx, ctx.accounts.rando.contract_address)),
+        notary=(await _get_balance(ctx, ctx.notary.contract_address)),
+        challenger=(await _get_balance(ctx, ctx.challenger.contract_address)),
+        rando=(await _get_balance(ctx, ctx.rando.contract_address)),
         zorro=(await _get_balance(ctx, ctx.zorro.contract_address)),
         zorro_security_pool=(
             await ctx.zorro.get_security_pool_balance().call()
