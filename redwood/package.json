@@ -13,7 +13,8 @@
     "applyDevMigrations": "yarn redwood prisma migrate dev",
     "syncStarknetState": "yarn redwood exec syncStarknetState",
     "runChecks": "./run_checks.sh",
-    "storybook": "yarn rw storybook"
+    "storybook": "yarn rw storybook",
+    "clearSpuriousCache": "rm -rf api/node_modules/.prisma web/node_modules/.prisma"
   },
   "devDependencies": {
     "@redwoodjs/core": "^0.42.0"

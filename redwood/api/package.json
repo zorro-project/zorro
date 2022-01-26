@@ -8,6 +8,7 @@
     "@redwoodjs/graphql-server": "^0.42.0",
     "dayjs": "^1.10.7",
     "ethers": "^5.5.2",
+    "graphile-worker": "^0.12.2",
     "hex-to-array-buffer": "^2.0.0",
     "html-template-tag": "^4.0.0",
     "lodash": "^4.17.21",

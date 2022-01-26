@@ -18,10 +18,10 @@ import {
   currentStatus,
   isVerified,
   parseChallengeStatus,
-} from 'src/services/cachedProfiles/cachedProfiles'
+} from 'src/services/cachedProfiles/helpers'
 import {maybeNotify} from 'src/services/notifications/notifications'
 
-const syncStarknetState = async (onlyNewProfiles = false) => {
+const syncStarknetState = async ({onlyNewProfiles = false} = {}) => {
   console.log('Starting StarkNet sync')
   let currentId = 0
   let maxId = await getNumProfiles()
