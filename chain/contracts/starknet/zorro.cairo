@@ -9,7 +9,8 @@ from starkware.cairo.common.hash import hash2
 from starkware.cairo.common.registers import get_fp_and_pc
 from starkware.cairo.common.signature import verify_ecdsa_signature
 from starkware.cairo.common.uint256 import Uint256
-from starkware.starknet.common.syscalls import get_caller_address, get_contract_address
+from starkware.starknet.common.syscalls import (
+    get_caller_address, get_contract_address, get_block_timestamp)
 from starkware.cairo.common.dict import dict_write, dict_read, dict_update, DictAccess
 
 from OpenZeppelin.IERC20 import IERC20
@@ -28,11 +29,6 @@ from seed_profiles import _get_seed_profiles
 
 @storage_var
 func _is_in_dev_mode() -> (res : felt):
-end
-
-# Temporary: will be replaced by syscall / clock contract
-@storage_var
-func _timestamp() -> (res : felt):
 end
 
 # The protocol is designed to degrade gracefully if the notary misbehaves
@@ -101,8 +97,6 @@ func constructor{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : fel
     _super_adjudicator_l1_address.write(super_adjudicator_l1_address)
     _token_address.write(token_address)
 
-    _timestamp.write(5000)
-
     return ()
 end
 
@@ -158,7 +152,7 @@ func submit{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
     assert profile_id = 0
 
     let (local caller_address) = get_caller_address()
-    let (now) = _timestamp.read()
+    let (now) = get_block_timestamp()
 
     _receive_deposit(caller_address, consts.SUBMISSION_DEPOSIT_SIZE)
 
@@ -207,7 +201,7 @@ func notarize{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}
     assert profile.is_notarized = 0
 
     # Only notarize profiles that aren't challenged
-    let (now) = _timestamp.read()
+    let (now) = get_block_timestamp()
     let (status) = _get_current_status(profile, now)
     assert status = StatusEnum.NOT_CHALLENGED
 
@@ -232,7 +226,7 @@ func challenge{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*
     let (caller_address) = get_caller_address()
 
     let (profile) = get_profile_by_id(profile_id)
-    let (now) = _timestamp.read()
+    let (now) = get_block_timestamp()
     let (status) = _get_current_status(profile, now)
 
     # Only challenge profiles that are `not_challenged` or `settled`
@@ -294,7 +288,7 @@ func submit_evidence{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr :
     assert 1 = 0  # Temporarily disabled: waiting for Cairo ethereum signatures
     local profile_id = 0
 
-    let (now) = _timestamp.read()
+    let (now) = get_block_timestamp()
     let (profile) = get_profile_by_id(profile_id)
     let (status) = _get_current_status(profile, now)
 
@@ -321,7 +315,7 @@ func adjudicate{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt
     let (local profile) = get_profile_by_id(profile_id)
 
     # Only adjudicate things that are `challenged`
-    let (now) = _timestamp.read()
+    let (now) = get_block_timestamp()
     let (status) = _get_current_status(profile, now)
     assert status = StatusEnum.CHALLENGED
 
@@ -348,7 +342,7 @@ func appeal{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
     let (local profile) = get_profile_by_id(profile_id)
 
     # Only appeal if adjudication round is complete
-    let (now) = _timestamp.read()
+    let (now) = get_block_timestamp()
     let (status) = _get_current_status(profile, now)
     assert (status - StatusEnum.ADJUDICATION_ROUND_COMPLETED) = 0
 
@@ -379,7 +373,7 @@ func super_adjudicate{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr 
     assert profile.appeal_id = appeal_id
 
     # Only super adjudicate things that are `appealed`
-    let (now) = _timestamp.read()
+    let (now) = get_block_timestamp()
     let (status) = _get_current_status(profile, now)
     assert status = StatusEnum.APPEALED
 
@@ -401,7 +395,7 @@ end
 func maybe_return_submission_deposit{
         pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(profile_id : felt):
     alloc_locals
-    let (now) = _timestamp.read()
+    let (now) = get_block_timestamp()
     let (profile) = get_profile_by_id(profile_id)
 
     # Hold deposit in reserve until profile is outside of its provisional time window
@@ -429,7 +423,7 @@ func maybe_settle{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : fe
     alloc_locals
 
     let (profile) = get_profile_by_id(profile_id)
-    let (now) = _timestamp.read()
+    let (now) = get_block_timestamp()
     let (status) = _get_current_status(profile, now)
     let res = (status - StatusEnum.APPEAL_OPPORTUNITY_EXPIRED) * (status - StatusEnum.SUPER_ADJUDICATION_ROUND_COMPLETED)
 
@@ -675,7 +669,7 @@ end
 func _get_is_profile_id_verified{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
         profile_id : felt) -> (res : felt):
     let (profile) = get_profile_by_id(profile_id)
-    let (now) = _timestamp.read()
+    let (now) = get_block_timestamp()
     let (is_verified) = _get_is_verified(profile, now)
     return (is_verified)
 end
@@ -697,7 +691,7 @@ func export_profile_by_id{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_
     alloc_locals
     let (profile) = get_profile_by_id(profile_id)
     let (num_profiles) = get_num_profiles()
-    let (now) = _timestamp.read()
+    let (now) = get_block_timestamp()
     let (is_verified) = _get_is_verified(profile, now)
     let (current_status) = _get_current_status(profile, now)
 
@@ -753,16 +747,6 @@ end
 #
 
 @external
-func _dev_advance_clock{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
-        duration):
-    assert_is_in_dev_mode()
-
-    let (now) = _timestamp.read()
-    _timestamp.write(now + duration)
-    return ()
-end
-
-@external
 func _dev_add_seed_profiles{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}():
     assert_is_in_dev_mode()
 
@@ -791,8 +775,6 @@ func _dev_add_seed_profile{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall
     # Require that the ethereum address is unused
     let (profile_id) = _ethereum_address_to_profile_id_map.read(profile.ethereum_address)
     assert profile_id = 0
-
-    let (now) = _timestamp.read()
 
     # Increase deposit balance to simulate receipt of submission deposit
     let (deposit_balance) = _deposit_balance.read()

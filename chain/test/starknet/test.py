@@ -161,12 +161,10 @@ class ScenarioState:
         if not does_time_window_exist:
             raise f"The time window named {name} doesn't exist"
 
-        await self.ctx.zorro._dev_advance_clock(
-            getattr(time_windows, name) + offset
-        ).invoke()
+        self.ctx.advance_clock(getattr(time_windows, name) + offset)
 
     async def wait(self, duration):
-        await self.ctx.zorro._dev_advance_clock(duration).invoke()
+        self.ctx.advance_clock(duration)
 
     async def adjudicate(self, should_verify, evidence_cid=300):
         await _adjudicate(self.ctx, self.profile_id, evidence_cid, should_verify)
