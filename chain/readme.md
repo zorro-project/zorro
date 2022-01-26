@@ -56,4 +56,4 @@ Goerli PNK for testing super adjudication: https://goerli.etherscan.io/address/0
 
 Goerli Kleros arbitrator https://goerli.etherscan.io/address/0x1128ed55ab2d796fa92d2f8e1f336d745354a77a#code
 
-To advance: passPhase() until `phase` is `2`, drawJurors(), passPeriod(), castVote(), passPeriod()
+To complete a case: passPhase() until `phase` is `2`, drawJurors(), passPeriod(), castVote(), passPeriod() x2, executeRuling()
