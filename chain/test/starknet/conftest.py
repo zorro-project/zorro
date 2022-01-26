@@ -26,11 +26,28 @@ def compile(path):
     )
 
 
-async def create_account(starknet, signer, account_def):
+async def deploy_account(starknet, signer, account_def):
     return await starknet.deploy(
         contract_def=account_def,
         constructor_calldata=[signer.public_key],
     )
+
+
+# StarknetContracts contain an immutable reference to StarknetState, which
+# means if we want to be able to use StarknetState's `copy` method, we cannot
+# rely on StarknetContracts that were created prior to the copy.
+# For this reason, we specifically inject a new StarknetState when
+# deserializing a contract.
+def serialize_contract(contract, abi):
+    return dict(
+        abi=abi,
+        contract_address=contract.contract_address,
+        deploy_execution_info=contract.deploy_execution_info,
+    )
+
+
+def unserialize_contract(starknet_state, serialized_contract):
+    return StarknetContract(state=starknet_state, **serialized_contract)
 
 
 @pytest.fixture(scope="session")
@@ -38,12 +55,7 @@ def event_loop():
     return asyncio.new_event_loop()
 
 
-# StarknetContracts contain an immutable reference to StarknetState, which
-# means if we want to be able to use StarknetState's `copy` method, we cannot
-# rely on StarknetContracts that were created prior to the copy.
-# For that reason, we avoid returning any StarknetContracts in this "copyable"
-# deployment:
-async def _build_copyable_deployment():
+async def build_copyable_deployment():
     starknet = await Starknet.empty()
 
     defs = SimpleNamespace(
@@ -52,7 +64,7 @@ async def _build_copyable_deployment():
         zorro=compile("zorro.cairo"),
     )
 
-    signers = SimpleNamespace(
+    signers = dict(
         admin=Signer(83745982347),
         adjudicator=Signer(7891011),
         notary=Signer(12345),
@@ -61,13 +73,12 @@ async def _build_copyable_deployment():
         rando=Signer(23904852345),
     )
 
+    # Maps from name -> account contract
     accounts = SimpleNamespace(
-        admin=await create_account(starknet, signers.admin, defs.account),
-        notary=await create_account(starknet, signers.notary, defs.account),
-        adjudicator=await create_account(starknet, signers.adjudicator, defs.account),
-        challenger=await create_account(starknet, signers.challenger, defs.account),
-        minter=await create_account(starknet, signers.minter, defs.account),
-        rando=await create_account(starknet, signers.rando, defs.account),
+        **{
+            name: (await deploy_account(starknet, signer, defs.account))
+            for name, signer in signers.items()
+        }
     )
 
     erc20 = await starknet.deploy(
@@ -86,7 +97,6 @@ async def _build_copyable_deployment():
             erc20.contract_address,
         ],
     )
-
     (submission_deposit_size,) = (
         await zorro.get_submission_deposit_size(0).call()
     ).result
@@ -105,8 +115,8 @@ async def _build_copyable_deployment():
     )
 
     async def give_tokens(recipient, amount):
-        await signers.minter.send_transaction(
-            accounts.minter,
+        await signers["minter"].send_transaction(
+            accounts.__dict__["minter"],
             erc20.contract_address,
             "transfer",
             [recipient, *uint(amount)],
@@ -118,29 +128,22 @@ async def _build_copyable_deployment():
 
     # Give 50 tokens to the eventual challenger so they can afford to challenge
     initial_challenger_funds = consts.CHALLENGE_DEPOSIT_SIZE * 2
-    await give_tokens(
-        accounts.challenger.contract_address,
-        initial_challenger_funds,
-    )
+    await give_tokens(accounts.challenger.contract_address, initial_challenger_funds)
 
     # Give tokens to the rando
-    await give_tokens(
-        accounts.rando.contract_address,
-        200,
-    )
+    await give_tokens(accounts.rando.contract_address, 200)
 
     return SimpleNamespace(
         starknet=starknet,
-        defs=defs,
         consts=consts,
         signers=signers,
-        addresses=SimpleNamespace(
-            notary=accounts.notary.contract_address,
-            adjudicator=accounts.adjudicator.contract_address,
-            challenger=accounts.challenger.contract_address,
-            rando=accounts.rando.contract_address,
-            erc20=erc20.contract_address,
-            zorro=zorro.contract_address,
+        serialized_contracts=dict(
+            notary=serialize_contract(accounts.notary, defs.account.abi),
+            adjudicator=serialize_contract(accounts.adjudicator, defs.account.abi),
+            challenger=serialize_contract(accounts.challenger, defs.account.abi),
+            rando=serialize_contract(accounts.rando, defs.account.abi),
+            erc20=serialize_contract(erc20, defs.erc20.abi),
+            zorro=serialize_contract(zorro, defs.zorro.abi),
         ),
     )
 
@@ -150,7 +153,7 @@ async def copyable_deployment(request):
     CACHE_KEY = "deployment"
     val = request.config.cache.get(CACHE_KEY, None)
     if val is None:
-        val = await _build_copyable_deployment()
+        val = await build_copyable_deployment()
         res = dill.dumps(val).decode("cp437")
         request.config.cache.set(CACHE_KEY, res)
     else:
@@ -160,40 +163,20 @@ async def copyable_deployment(request):
 
 @pytest.fixture(scope="session")
 async def ctx_factory(copyable_deployment):
-    defs = copyable_deployment.defs
-    addresses = copyable_deployment.addresses
+    serialized_contracts = copyable_deployment.serialized_contracts
     signers = copyable_deployment.signers
     consts = copyable_deployment.consts
 
     def make():
         starknet_state = copyable_deployment.starknet.state.copy()
-
-        accounts = SimpleNamespace(
-            notary=StarknetContract(
-                state=starknet_state,
-                abi=defs.account.abi,
-                contract_address=addresses.notary,
-            ),
-            adjudicator=StarknetContract(
-                state=starknet_state,
-                abi=defs.account.abi,
-                contract_address=addresses.adjudicator,
-            ),
-            challenger=StarknetContract(
-                state=starknet_state,
-                abi=defs.account.abi,
-                contract_address=addresses.challenger,
-            ),
-            rando=StarknetContract(
-                state=starknet_state,
-                abi=defs.account.abi,
-                contract_address=addresses.rando,
-            ),
-        )
+        contracts = {
+            name: unserialize_contract(starknet_state, serialized_contract)
+            for name, serialized_contract in serialized_contracts.items()
+        }
 
         async def execute(account_name, contract_address, selector_name, calldata):
-            return await signers.__dict__[account_name].send_transaction(
-                accounts.__dict__[account_name],
+            return await signers[account_name].send_transaction(
+                contracts[account_name],
                 contract_address,
                 selector_name,
                 calldata,
@@ -202,18 +185,8 @@ async def ctx_factory(copyable_deployment):
         return SimpleNamespace(
             starknet=Starknet(starknet_state),
             consts=consts,
-            accounts=accounts,
             execute=execute,
-            zorro=StarknetContract(
-                state=starknet_state,
-                abi=defs.zorro.abi,
-                contract_address=addresses.zorro,
-            ),
-            erc20=StarknetContract(
-                state=starknet_state,
-                abi=defs.erc20.abi,
-                contract_address=addresses.erc20,
-            ),
+            **contracts,  # notary, zorro, erc20, etc
         )
 
     return make
