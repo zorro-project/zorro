@@ -1,69 +1,14 @@
-import {
-  Abi,
-  Contract,
-  defaultProvider,
-  ec,
-  number,
-  Signer,
-  SignerInterface,
-  stark,
-} from 'starknet'
+import {defaultProvider, number, SignerInterface, stark} from 'starknet'
 import {BigNumberish} from 'starknet/dist/utils/number'
 import {bnToUint256, Uint256, uint256ToBN} from 'starknet/dist/utils/uint256'
-import ERC20_ABI from '../../../../chain/artifacts/contracts/starknet/openzeppelin/ERC20.cairo/ERC20_abi.json'
-import ZORRO_ABI from '../../../../chain/artifacts/contracts/starknet/zorro.cairo/zorro_abi.json'
-
-const CHAIN_DEPLOYMENT = process.env.CHAIN_DEPLOYMENT
-
-type AvailableContract = 'erc20' | 'zorro' | 'notary'
-
-const maybeRequireContract = (
-  chainDeployment: typeof process.env.CHAIN_DEPLOYMENT,
-  name: AvailableContract
-) => {
-  try {
-    return require(`../../../../chain/deployments/${chainDeployment}/${name}.json`)
-  } catch (e) {
-    return null
-  }
-}
-
-const chainDeployments = {
-  development: {
-    erc20: maybeRequireContract('development', 'erc20'),
-    notary: maybeRequireContract('development', 'notary'),
-    zorro: maybeRequireContract('development', 'zorro'),
-  },
-  production: {
-    erc20: maybeRequireContract('production', 'erc20'),
-    notary: maybeRequireContract('production', 'notary'),
-    zorro: maybeRequireContract('production', 'zorro'),
-  },
-  test: {
-    erc20: maybeRequireContract('test', 'erc20'),
-    notary: maybeRequireContract('test', 'notary'),
-    zorro: maybeRequireContract('test', 'zorro'),
-  },
-}
-
-if (!(CHAIN_DEPLOYMENT in chainDeployments)) {
-  throw new Error(`'${CHAIN_DEPLOYMENT}' is not an expected chain deployment'`)
-}
-const chainDeployment = chainDeployments[CHAIN_DEPLOYMENT]
-
-if (!chainDeployment.zorro) {
-  throw new Error(
-    `Missing chain deployment '${CHAIN_DEPLOYMENT}'. Try using 'yarn deploy' inside the 'starknet/' dir`
-  )
-}
-
-type Felt = string
-
-export const ERC20Address = chainDeployment.erc20.address
-export const NotaryAddress = chainDeployment.notary.address
-export const ZorroAddress = chainDeployment.zorro.address
-const zorro = new Contract(ZORRO_ABI as Abi[], ZorroAddress)
-const erc20 = new Contract(ERC20_ABI as Abi[], ERC20Address)
+import {
+  erc20,
+  ERC20Address,
+  Felt,
+  getNotary,
+  zorro,
+  ZorroAddress,
+} from './contracts'
 
 export const getNumProfiles = async () => {
   const response = await zorro.call('get_num_profiles', {})
@@ -139,11 +84,7 @@ export async function notarySubmitProfile(
   ethereumAddress: Felt,
   notaryKey: Felt
 ) {
-  const notary = new Signer(
-    defaultProvider,
-    NotaryAddress,
-    ec.getKeyPair(notaryKey)
-  )
+  const notary = getNotary(notaryKey)
 
   const depositSize = await getSubmissionDepositSize()
   console.log({depositSize})

@@ -1,7 +1,7 @@
-import {parseCid} from 'src/lib/serializers'
+import {parseCid} from 'src/chain/serializers'
 import {importProfile, readCids} from './syncStarknetState'
 
-import {exportProfileById} from 'src/lib/starknet'
+import {exportProfileById} from 'src/chain/starknet'
 import {sendMessage} from 'src/lib/twilio'
 import {db} from 'src/lib/db'
 
@@ -9,7 +9,7 @@ import {db} from 'src/lib/db'
 // Redwood upgrades https://github.com/facebook/jest/pull/12089
 import {mocked} from 'ts-jest/dist/utils/testing'
 
-jest.mock('src/lib/starknet')
+jest.mock('src/chain/starknet')
 jest.mock('src/lib/twilio')
 
 describe('readCids', () => {

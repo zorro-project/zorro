@@ -11,8 +11,8 @@ import {
   parseNumber,
   parseStarknetAddress,
   parseTimestamp,
-} from 'src/lib/serializers'
-import {exportProfileById, getNumProfiles} from 'src/lib/starknet'
+} from 'src/chain/serializers'
+import {exportProfileById, getNumProfiles} from 'src/chain/starknet'
 import {sendMessage} from 'src/lib/twilio'
 import {
   currentStatus,
