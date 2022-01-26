@@ -20,6 +20,8 @@ interface IProcessEnv {
   SMTP_HOST: string
   SMTP_USER: string
   SMTP_PASSWORD: string
+
+  STARKNET_NOTARY_PRIVATE_KEY: string
 }
 
 declare global {
