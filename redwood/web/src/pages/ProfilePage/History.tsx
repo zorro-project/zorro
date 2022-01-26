@@ -76,20 +76,21 @@ const History: React.FC<{
               Ruling:{' '}
               <strong>
                 {profile.didAdjudicatorVerifyProfile
-                  ? 'Verified'
-                  : 'Unverified'}
+                  ? 'verified'
+                  : 'unverified'}
               </strong>{' '}
-              (
-              {profile.adjudicatorEvidenceCid && (
-                <Link
-                  href={cidToUrl(profile.adjudicatorEvidenceCid)}
-                  isExternal
-                >
-                  Evidence
-                  <ExternalLinkIcon ml={1} />
-                </Link>
-              )}
-              )
+              {profile.adjudicatorEvidenceCid &&
+                '(' +
+                  (
+                    <Link
+                      href={cidToUrl(profile.adjudicatorEvidenceCid)}
+                      isExternal
+                    >
+                      Evidence
+                      <ExternalLinkIcon ml={1} />
+                    </Link>
+                  ) +
+                  ')'}
             </Text>
           }
         />
@@ -109,15 +110,15 @@ const History: React.FC<{
         />
         <Entry
           icon={FaGavel}
-          title="Appeal Decided"
+          title="Appeal decided"
           timestamp={profile.superAdjudicationTimestamp}
           description={
             <Text>
-              Appeal Ruling:{' '}
+              Ruling:{' '}
               <strong>
-                {profile.didSuperAdjudicatorVerifyProfile
-                  ? 'Verified'
-                  : 'Unverified'}
+                {profile.didSuperAdjudicatorOverturnAdjudicator
+                  ? 'adjudication upheld'
+                  : 'adjudication overturned'}
               </strong>
             </Text>
           }

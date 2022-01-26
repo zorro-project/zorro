@@ -23,7 +23,7 @@ func _get_seed_profiles() -> (profiles_len : felt, profiles : Profile*):
         appeal_timestamp=0,
         appeal_id=0,
         super_adjudication_timestamp=0,
-        did_super_adjudicator_verify_profile=0
+        did_super_adjudicator_overturn_adjudicator=0
         )
     assert profiles[1] = Profile(
         cid=2540330837585055780539510783934115607915723316677950747298602475656452204,
@@ -42,7 +42,7 @@ func _get_seed_profiles() -> (profiles_len : felt, profiles : Profile*):
         appeal_timestamp=0,
         appeal_id=0,
         super_adjudication_timestamp=0,
-        did_super_adjudicator_verify_profile=0
+        did_super_adjudicator_overturn_adjudicator=0
         )
     assert profiles[2] = Profile(
         cid=2540330837585055780539510783934115607915723316677950747298602475656452204,
@@ -61,7 +61,7 @@ func _get_seed_profiles() -> (profiles_len : felt, profiles : Profile*):
         appeal_timestamp=0,
         appeal_id=0,
         super_adjudication_timestamp=0,
-        did_super_adjudicator_verify_profile=0
+        did_super_adjudicator_overturn_adjudicator=0
         )
     assert profiles[3] = Profile(
         cid=2540330837585055780539510783934115607915723316677950747298602475656452204,
@@ -80,7 +80,7 @@ func _get_seed_profiles() -> (profiles_len : felt, profiles : Profile*):
         appeal_timestamp=0,
         appeal_id=0,
         super_adjudication_timestamp=0,
-        did_super_adjudicator_verify_profile=0
+        did_super_adjudicator_overturn_adjudicator=0
         )
     assert profiles[4] = Profile(
         cid=2540330837585055780539510783934115607915723316677950747298602475656452204,
@@ -99,7 +99,7 @@ func _get_seed_profiles() -> (profiles_len : felt, profiles : Profile*):
         appeal_timestamp=0,
         appeal_id=0,
         super_adjudication_timestamp=0,
-        did_super_adjudicator_verify_profile=0
+        did_super_adjudicator_overturn_adjudicator=0
         )
     assert profiles[5] = Profile(
         cid=2540330837585055780539510783934115607915723316677950747298602475656452204,
@@ -118,7 +118,7 @@ func _get_seed_profiles() -> (profiles_len : felt, profiles : Profile*):
         appeal_timestamp=0,
         appeal_id=0,
         super_adjudication_timestamp=0,
-        did_super_adjudicator_verify_profile=0
+        did_super_adjudicator_overturn_adjudicator=0
         )
     assert profiles[6] = Profile(
         cid=2540330837585055780539510783934115607915723316677950747298602475656452204,
@@ -137,7 +137,7 @@ func _get_seed_profiles() -> (profiles_len : felt, profiles : Profile*):
         appeal_timestamp=0,
         appeal_id=0,
         super_adjudication_timestamp=0,
-        did_super_adjudicator_verify_profile=0
+        did_super_adjudicator_overturn_adjudicator=0
         )
     assert profiles[7] = Profile(
         cid=2540330837585055780539510783934115607915723316677950747298602475656452204,
@@ -156,7 +156,7 @@ func _get_seed_profiles() -> (profiles_len : felt, profiles : Profile*):
         appeal_timestamp=0,
         appeal_id=0,
         super_adjudication_timestamp=0,
-        did_super_adjudicator_verify_profile=0
+        did_super_adjudicator_overturn_adjudicator=0
         )
     assert profiles[8] = Profile(
         cid=2540330837585055780539510783934115607915723316677950747298602475656452204,
@@ -175,7 +175,7 @@ func _get_seed_profiles() -> (profiles_len : felt, profiles : Profile*):
         appeal_timestamp=0,
         appeal_id=0,
         super_adjudication_timestamp=0,
-        did_super_adjudicator_verify_profile=0
+        did_super_adjudicator_overturn_adjudicator=0
         )
     assert profiles[9] = Profile(
         cid=2540330837585055780539510783934115607915723316677950747298602475656452204,
@@ -194,7 +194,7 @@ func _get_seed_profiles() -> (profiles_len : felt, profiles : Profile*):
         appeal_timestamp=0,
         appeal_id=0,
         super_adjudication_timestamp=0,
-        did_super_adjudicator_verify_profile=0
+        did_super_adjudicator_overturn_adjudicator=0
         )
     assert profiles[10] = Profile(
         cid=2540330837585055780539510783934115607915723316677950747298602475656452204,
@@ -213,7 +213,7 @@ func _get_seed_profiles() -> (profiles_len : felt, profiles : Profile*):
         appeal_timestamp=0,
         appeal_id=0,
         super_adjudication_timestamp=0,
-        did_super_adjudicator_verify_profile=0
+        did_super_adjudicator_overturn_adjudicator=0
         )
     assert profiles[11] = Profile(
         cid=2540330837585055780539510783934115607915723316677950747298602475656452204,
@@ -232,7 +232,7 @@ func _get_seed_profiles() -> (profiles_len : felt, profiles : Profile*):
         appeal_timestamp=0,
         appeal_id=0,
         super_adjudication_timestamp=0,
-        did_super_adjudicator_verify_profile=0
+        did_super_adjudicator_overturn_adjudicator=0
         )
 
     return (12, profiles)

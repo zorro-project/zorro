@@ -10,8 +10,10 @@
   "scripts": {
     "dev": "rw dev",
     "//": "useful for updating your dev database with migrations created by other developers",
-    "apply-dev-migrations": "yarn redwood prisma migrate dev",
-    "run-checks": "./run_checks.sh"
+    "applyDevMigrations": "yarn redwood prisma migrate dev",
+    "syncStarknetState": "yarn redwood exec syncStarknetState",
+    "runChecks": "./run_checks.sh",
+    "storybook": "yarn rw storybook"
   },
   "devDependencies": {
     "@redwoodjs/core": "^0.42.0"

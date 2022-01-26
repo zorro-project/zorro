@@ -33,7 +33,7 @@ export const schema = gql`
     appealTimestamp: DateTime
     appealId: String
     superAdjudicationTimestamp: DateTime
-    didSuperAdjudicatorVerifyProfile: Boolean!
+    didSuperAdjudicatorOverturnAdjudicator: Boolean!
   }
 
   type PageInfo {

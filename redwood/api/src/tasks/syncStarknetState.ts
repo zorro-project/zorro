@@ -99,8 +99,8 @@ export const importProfile = async (profileId: number) => {
     superAdjudicationTimestamp: parseTimestamp(
       profile.super_adjudication_timestamp
     ),
-    didSuperAdjudicatorVerifyProfile: parseBoolean(
-      profile.did_super_adjudicator_verify_profile
+    didSuperAdjudicatorOverturnAdjudicator: parseBoolean(
+      profile.did_super_adjudicator_overturn_adjudicator
     ),
   }
 

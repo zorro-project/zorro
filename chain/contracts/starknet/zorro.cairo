@@ -188,7 +188,7 @@ func submit{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
         appeal_timestamp=0,
         appeal_id=0,
         super_adjudication_timestamp=0,
-        did_super_adjudicator_verify_profile=0
+        did_super_adjudicator_overturn_adjudicator=0
         ))
 
     return (profile_id=profile_id)
@@ -277,7 +277,7 @@ func challenge{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*
         appeal_timestamp=0,  # Changed
         appeal_id=0,  # Changed
         super_adjudication_timestamp=0,  # Changed
-        did_super_adjudicator_verify_profile=0  # Changed
+        did_super_adjudicator_overturn_adjudicator=0  # Changed
         ))
 
     return ()
@@ -366,11 +366,11 @@ end
 
 @l1_handler
 func super_adjudicate{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
-        from_address : felt, profile_id : felt, appeal_id : felt, should_verify_profile : felt):
+        from_address : felt, profile_id : felt, appeal_id : felt, should_overturn : felt):
     alloc_locals
     let (super_adjudicator_l1_address) = _super_adjudicator_l1_address.read()
     assert from_address = super_adjudicator_l1_address
-    assert_is_boolean(should_verify_profile)
+    assert_is_boolean(should_overturn)
 
     let (local profile) = get_profile_by_id(profile_id)
 
@@ -387,7 +387,7 @@ func super_adjudicate{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr 
     with dict_ptr:
         dict_write(Profile.last_recorded_status, StatusEnum.SUPER_ADJUDICATION_ROUND_COMPLETED)
         dict_write(Profile.super_adjudication_timestamp, now)
-        dict_write(Profile.did_super_adjudicator_verify_profile, should_verify_profile)
+        dict_write(Profile.did_super_adjudicator_overturn_adjudicator, should_overturn)
     end
     let (new_profile) = _get_profile_from_dict(dict_ptr)
     _profiles.write(profile_id, new_profile)

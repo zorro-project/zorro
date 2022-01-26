@@ -40,7 +40,7 @@ model CachedProfile {
   //  - appeal_timestamp : felt  # nonzero iff there was an appeal
   //  - appeal_id : felt
   //  - super_adjudication_timestamp : felt  # nonzero iff there was a super adjudication
-  //  - did_super_adjudicator_verify_profile : felt
+  //  - did_super_adjudicator_overturn_adjudicator: felt
   cache Json @db.JsonB
 
   // Derived fields
@@ -61,10 +61,10 @@ model CachedProfile {
   adjudicatorEvidenceCid      String?
   didAdjudicatorVerifyProfile Boolean
 
-  appealTimestamp                  DateTime?
-  appealId                         String?
-  superAdjudicationTimestamp       DateTime?
-  didSuperAdjudicatorVerifyProfile Boolean
+  appealTimestamp                        DateTime?
+  appealId                               String?
+  superAdjudicationTimestamp             DateTime?
+  didSuperAdjudicatorOverturnAdjudicator Boolean
   // End derived fields
 
   createdAt DateTime @default(now())

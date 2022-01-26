@@ -96,7 +96,7 @@ async def _appeal(ctx, profile_id, appeal_id, from_address=None):
 
 
 async def _super_adjudicate(
-    ctx, profile_id, appeal_id, should_verify, from_address=None
+    ctx, profile_id, appeal_id, should_overturn, from_address=None
 ):
     if from_address == None:
         from_address = ctx.consts.SUPER_ADJUDICATOR_L1_ADDRESS
@@ -104,7 +104,7 @@ async def _super_adjudicate(
         from_address,
         ctx.zorro.contract_address,
         "super_adjudicate",
-        [profile_id, appeal_id, should_verify],
+        [profile_id, appeal_id, should_overturn],
     )
 
 
@@ -175,12 +175,12 @@ class ScenarioState:
         self.appeal_id = appeal_id
         await _appeal(self.ctx, self.profile_id, appeal_id, from_address)
 
-    async def super_adjudicate(self, should_verify, from_address=None):
+    async def super_adjudicate(self, should_overturn, from_address=None):
         await _super_adjudicate(
             self.ctx,
             self.profile_id,
             self.appeal_id or 123,
-            should_verify,
+            should_overturn,
             from_address,
         )
 
@@ -342,31 +342,31 @@ def get_scenario_pairs():
     #
 
     # all 2x2 combinations
-    adj_no_superadj_no_scenario = adj_no_and_appeal_scenario + [
-        ("super_adjudicate", dict(should_verify=0), NOT_VERIFIED),
+    adj_no_superadj_uphold_scenario = adj_no_and_appeal_scenario + [
+        ("super_adjudicate", dict(should_overturn=0), NOT_VERIFIED),
     ]
-    adj_no_superadj_yes_scenario = adj_no_and_appeal_scenario + [
-        ("super_adjudicate", dict(should_verify=1), VERIFIED),
+    adj_no_superadj_overturn_scenario = adj_no_and_appeal_scenario + [
+        ("super_adjudicate", dict(should_overturn=1), VERIFIED),
     ]
-    adj_yes_superadj_no_scenario = adj_yes_and_appeal_scenario + [
-        ("super_adjudicate", dict(should_verify=0), NOT_VERIFIED),
+    adj_yes_superadj_uphold_scenario = adj_yes_and_appeal_scenario + [
+        ("super_adjudicate", dict(should_overturn=0), VERIFIED),
     ]
-    adj_yes_superadj_yes_scenario = adj_yes_and_appeal_scenario + [
-        ("super_adjudicate", dict(should_verify=1), VERIFIED),
+    adj_yes_superadj_overturn_scenario = adj_yes_and_appeal_scenario + [
+        ("super_adjudicate", dict(should_overturn=1), NOT_VERIFIED),
     ]
 
     # can super adjudicate an appeal of a timed-out adjudication
-    adj_timeout_and_appeal_and_superadj_no_scenario = (
+    adj_timeout_and_appeal_and_superadj_uphold_scenario = (
         adj_timeout_and_appeal_scenario
         + [
-            ("super_adjudicate", dict(should_verify=0), NOT_VERIFIED),
+            ("super_adjudicate", dict(should_overturn=0), NOT_VERIFIED),
         ]
     )
 
-    adj_timeout_and_appeal_and_superadj_yes_scenario = (
+    adj_timeout_and_appeal_and_superadj_overturn_scenario = (
         adj_timeout_and_appeal_scenario
         + [
-            ("super_adjudicate", dict(should_verify=1), VERIFIED),
+            ("super_adjudicate", dict(should_overturn=1), VERIFIED),
         ]
     )
 
@@ -374,15 +374,19 @@ def get_scenario_pairs():
     adj_yes_and_appeal_timeout_and_attempt_superadj_scenario = (
         adj_yes_and_appeal_timeout_scenario
         + [
-            ("super_adjudicate", dict(should_verify=0), TX_REJECTED),
+            ("super_adjudicate", dict(should_overturn=0), TX_REJECTED),
         ]
     )
 
     # can't super_adjudicate from wrong address
-    adj_yes_and_attempt_superadj_from_wront_address_scenario = (
+    adj_yes_and_attempt_superadj_from_wrong_address_scenario = (
         adj_yes_and_appeal_scenario
         + [
-            ("super_adjudicate", dict(should_verify=1, from_address=9876), TX_REJECTED),
+            (
+                "super_adjudicate",
+                dict(should_overturn=1, from_address=9876),
+                TX_REJECTED,
+            ),
         ]
     )
 
@@ -391,7 +395,7 @@ def get_scenario_pairs():
         adj_no_and_appeal_scenario
         + [
             ("named_wait", dict(name="SUPER_ADJUDICATION_TIME_WINDOW"), NOT_VERIFIED),
-            ("super_adjudicate", dict(should_verify=0), TX_REJECTED),
+            ("super_adjudicate", dict(should_overturn=0), TX_REJECTED),
         ]
     )
 
@@ -424,11 +428,11 @@ def get_scenario_pairs():
     )
 
     # Can settle from super adjudication complete state
-    adj_no_superadj_no_and_settle_scenario = adj_no_superadj_no_scenario + [
-        ("maybe_settle", dict(), NOT_VERIFIED),
-    ]
-    adj_yes_superadj_yes_and_settle_scenario = adj_yes_superadj_yes_scenario + [
+    adj_no_superadj_overturn_and_settle_scenario = adj_no_superadj_overturn_scenario + [
         ("maybe_settle", dict(), VERIFIED),
+    ]
+    adj_no_superadj_uphold_and_settle_scenario = adj_yes_superadj_overturn_scenario + [
+        ("maybe_settle", dict(), NOT_VERIFIED),
     ]
 
     #
@@ -445,7 +449,7 @@ def get_scenario_pairs():
     )
 
     # Can rechallenge from unsettled status
-    superadj_yes_and_rechallenge_scenario = adj_no_superadj_yes_scenario + [
+    adj_no_superadj_overturn_and_rechallenge_scenario = adj_no_superadj_overturn_scenario + [
         (
             "challenge",
             dict(),
@@ -454,14 +458,15 @@ def get_scenario_pairs():
     ]
 
     # Can rechallenge from settled status
-    superadj_yes_and_settle_and_rechallenge_scenario = adj_yes_superadj_yes_and_settle_scenario + [
+    adj_no_superadj_uphold_and_settle_and_rechallenge_scenario = adj_no_superadj_overturn_and_settle_scenario + [
         ("challenge", dict(), NOT_VERIFIED)
     ]  # we rechallenged so quickly that they are still presumed not innocent, hence NOT_VERIFIED
 
     # cannot rechallenge profiles that are already deemed unverified
-    settle_and_attempt_rechallenge_scenario = adj_no_superadj_no_and_settle_scenario + [
-        ("challenge", dict(), TX_REJECTED)
-    ]
+    settle_and_attempt_rechallenge_scenario = (
+        adj_no_superadj_uphold_and_settle_scenario
+        + [("challenge", dict(), TX_REJECTED)]
+    )
 
     # Collect all scenarios
     return [
@@ -508,9 +513,9 @@ async def test_settle_where_challenger_loses(ctx_factory):
     deltas = get_balance_deltas(pre_balances, post_balances)
 
     assert deltas["notary"] == 0
-    assert deltas["challenger"] == -25
-    assert deltas["zorro"] == 25
-    assert deltas["zorro_security_pool"] == 25
+    assert deltas["challenger"] == -ctx.consts.CHALLENGE_DEPOSIT_SIZE
+    assert deltas["zorro"] == ctx.consts.CHALLENGE_DEPOSIT_SIZE
+    assert deltas["zorro_security_pool"] == ctx.consts.CHALLENGE_DEPOSIT_SIZE
 
 
 @pytest.mark.asyncio
@@ -531,8 +536,8 @@ async def test_settle_where_challenger_wins_deposit_from_submitter(ctx_factory):
     post_balances = await _get_balances(ctx)
     deltas = get_balance_deltas(pre_balances, post_balances)
 
-    assert deltas["notary"] == -25
-    assert deltas["challenger"] == 25
+    assert deltas["notary"] == -ctx.consts.SUBMISSION_DEPOSIT_SIZE
+    assert deltas["challenger"] == ctx.consts.CHALLENGE_REWARD_SIZE
     assert deltas["zorro"] == 0
     assert deltas["zorro_security_pool"] == 0
 
@@ -563,9 +568,9 @@ async def test_settle_where_challenger_wins_reward_from_security_pool(ctx_factor
     print(pre_balances, post_balances, deltas)
 
     assert deltas["notary"] == 0
-    assert deltas["challenger"] == 25
-    assert deltas["zorro"] == -25
-    assert deltas["zorro_security_pool"] == -25
+    assert deltas["challenger"] == ctx.consts.CHALLENGE_REWARD_SIZE
+    assert deltas["zorro"] == -ctx.consts.CHALLENGE_REWARD_SIZE
+    assert deltas["zorro_security_pool"] == -ctx.consts.CHALLENGE_REWARD_SIZE
 
 
 @pytest.mark.asyncio

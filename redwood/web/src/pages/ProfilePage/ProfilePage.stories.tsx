@@ -23,7 +23,7 @@ const baseMock: ProfilePageQuery = {
     appealTimestamp: null,
     appealId: null,
     superAdjudicationTimestamp: null,
-    didSuperAdjudicatorVerifyProfile: false,
+    didSuperAdjudicatorOverturnAdjudicator: false,
     __typename: 'CachedProfile',
   },
 }
@@ -72,7 +72,7 @@ const superAdjudicationRoundCompletedMock: ProfilePageQuery = merge(
     cachedProfile: {
       currentStatus: 'SUPER_ADJUDICATION_ROUND_COMPLETED',
       superAdjudicationTimestamp: '2021-05-14T13:17:36.789Z',
-      didSuperAdjudicatorVerifyProfile: false,
+      didSuperAdjudicatorOverturnAdjudicator: false,
       isVerified: false,
     },
   }

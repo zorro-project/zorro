@@ -149,7 +149,7 @@ export const isVerified = (
     | 'challengeTimestamp'
     | 'superAdjudicationTimestamp'
     | 'didAdjudicatorVerifyProfile'
-    | 'didSuperAdjudicatorVerifyProfile'
+    | 'didSuperAdjudicatorOverturnAdjudciator'
     | 'adjudicationTimestamp'
     | 'appealTimestamp'
     | 'submissionTimestamp'
@@ -168,7 +168,9 @@ export const isVerified = (
 
     return isPresumedInnocent
   } else if (profile.superAdjudicationTimestamp != null) {
-    return profile.didSuperAdjudicatorVerifyProfile
+    return profile.didSuperAdjudicatorOverturnAdjudicator
+      ? !profile.didAdjudicatorVerifyProfile
+      : profile.didAdjudicatorVerifyProfile
   } else if (profile.adjudicationTimestamp != null) {
     return profile.didAdjudicatorVerifyProfile
   } else return false
