@@ -138,7 +138,7 @@ export const approveProfile = async ({id}: MutationapproveProfileArgs) => {
 
   if (!profile) return false
 
-  await syncStarknetState(true)
+  await syncStarknetState({onlyNewProfiles: true})
   await db.unsubmittedProfile.delete({where: {id: parseInt(id)}})
   alertProfileUpdated(profile)
 

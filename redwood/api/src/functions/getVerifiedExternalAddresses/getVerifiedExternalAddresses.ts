@@ -1,5 +1,5 @@
 import {db} from 'src/lib/db'
-import {isVerified} from 'src/services/cachedProfiles/cachedProfiles'
+import {isVerified} from 'src/services/cachedProfiles/helpers'
 import {Handler} from 'aws-lambda'
 
 type Params = {

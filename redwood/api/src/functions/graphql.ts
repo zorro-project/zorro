@@ -10,6 +10,9 @@ import {logger} from 'src/lib/logger'
 // Just make need to make sure this file gets loaded somewhere
 import type {} from 'types/environment'
 
+// Just need to make sure this file is imported at least once to start the background worker
+import 'src/lib/backgroundJobs'
+
 export const handler = createGraphQLHandler({
   loggerConfig: {logger, options: {operationName: true}},
   directives,
