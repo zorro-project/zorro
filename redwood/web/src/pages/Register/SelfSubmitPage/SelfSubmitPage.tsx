@@ -2,7 +2,7 @@ import {Link, Spacer, Stack} from '@chakra-ui/layout'
 import {Button, Text} from '@chakra-ui/react'
 import {back} from '@redwoodjs/router'
 import React from 'react'
-import {ZorroAddress} from '../../../../../api/src/lib/starknet'
+import {ZorroAddress} from '../../../../../api/src/chain/contracts'
 import Title from '../Title'
 
 const SelfSubmitPage = () => {
@@ -42,7 +42,7 @@ const SelfSubmitPage = () => {
         find more details about the correct formatting of the parameters{' '}
         <Link
           isExternal
-          href="https://github.com//zorro-project/zorro/blob/main/redwood/api/src/lib/starknet.ts"
+          href="https://github.com//zorro-project/zorro/blob/main/redwood/api/src/chain/starknet.ts"
         >
           in our code
         </Link>

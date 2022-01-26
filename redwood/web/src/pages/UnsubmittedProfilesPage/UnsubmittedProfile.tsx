@@ -16,8 +16,8 @@ import {
   MutationmarkNotaryWillApproveArgs,
   UnsubmittedProfilesQuery,
 } from 'types/graphql'
-import {notarySubmitProfile} from '../../../../api/src/lib/starknet'
-import {serializeCid} from '../../../../api/src/lib/serializers'
+import {notarySubmitProfile} from '../../../../api/src/chain/starknet'
+import {serializeCid} from '../../../../api/src/chain/serializers'
 
 import getNotaryKey from '../../lib/getNotaryKey'
 import {useEffect} from 'react'

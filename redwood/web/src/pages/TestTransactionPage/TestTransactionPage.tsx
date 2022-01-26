@@ -7,18 +7,20 @@ import {MetaTags} from '@redwoodjs/web'
 import {Card} from 'src/components/Card'
 import getNotaryKey from 'src/lib/getNotaryKey'
 import {cairoCompatibleAdd} from 'src/lib/ipfs'
-import {serializeCid} from '../../../../api/src/lib/serializers'
 import {
   ERC20Address,
-  erc20Mint,
-  exportProfileById,
+  NotaryAddress,
+  ZorroAddress,
+} from '../../../../api/src/chain/contracts'
+import {
   erc20GetAllowance,
   erc20GetBalanceOf,
+  erc20Mint,
+  exportProfileById,
   getNumProfiles,
-  NotaryAddress,
   notarySubmitProfile,
-  ZorroAddress,
-} from '../../../../api/src/lib/starknet'
+} from '../../../../api/src/chain/starknet'
+import {serializeCid} from '../../../../api/src/chain/serializers'
 
 const ExportProfileById = () => {
   const profileId = React.useRef<HTMLInputElement>(null)
