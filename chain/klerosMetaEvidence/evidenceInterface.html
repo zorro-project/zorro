@@ -23,9 +23,13 @@
     '0x886dd5a70b24a05bd397ed55387ac4dc092ac391e6c49210133e7fd9d17bd896' // keccak256('Appealed(uint256,uint256)')
   const APPEALED_EVENT_PROFILE_ID_INDEX = 1 // profileId is second event topic
 
-  const params = JSON.parse(
-    decodeURIComponent(window.location.search.substr(1))
-  )
+  // The dispute resolver UI (https://resolve.kleros.io/) injects JSON params,
+  // whereas the main kleros court ui injects a url query string. Gross! I guess
+  // we can detect and handle each case. (In the JSON case, the first char will
+  // be an open curly brace.)
+  const params = decodeURIComponent(window.location.search).startsWith('?{')
+    ? JSON.parse(decodeURIComponent(window.location.search.substr(1)))
+    : Object.fromEntries(new URLSearchParams(window.location.search).entries())
 
   console.log('External params', params)
 

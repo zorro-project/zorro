@@ -4,6 +4,7 @@ from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.cairo.common.default_dict import default_dict_new
 from starkware.cairo.common.dict import dict_write, dict_read, dict_update, DictAccess
 
+from utils import invert
 from consts import consts
 
 struct Profile:
@@ -29,11 +30,11 @@ struct Profile:
 
     # Set in the same tx that shifts `last_recorded_status` to `appealed`
     member appeal_timestamp : felt  # nonzero iff there was an appeal
-    member appeal_id : felt # id which is opaque to Zorro but is in practice a kleros dispute id
+    member appeal_id : felt  # id which is opaque to Zorro but is in practice a kleros dispute id
 
     # Set in same tx that shifts `last_recorded_status` to `super_adjudicated`:
     member super_adjudication_timestamp : felt  # nonzero iff there was a super adjudication
-    member did_super_adjudicator_verify_profile : felt
+    member did_super_adjudicator_overturn_adjudicator : felt
 end
 
 namespace StatusEnum:
@@ -218,7 +219,17 @@ func _get_is_verified{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr 
 
     let (did_super_adjudication_occur) = _get_did_super_adjudication_occur(profile)
     if did_super_adjudication_occur == 1:
-        return (profile.did_super_adjudicator_verify_profile)
+        # Note: if the adjudicator never responded, their decision defaults to
+        # `0` (the default storage value). This default decision may be what is
+        # being overturned or upheld by the super adjudicator.
+        if profile.did_super_adjudicator_overturn_adjudicator == 1:
+            let (is_verified) = invert(profile.did_adjudicator_verify_profile)
+            tempvar is_verified = is_verified
+        else:
+            tempvar is_verified = profile.did_adjudicator_verify_profile
+        end
+
+        return (is_verified)
     end
 
     let (did_adjudication_occur) = _get_did_adjudication_occur(profile)
@@ -250,7 +261,7 @@ func _get_dict_from_profile(profile : Profile) -> (res : DictAccess*):
         dict_write(14, [ptr + 14])
         dict_write(15, [ptr + 15])
         dict_write(16, [ptr + 16])
-        assert Profile.SIZE = 17 # ensure this gets updated if Profile expands
+        assert Profile.SIZE = 17  # ensure this gets updated if Profile expands
     end
 
     # Note: we skip default_dict_finalize() because we don't actually rely
@@ -278,7 +289,7 @@ func _get_profile_from_dict(dict_ptr : DictAccess*) -> (profile : Profile):
         let (v14) = dict_read(14)
         let (v15) = dict_read(15)
         let (v16) = dict_read(16)
-        assert Profile.SIZE = 17 # ensure this gets updated if Profile expands
+        assert Profile.SIZE = 17  # ensure this gets updated if Profile expands
     end
 
     let mem : felt* = alloc()
@@ -299,7 +310,7 @@ func _get_profile_from_dict(dict_ptr : DictAccess*) -> (profile : Profile):
     assert mem[14] = v14
     assert mem[15] = v15
     assert mem[16] = v16
-    assert Profile.SIZE = 17 # ensure this gets updated if Profile expands
+    assert Profile.SIZE = 17  # ensure this gets updated if Profile expands
     let profile = cast(mem, Profile*)
     return ([profile])
 end

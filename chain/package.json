@@ -5,7 +5,7 @@
   "license": "MIT",
   "scripts": {
     "starknet-devnet": "poetry run starknet-devnet",
-    "watch": "(cd contracts && find . -name '*.cairo' | entr poetry run starknet-compile zorro.cairo)",
+    "watch": "(cd contracts/starknet && find . -name '*.cairo' | entr poetry run starknet-compile zorro.cairo)",
     "test:build-cache": "(cd contracts/starknet && poetry run pytest --cache-clear -s -W ignore::DeprecationWarning ../../test/starknet/build_cache.py)",
     "test:use-cache": "(cd contracts/starknet && poetry run pytest -n auto -s -W ignore::DeprecationWarning ../../test/starknet/test.py)",
     "test": "yarn test:build-cache && yarn test:use-cache",

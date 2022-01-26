@@ -11,3 +11,12 @@ func get_is_equal(a : felt, b : felt) -> (res : felt):
         return (0)
     end
 end
+
+func invert(x : felt) -> (res : felt):
+    if x == 1:
+        return (0)
+    else:
+        assert x = 0
+        return (1)
+    end
+end

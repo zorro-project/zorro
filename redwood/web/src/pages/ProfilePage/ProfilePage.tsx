@@ -38,7 +38,7 @@ const QUERY = gql`
       appealTimestamp
       appealId
       superAdjudicationTimestamp
-      didSuperAdjudicatorVerifyProfile
+      didSuperAdjudicatorOverturnAdjudicator
     }
   }
 `

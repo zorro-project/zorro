@@ -82,7 +82,7 @@
                 "type": "felt"
             },
             {
-                "name": "did_super_adjudicator_verify_profile",
+                "name": "did_super_adjudicator_overturn_adjudicator",
                 "offset": 16,
                 "type": "felt"
             }
@@ -280,7 +280,7 @@
                 "type": "felt"
             },
             {
-                "name": "should_verify_profile",
+                "name": "should_overturn",
                 "type": "felt"
             }
         ],

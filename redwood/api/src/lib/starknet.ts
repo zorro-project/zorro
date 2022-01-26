@@ -195,7 +195,7 @@ type Profile = {
   appeal_timestamp: Felt
   appeal_id: Felt
   super_adjudication_timestamp: Felt
-  did_super_adjudicator_verify_profile: Felt
+  did_super_adjudicator_overturn_adjudicator: Felt
 }
 
 export async function exportProfileById(profileId: number) {
