@@ -25,6 +25,7 @@
     "@redwoodjs/web": "^0.42.0",
     "dayjs": "^1.10.7",
     "ethers": "^5.5.3",
+    "fireworks-js": "^1.3.5",
     "framer-motion": "^4",
     "ipfs-http-client": "^53.0.1",
     "lodash": "^4.17.21",

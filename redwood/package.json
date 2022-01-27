@@ -9,6 +9,7 @@
   },
   "scripts": {
     "dev": "rw dev",
+    "devBindAll": "rw dev --fwd='--host=0.0.0.0'",
     "//": "useful for updating your dev database with migrations created by other developers",
     "applyDevMigrations": "yarn redwood prisma migrate dev",
     "syncStarknetState": "yarn redwood exec syncStarknetState",
