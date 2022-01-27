@@ -64,7 +64,7 @@ const AllowCameraPage: React.FC = () => {
       <Button
         variant="register-primary"
         onClick={requestPermissions}
-        disabled={requestingPermissions}
+        isLoading={requestingPermissions}
       >
         Allow Camera
       </Button>
