@@ -54,10 +54,10 @@ const CitizenshipActive = () => {
   useEffect(() => {
     const fireworksContainer = document.createElement('div')
     fireworksContainer.style.position = 'absolute'
-    fireworksContainer.style.top = 0
-    fireworksContainer.style.bottom = 0
-    fireworksContainer.style.left = 0
-    fireworksContainer.style.right = 0
+    fireworksContainer.style.top = '0'
+    fireworksContainer.style.bottom = '0'
+    fireworksContainer.style.left = '0'
+    fireworksContainer.style.right = '0'
     document.getElementById('register-content')?.appendChild(fireworksContainer)
     const fireworks = new Fireworks(fireworksContainer, {
       friction: 0.95,
@@ -72,7 +72,7 @@ const CitizenshipActive = () => {
 
     // Start fading out after 3 seconds (fadeout takes 2 seconds)
     setTimeout(() => {
-      fireworksContainer.style.opacity = 0
+      fireworksContainer.style.opacity = '0'
       fireworksContainer.style.transition = 'opacity 2s ease-in'
     }, 3000)
 
