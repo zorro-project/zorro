@@ -18,7 +18,7 @@ export const parseBigNumberAsDecimalString = (number: Felt) =>
 export const parseBigNumber = (number: Felt) => BigInt(number)
 export const parseBoolean = (boolean: Felt) => parseNumber(boolean) === 1
 export const parseTimestamp = (timestamp: Felt) =>
-  isInitialized(timestamp) ? new Date(parseNumber(timestamp)) : null
+  isInitialized(timestamp) ? new Date(parseNumber(timestamp) * 1000) : null
 
 export const bytesToFelt = (bytes: Uint8Array) => {
   assert(bytes.length <= 31, 'Error: cids on Cairo must be 31 bytes')
