@@ -23,20 +23,15 @@ const PhotoPage = () => {
   const webcamRef = useRef<Webcam>(null)
   const [buttonsEnabled, setButtonsEnabled] = useState(!!photo)
 
-  const temporarilyDisableButtons = useCallback(() => {
-    setButtonsEnabled(false)
-    setTimeout(() => setButtonsEnabled(true), 500)
-  }, [])
-
   const redoPhoto = useCallback(() => {
-    temporarilyDisableButtons()
+    setButtonsEnabled(false)
     dispatch(registerSlice.actions.setPhoto(undefined))
   }, [])
 
   const capturePicture = useCallback(async () => {
     const photoUrl = webcamRef.current?.getScreenshot()
     if (!photoUrl) return
-    temporarilyDisableButtons()
+    setButtonsEnabled(false)
     dispatch(registerSlice.actions.setPhoto(photoUrl))
   }, [dispatch, webcamRef])
 
@@ -48,9 +43,10 @@ const PhotoPage = () => {
       <UserMediaBox>
         <ScaleFade
           in={true}
-          key={photo}
+          key={photo?.substring(0, 2000)}
           transition={{enter: {duration: firstRender ? 0 : 1}}}
-          initialScale={0.8}
+          initialScale={1}
+          onAnimationComplete={() => !firstRender && setButtonsEnabled(true)}
           style={{flex: 1, display: 'flex'}}
         >
           {photo ? (
@@ -62,7 +58,7 @@ const PhotoPage = () => {
               forceScreenshotSourceSize={true}
               mirrored
               ref={webcamRef}
-              onUserMedia={temporarilyDisableButtons}
+              onUserMedia={() => setButtonsEnabled(true)}
             />
           )}
         </ScaleFade>
