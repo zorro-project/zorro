@@ -35,7 +35,7 @@ describe('importProfile', () => {
         submission_timestamp: '0x929',
         is_notarized: '0x1',
         last_recorded_status: '0x1',
-        challenge_timestamp: '0x75bcd15',
+        challenge_timestamp: '0x61F20CDA',
         challenger_address:
           '0x7283241e75fe4bfa64af202c1243b56e7ab30c7ea41a6e2c6000c5874670dc4',
         challenge_evidence_cid:
@@ -65,7 +65,7 @@ describe('importProfile', () => {
     expect(notification?.key).toEqual({
       type: 'NEW_CHALLENGE',
       profileId: 1,
-      challengeTimestamp: '1970-01-02T10:17:36.789Z',
+      challengeTimestamp: '2022-01-27T03:09:14.000Z',
     })
   })
 
