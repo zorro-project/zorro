@@ -20,6 +20,8 @@ const RegisterLayout: React.FC = ({children}) => {
         px="12"
         py="16"
         shadow="md"
+        style={{position: 'relative'}}
+        id="register-content"
       >
         <GuardHandler>{children}</GuardHandler>
       </Flex>

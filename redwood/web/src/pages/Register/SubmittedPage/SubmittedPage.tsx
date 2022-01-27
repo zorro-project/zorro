@@ -4,7 +4,7 @@ import {Alert, AlertIcon, CircularProgress, Image, Text} from '@chakra-ui/react'
 import {navigate, Redirect, routes} from '@redwoodjs/router'
 import {MetaTags, useQuery} from '@redwoodjs/web'
 import dayjs from 'dayjs'
-import React, {useCallback} from 'react'
+import React, {useCallback, useEffect} from 'react'
 import ReactPlayer from 'react-player'
 import {InternalLink, RLink} from 'src/components/links'
 import {usePusher} from 'src/lib/pusher'
@@ -21,6 +21,7 @@ import {requireWalletConnected} from '../guards'
 import RegisterLogo from '../RegisterLogo'
 import Title from '../Title'
 import UserMediaBox from '../UserMediaBox'
+import {Fireworks} from 'fireworks-js'
 
 const QUERY = gql`
   query RegisterSubmittedPageQuery($ethereumAddress: ID!) {
@@ -50,6 +51,34 @@ const QUERY = gql`
 `
 
 const CitizenshipActive = () => {
+  useEffect(() => {
+    const fireworksContainer = document.createElement('div')
+    fireworksContainer.style.position = 'absolute'
+    fireworksContainer.style.top = '0'
+    fireworksContainer.style.bottom = '0'
+    fireworksContainer.style.left = '0'
+    fireworksContainer.style.right = '0'
+    document.getElementById('register-content')?.appendChild(fireworksContainer)
+    const fireworks = new Fireworks(fireworksContainer, {
+      friction: 0.95,
+      delay: {min: 15, max: 30},
+      speed: 2,
+      opacity: 0.5,
+      particles: 120,
+      hue: {min: 218, max: 287},
+    })
+
+    fireworks.start()
+
+    // Start fading out after 3 seconds (fadeout takes 2 seconds)
+    setTimeout(() => {
+      fireworksContainer.style.opacity = '0'
+      fireworksContainer.style.transition = 'opacity 2s ease-in'
+    }, 3000)
+
+    // Stop after 5 seconds
+    setTimeout(() => fireworks.stop(), 5000)
+  }, [])
   return (
     <>
       <Title title="Congratulations!" />
