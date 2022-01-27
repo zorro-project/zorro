@@ -72,11 +72,11 @@ func _get_did_super_adjudication_occur(profile : Profile) -> (res : felt):
     return (1)
 end
 
-func _get_is_in_provisional_time_window{
+func _get_is_in_provisional_period{
         pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
         profile : Profile, now) -> (res : felt):
     let time_passed_since_submission = now - profile.submission_timestamp
-    let (res) = is_le(time_passed_since_submission, consts.PROVISIONAL_TIME_WINDOW)
+    let (res) = is_le(time_passed_since_submission, consts.PROVISIONAL_PERIOD)
     return (res)
 end
 
@@ -106,14 +106,13 @@ func _get_current_status{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_p
 
         # Potentially time out all the way through `adjudication_round_completed` to `appeal_opportunity_expired`
         let (has_appeal_opportunity_expired) = is_le(
-            consts.ADJUDICATION_TIME_WINDOW + consts.APPEAL_TIME_WINDOW, time_passed)
+            consts.ADJUDICATION_PERIOD + consts.APPEAL_PERIOD, time_passed)
         if has_appeal_opportunity_expired == 1:
             return (StatusEnum.APPEAL_OPPORTUNITY_EXPIRED)
         end
 
         # Potentially time out to `adjudication_round_completed`
-        let (has_adjudication_opportunity_expired) = is_le(
-            consts.ADJUDICATION_TIME_WINDOW, time_passed)
+        let (has_adjudication_opportunity_expired) = is_le(consts.ADJUDICATION_PERIOD, time_passed)
         if has_adjudication_opportunity_expired == 1:
             return (StatusEnum.ADJUDICATION_ROUND_COMPLETED)
         end
@@ -129,7 +128,7 @@ func _get_current_status{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_p
         let time_passed = now - profile.adjudication_timestamp
 
         # Potentially auto-advance to `appeal_opportunity_expired`
-        let (has_appeal_opportunity_expired) = is_le(consts.APPEAL_TIME_WINDOW, time_passed)
+        let (has_appeal_opportunity_expired) = is_le(consts.APPEAL_PERIOD, time_passed)
         if has_appeal_opportunity_expired == 1:
             return (StatusEnum.APPEAL_OPPORTUNITY_EXPIRED)
         end
@@ -146,7 +145,7 @@ func _get_current_status{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_p
 
         # Potentially auto-advance to `super_adjudication_round_completed`
         let (has_super_adjudication_opportunity_expired) = is_le(
-            consts.SUPER_ADJUDICATION_TIME_WINDOW, time_passed)
+            consts.SUPER_ADJUDICATION_PERIOD, time_passed)
         if has_super_adjudication_opportunity_expired == 1:
             return (StatusEnum.SUPER_ADJUDICATION_ROUND_COMPLETED)
         end
@@ -185,7 +184,7 @@ func _get_is_verified{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr 
 
     if status == StatusEnum.NOT_CHALLENGED:
         # verified if notarized OR survived provisional period without being challenged
-        let (is_provisional) = _get_is_in_provisional_time_window(profile, now)
+        let (is_provisional) = _get_is_in_provisional_period(profile, now)
 
         # is_notarized || !is_provisional
         if (profile.is_notarized - 1) * is_provisional == 0:
@@ -203,8 +202,7 @@ func _get_is_verified{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr 
         # Presume innocence or not depending on whether the profile was still provisional
         # when it was challenged
         let (is_presumed_innocent) = is_le(
-            consts.PROVISIONAL_TIME_WINDOW,
-            profile.challenge_timestamp - profile.submission_timestamp)
+            consts.PROVISIONAL_PERIOD, profile.challenge_timestamp - profile.submission_timestamp)
         return (is_presumed_innocent)
     end
 

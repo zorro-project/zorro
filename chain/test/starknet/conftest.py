@@ -119,7 +119,7 @@ async def build_copyable_deployment():
         await zorro.get_challenge_deposit_size(0).call()
     ).result
     (challenge_reward_size,) = (await zorro.get_challenge_reward_size(0).call()).result
-    time_windows = (await zorro.get_time_windows().call()).result
+    time_windows = (await zorro.get_periods().call()).result
 
     consts = SimpleNamespace(
         SUPER_ADJUDICATOR_L1_ADDRESS=SUPER_ADJUDICATOR_L1_ADDRESS,

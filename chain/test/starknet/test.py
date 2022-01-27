@@ -157,8 +157,8 @@ class ScenarioState:
     # we don't care about about `<=`` vs `<`` when it comes to time
     async def named_wait(self, name=None, offset=1):
         time_windows = self.ctx.consts.time_windows
-        does_time_window_exist = hasattr(time_windows, name)
-        if not does_time_window_exist:
+        does_period_exist = hasattr(time_windows, name)
+        if not does_period_exist:
             raise f"The time window named {name} doesn't exist"
 
         self.ctx.advance_clock(getattr(time_windows, name) + offset)
@@ -260,7 +260,7 @@ def get_scenario_pairs():
 
     self_submit_and_wait_scenario = self_submit_scenario + [
         ("wait", dict(duration=60), NOT_VERIFIED),
-        ("named_wait", dict(name="PROVISIONAL_TIME_WINDOW"), VERIFIED),
+        ("named_wait", dict(name="PROVISIONAL_PERIOD"), VERIFIED),
     ]
 
     #
@@ -274,7 +274,7 @@ def get_scenario_pairs():
     notary_submit_and_wait_past_provisional_window_and_challenge_scenario = (
         notary_submit_scenario
         + [
-            ("named_wait", dict(name="PROVISIONAL_TIME_WINDOW"), VERIFIED),
+            ("named_wait", dict(name="PROVISIONAL_PERIOD"), VERIFIED),
             ("challenge", dict(), VERIFIED),
         ]
     )
@@ -293,7 +293,7 @@ def get_scenario_pairs():
 
     # Can't adjudicate after timeout
     adj_timeout_scenario = notary_submit_and_challenge_scenario + [
-        ("named_wait", dict(name="ADJUDICATION_TIME_WINDOW"), NOT_VERIFIED),
+        ("named_wait", dict(name="ADJUDICATION_PERIOD"), NOT_VERIFIED),
         ("adjudicate", dict(should_verify=1), TX_REJECTED),
     ]
 
@@ -320,11 +320,11 @@ def get_scenario_pairs():
     ]
 
     adj_yes_and_appeal_timeout_scenario = adj_yes_scenario + [
-        ("named_wait", dict(name="APPEAL_TIME_WINDOW"), VERIFIED),
+        ("named_wait", dict(name="APPEAL_PERIOD"), VERIFIED),
     ]
 
     adj_no_and_appeal_timeout_scenario = adj_no_scenario + [
-        ("named_wait", dict(name="APPEAL_TIME_WINDOW"), NOT_VERIFIED),
+        ("named_wait", dict(name="APPEAL_PERIOD"), NOT_VERIFIED),
     ]
 
     # Can't appeal after timeout
@@ -392,7 +392,7 @@ def get_scenario_pairs():
     adj_no_and_appeal_and_superadj_timeout_and_attempt_superadj_scenario = (
         adj_no_and_appeal_scenario
         + [
-            ("named_wait", dict(name="SUPER_ADJUDICATION_TIME_WINDOW"), NOT_VERIFIED),
+            ("named_wait", dict(name="SUPER_ADJUDICATION_PERIOD"), NOT_VERIFIED),
             ("super_adjudicate", dict(should_overturn=0), TX_REJECTED),
         ]
     )
@@ -401,9 +401,9 @@ def get_scenario_pairs():
     all_timed_out_scenario = (
         notary_submit_and_wait_past_provisional_window_and_challenge_scenario
         + [
-            ("named_wait", dict(name="ADJUDICATION_TIME_WINDOW"), NOT_VERIFIED),
+            ("named_wait", dict(name="ADJUDICATION_PERIOD"), NOT_VERIFIED),
             ("appeal", dict(), NOT_VERIFIED),
-            ("named_wait", dict(name="SUPER_ADJUDICATION_TIME_WINDOW"), NOT_VERIFIED),
+            ("named_wait", dict(name="SUPER_ADJUDICATION_PERIOD"), NOT_VERIFIED),
         ]
     )
 
@@ -441,7 +441,7 @@ def get_scenario_pairs():
     adj_yes_and_appeal_timeout_and_rechallenge_scenario = (
         adj_yes_and_appeal_timeout_scenario
         + [
-            ("named_wait", dict(name="PROVISIONAL_TIME_WINDOW"), VERIFIED),
+            ("named_wait", dict(name="PROVISIONAL_PERIOD"), VERIFIED),
             ("challenge", dict(), VERIFIED),  # presumed innocent
         ]
     )
@@ -503,7 +503,7 @@ async def test_settle_where_challenger_loses(ctx_factory):
             ("submit", dict(via_notary=True, cid=100, ethereum_address=1234), VERIFIED),
             ("challenge", dict(), NOT_VERIFIED),
             ("adjudicate", dict(should_verify=1), VERIFIED),
-            ("named_wait", dict(name="APPEAL_TIME_WINDOW"), VERIFIED),
+            ("named_wait", dict(name="APPEAL_PERIOD"), VERIFIED),
             ("maybe_settle", dict(), VERIFIED),
         ],
     )
@@ -526,8 +526,8 @@ async def test_settle_where_challenger_wins_deposit_from_submitter(ctx_factory):
         [
             ("submit", dict(via_notary=True, cid=100, ethereum_address=1234), VERIFIED),
             ("challenge", dict(), NOT_VERIFIED),
-            ("named_wait", dict(name="ADJUDICATION_TIME_WINDOW"), NOT_VERIFIED),
-            ("named_wait", dict(name="APPEAL_TIME_WINDOW"), NOT_VERIFIED),
+            ("named_wait", dict(name="ADJUDICATION_PERIOD"), NOT_VERIFIED),
+            ("named_wait", dict(name="APPEAL_PERIOD"), NOT_VERIFIED),
             ("maybe_settle", dict(), NOT_VERIFIED),
         ],
     )
@@ -553,11 +553,11 @@ async def test_settle_where_challenger_wins_reward_from_security_pool(ctx_factor
         ctx,
         [
             ("submit", dict(via_notary=True, cid=100, ethereum_address=1234), VERIFIED),
-            ("named_wait", dict(name="PROVISIONAL_TIME_WINDOW"), VERIFIED),
+            ("named_wait", dict(name="PROVISIONAL_PERIOD"), VERIFIED),
             ("maybe_return_submission_deposit", dict(), VERIFIED),
             ("challenge", dict(), VERIFIED),
             ("adjudicate", dict(should_verify=0), NOT_VERIFIED),
-            ("named_wait", dict(name="APPEAL_TIME_WINDOW"), NOT_VERIFIED),
+            ("named_wait", dict(name="APPEAL_PERIOD"), NOT_VERIFIED),
             ("maybe_settle", dict(), NOT_VERIFIED),
         ],
     )
@@ -582,11 +582,11 @@ async def test_settle_where_challenger_would_win_reward_but_for_empty_security_p
         ctx,
         [
             ("submit", dict(via_notary=True, cid=100, ethereum_address=1234), VERIFIED),
-            ("named_wait", dict(name="PROVISIONAL_TIME_WINDOW"), VERIFIED),
+            ("named_wait", dict(name="PROVISIONAL_PERIOD"), VERIFIED),
             ("maybe_return_submission_deposit", dict(), VERIFIED),
             ("challenge", dict(), VERIFIED),
             ("adjudicate", dict(should_verify=0), NOT_VERIFIED),
-            ("named_wait", dict(name="APPEAL_TIME_WINDOW"), NOT_VERIFIED),
+            ("named_wait", dict(name="APPEAL_PERIOD"), NOT_VERIFIED),
             ("maybe_settle", dict(), NOT_VERIFIED),
         ],
     )
