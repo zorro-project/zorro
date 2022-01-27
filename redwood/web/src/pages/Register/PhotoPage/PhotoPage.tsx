@@ -8,7 +8,6 @@ import {RLink} from 'src/components/links'
 import {maybeCidToUrl} from 'src/lib/util'
 import {registerSlice} from 'src/state/registerSlice'
 import {useAppDispatch, useAppSelector} from 'src/state/store'
-import {useIsFirstRender} from 'usehooks-ts'
 import {requireCameraAllowed, requireWalletConnected} from '../guards'
 import UserMediaBox from '../UserMediaBox'
 import {videoConstraints} from '../VideoPage/VideoPage'
@@ -35,8 +34,6 @@ const PhotoPage = () => {
     dispatch(registerSlice.actions.setPhoto(photoUrl))
   }, [dispatch, webcamRef])
 
-  const firstRender = useIsFirstRender()
-
   return (
     <Stack spacing="6" flex="1">
       <MetaTags title="Take photo" />
@@ -44,9 +41,9 @@ const PhotoPage = () => {
         <ScaleFade
           in={true}
           key={photo?.substring(0, 2000)}
-          transition={{enter: {duration: firstRender ? 0 : 1}}}
+          transition={{enter: {duration: 1}}}
           initialScale={1}
-          onAnimationComplete={() => !firstRender && setButtonsEnabled(true)}
+          onAnimationComplete={() => setButtonsEnabled(true)}
           style={{flex: 1, display: 'flex'}}
         >
           {photo ? (
