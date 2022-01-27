@@ -76,7 +76,7 @@ export const currentStatus = (
   }
 }
 
-// Keep in sync with profile.cairo#get_is_in_provisional_time_window
+// Keep in sync with profile.cairo#get_is_in_provisional_period
 const isInProvisionalTimeWindow = (
   profile: Pick<PrismaCachedProfile, 'submissionTimestamp'>,
   now = new Date()

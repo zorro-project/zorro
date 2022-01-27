@@ -19,7 +19,7 @@ from utils import assert_is_boolean, get_is_equal
 from consts import consts
 from profile import (
     Profile, StatusEnum, _get_current_status, _get_did_adjudication_occur,
-    _get_did_super_adjudication_occur, _get_is_in_provisional_time_window, _get_is_verified,
+    _get_did_super_adjudication_occur, _get_is_in_provisional_period, _get_is_verified,
     _get_dict_from_profile, _get_profile_from_dict)
 from seed_profiles import _get_seed_profiles
 
@@ -399,8 +399,8 @@ func maybe_return_submission_deposit{
     let (profile) = get_profile_by_id(profile_id)
 
     # Hold deposit in reserve until profile is outside of its provisional time window
-    let (is_in_provisional_time_window) = _get_is_in_provisional_time_window(profile, now)
-    if is_in_provisional_time_window == 1:
+    let (is_in_provisional_period) = _get_is_in_provisional_period(profile, now)
+    if is_in_provisional_period == 1:
         return ()
     end
 
@@ -632,14 +632,14 @@ func get_challenge_reward_size(timestamp : felt) -> (res : felt):
 end
 
 @view
-func get_time_windows() -> (
-        PROVISIONAL_TIME_WINDOW : felt, ADJUDICATION_TIME_WINDOW : felt, APPEAL_TIME_WINDOW : felt,
-        SUPER_ADJUDICATION_TIME_WINDOW : felt):
+func get_periods() -> (
+        PROVISIONAL_PERIOD : felt, ADJUDICATION_PERIOD : felt, APPEAL_PERIOD : felt,
+        SUPER_ADJUDICATION_PERIOD : felt):
     return (
-        consts.PROVISIONAL_TIME_WINDOW,
-        consts.ADJUDICATION_TIME_WINDOW,
-        consts.APPEAL_TIME_WINDOW,
-        consts.SUPER_ADJUDICATION_TIME_WINDOW)
+        consts.PROVISIONAL_PERIOD,
+        consts.ADJUDICATION_PERIOD,
+        consts.APPEAL_PERIOD,
+        consts.SUPER_ADJUDICATION_PERIOD)
 end
 
 @view
