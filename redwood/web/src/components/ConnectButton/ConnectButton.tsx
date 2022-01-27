@@ -10,7 +10,7 @@ export default function ConnectButton(props: ButtonProps) {
   const user = useUser()
   const modalControl = useDisclosure()
 
-  const [{data}, connect] = useConnect()
+  const [{data, loading: isLoading}, connect] = useConnect()
 
   const signIn = async () => {
     connect(data.connectors[0])
@@ -40,6 +40,7 @@ export default function ConnectButton(props: ButtonProps) {
   ) : (
     <Button
       onClick={signIn}
+      isLoading={isLoading}
       // eslint-disable-next-line react/no-children-prop
       children="Connect Wallet"
       {...props}
