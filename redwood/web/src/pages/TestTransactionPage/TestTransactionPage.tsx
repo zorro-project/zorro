@@ -5,22 +5,20 @@ import {Box, Heading, Link, Stack, Text} from '@chakra-ui/layout'
 import {FormControl, FormLabel} from '@chakra-ui/react'
 import {MetaTags} from '@redwoodjs/web'
 import {Card} from 'src/components/Card'
-import getNotaryKey from 'src/lib/getNotaryKey'
 import {
+  cairoCompatibleAdd,
   ERC20Address,
-  NotaryAddress,
-  ZorroAddress,
-} from '../../../../api/src/chain/contracts'
-import {
   erc20GetAllowance,
   erc20GetBalanceOf,
   erc20Mint,
   exportProfileById,
   getNumProfiles,
+  NotaryAddress,
   notarySubmitProfile,
-} from '../../../../api/src/chain/starknet'
-import {serializeCid} from '../../../../api/src/chain/serializers'
-import {cairoCompatibleAdd} from '../../../../api/src/lib/ipfs'
+  serializeCid,
+  ZorroAddress,
+} from 'src/lib/api'
+import getNotaryKey from 'src/lib/getNotaryKey'
 
 const ExportProfileById = () => {
   const profileId = React.useRef<HTMLInputElement>(null)

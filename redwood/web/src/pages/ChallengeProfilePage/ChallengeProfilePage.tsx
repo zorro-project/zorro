@@ -31,15 +31,15 @@ import {
   ChallengePageQueryVariables,
   StatusEnum,
 } from 'types/graphql'
-import {cairoCompatibleAdd} from '../../../../api/src/lib/ipfs'
-import {serializeCid} from '../../../../api/src/chain/serializers'
 import {
+  cairoCompatibleAdd,
+  serializeCid,
   erc20Approve,
   erc20GetBalanceOf,
   getChallengeDepositSize,
   submitChallenge,
-} from '../../../../api/src/chain/starknet'
-import {ZorroAddress} from '../../../../api/src/chain/contracts'
+  ZorroAddress,
+} from 'src/lib/api'
 
 const QUERY = gql`
   query ChallengePageQuery($id: ID!, $resync: Boolean) {
