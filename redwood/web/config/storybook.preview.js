@@ -8,8 +8,15 @@ const withChakra = (StoryFn) => (
     <StoryFn />
   </ChakraProvider>
 )
+import {ActivePageContextProvider} from '@redwoodjs/router/dist/ActivePageContext'
 
-export const decorators = [withChakra]
+const withActivePageContext = (StoryFn) => (
+  <ActivePageContextProvider value={{loadingState: {}}}>
+    <StoryFn />
+  </ActivePageContextProvider>
+)
+
+export const decorators = [withChakra, withActivePageContext]
 
 export const parameters = {
   options: {
