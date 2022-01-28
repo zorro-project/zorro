@@ -49,7 +49,9 @@ export function UserContextProvider({children}: {children: React.ReactNode}) {
           hasEmail
         }
 
-        unsubmittedProfile(ethereumAddress: $ethereumAddress) {
+        registrationAttempt: latestRegistration(
+          ethereumAddress: $ethereumAddress
+        ) {
           id
         }
 

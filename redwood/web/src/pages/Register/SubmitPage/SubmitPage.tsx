@@ -11,17 +11,14 @@ import {useGuard} from 'src/lib/useGuard'
 import {dataUrlToBlob, isLocalUrl, maybeCidToUrl} from 'src/lib/util'
 import {registerSlice} from 'src/state/registerSlice'
 import {useAppDispatch, useAppSelector} from 'src/state/store'
-import {
-  UpdateUnsubmittedProfileMutation,
-  UpdateUnsubmittedProfileMutationVariables,
-} from 'types/graphql'
+import {AttemptRegistration, AttemptRegistrationVariables} from 'types/graphql'
 import {requireWalletConnected} from '../../../lib/guards'
 import RegisterLogo from '../RegisterLogo'
 import Title from '../Title'
 import UserMediaBox from '../UserMediaBox'
 
 const SubmitPage = ({initialSubmitProgress = -1}) => {
-  const {unsubmittedProfile, refetch: refetchUser} = useUser()
+  const {registrationAttempt, refetch: refetchUser} = useUser()
   const ethereumAddress = requireWalletConnected()
 
   const [submitProgress, setSubmitProgress] = React.useState(
@@ -33,18 +30,12 @@ const SubmitPage = ({initialSubmitProgress = -1}) => {
 
   useGuard(registerState.photo && registerState.video, routes.registerPhoto())
 
-  const [updateMutation] = useMutation<
-    UpdateUnsubmittedProfileMutation,
-    UpdateUnsubmittedProfileMutationVariables
+  const [attemptRegistrationMutation] = useMutation<
+    AttemptRegistration,
+    AttemptRegistrationVariables
   >(gql`
-    mutation UpdateUnsubmittedProfileMutation(
-      $ethereumAddress: String!
-      $input: UpdateUnsubmittedProfileInput!
-    ) {
-      updateUnsubmittedProfile(
-        ethereumAddress: $ethereumAddress
-        input: $input
-      ) {
+    mutation AttemptRegistration($input: AttemptRegistrationInput!) {
+      attemptRegistration(input: $input) {
         id
       }
     }
@@ -90,10 +81,10 @@ const SubmitPage = ({initialSubmitProgress = -1}) => {
           .toString()
       : registerState.video!
 
-    await updateMutation({
+    await attemptRegistrationMutation({
       variables: {
-        ethereumAddress,
         input: {
+          ethereumAddress,
           photoCid,
           videoCid,
         },
@@ -102,7 +93,7 @@ const SubmitPage = ({initialSubmitProgress = -1}) => {
 
     await refetchUser?.()
     navigate(routes.registerSubmitted())
-  }, [ethereumAddress, updateMutation])
+  }, [ethereumAddress, attemptRegistrationMutation])
 
   return (
     <Stack spacing="6" flex="1" width="100%">
@@ -141,7 +132,7 @@ const SubmitPage = ({initialSubmitProgress = -1}) => {
       <Spacer />
 
       <Button variant="register-primary" onClick={submit} disabled={submitting}>
-        {unsubmittedProfile ? 'Resubmit application' : 'Submit application'}
+        {registrationAttempt ? 'Resubmit application' : 'Submit application'}
       </Button>
       <Button
         variant="register-secondary"

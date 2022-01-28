@@ -85,6 +85,7 @@ const AuthenticatePage: React.FC<{next?: string}> = ({next}) => {
     }
   }, [signer])
 
+  console.log({loading})
   if (loading) return null
 
   return (

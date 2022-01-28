@@ -75,40 +75,26 @@ model CachedProfile {
   @@index([cid])
 }
 
-model UnsubmittedProfile {
+model RegistrationAttempt {
   id Int @id @default(autoincrement())
 
-  ethereumAddress String @unique
+  ethereumAddress String
   photoCid        String
   videoCid        String
 
-  unaddressedFeedbackId Int?
-  UnaddressedFeedback   NotaryFeedback? @relation("unaddressedFeedback", fields: [unaddressedFeedbackId], references: [id])
+  notaryViewedAt DateTime?
 
-  lastSubmittedAt  DateTime  @default(now())
-  notaryViewedAt   DateTime?
-  notaryApprovedAt DateTime?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  NotaryFeedback NotaryFeedback[]
-}
-
-model NotaryFeedback {
-  id                   Int    @id @default(autoincrement())
-  unsubmittedProfileId Int
-  feedback             String
-
-  UnsubmittedProfile UnsubmittedProfile @relation(fields: [unsubmittedProfileId], references: [id])
-
-  // We don't use this relation in this direction, but Prisma requires all relations to be listed bidirectionally.
-  isUnaddressed UnsubmittedProfile[] @relation("unaddressedFeedback")
+  reviewedAt   DateTime?
+  reviewedById Int?
+  reviewedBy   User?     @relation(fields: [reviewedById], references: [id])
+  approved     Boolean?
+  deniedReason String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@index([unsubmittedProfileId])
+  @@index([ethereumAddress])
+  @@index([ethereumAddress, approved])
 }
 
 model Connection {
@@ -151,6 +137,8 @@ model User {
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
   UserSession UserSession[]
+
+  ReviewedRegistrations RegistrationAttempt[]
 }
 
 model UserSession {

@@ -14,10 +14,10 @@ const IntroPage: React.FC<{
   purposeIdentifier?: string
   externalAddress?: string
 }> = ({purposeIdentifier, externalAddress}) => {
-  const {unsubmittedProfile} = useUser()
+  const {registrationAttempt} = useUser()
 
   requireNoExistingProfile()
-  useGuard(!unsubmittedProfile, routes.registerSubmitted())
+  useGuard(!registrationAttempt, routes.registerSubmitted())
 
   useEffect(() => {
     if (purposeIdentifier && externalAddress) {
