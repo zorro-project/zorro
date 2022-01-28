@@ -10,6 +10,7 @@ import {
 import {useState} from 'react'
 import {requireWalletConnected} from '../guards'
 import RegisterLogo from '../RegisterLogo'
+import RegisterScreen from '../RegisterScreen'
 
 const AllowCameraPage: React.FC = () => {
   requireWalletConnected()
@@ -53,22 +54,24 @@ const AllowCameraPage: React.FC = () => {
   }
 
   return (
-    <Stack maxW="md" mx="auto" spacing="6" flex="1">
-      <MetaTags title="Allow Camera" />
-      <RegisterLogo />
-      <Spacer />
-      <Text>Everyone who registers records a short video</Text>
-      <Text>
-        These videos help ensure that each unique person only registers once.
-      </Text>
-      <Button
-        variant="register-primary"
-        onClick={requestPermissions}
-        isLoading={requestingPermissions}
-      >
-        Allow Camera
-      </Button>
-    </Stack>
+    <RegisterScreen
+      shouldShowLogo
+      shouldHideTitle
+      title="Allow camera"
+      buttonDescription={
+        <>
+          <Text>
+            Everyone who registers takes a selfie, so we need access to your
+            camera. This helps make sure everyone only registers once.
+          </Text>
+        </>
+      }
+      primaryButtonLabel="Allow camera"
+      primaryButtonProps={{
+        onClick: requestPermissions,
+        isLoading: requestingPermissions,
+      }}
+    />
   )
 }
 

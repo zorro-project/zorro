@@ -1,9 +1,8 @@
 import {AspectRatio, Box, Stack, Text} from '@chakra-ui/layout'
-import {Button, Fade, Spacer} from '@chakra-ui/react'
-import {routes} from '@redwoodjs/router'
+import {Button, Fade, Spacer, Icon, Center} from '@chakra-ui/react'
+import {routes, navigate} from '@redwoodjs/router'
 import {MetaTags} from '@redwoodjs/web'
 import {useCallback, useRef, useState} from 'react'
-import ReactPlayer from 'react-player'
 import Webcam from 'react-webcam'
 import {RLink} from 'src/components/links'
 import {useGuard} from 'src/lib/useGuard'
@@ -12,6 +11,8 @@ import {registerSlice} from 'src/state/registerSlice'
 import {useAppDispatch, useAppSelector} from 'src/state/store'
 import {requireCameraAllowed, requireWalletConnected} from '../guards'
 import UserMediaBox from '../UserMediaBox'
+import MinimalVideoPlayer from '../MinimalVideoPlayer'
+import RegisterScreen from '../RegisterScreen'
 
 export const videoConstraints: MediaTrackConstraints = {
   facingMode: 'user',
@@ -19,34 +20,33 @@ export const videoConstraints: MediaTrackConstraints = {
   height: 720,
 }
 
-const VideoPage = ({mockRecording = false}) => {
+const VideoPage = () => {
   requireWalletConnected()
   requireCameraAllowed()
 
   const {photo, video} = useAppSelector((state) => state.register)
   useGuard(photo, routes.registerPhoto())
 
-  const webcamRef = useRef<Webcam>(null)
-  const [buttonsEnabled, setButtonsEnabled] = useState(!!photo)
+  return !video ? <RecordStep /> : <ConfirmStep />
+}
 
-  const temporarilyDisableButtons = useCallback(() => {
-    setButtonsEnabled(false)
-    setTimeout(() => setButtonsEnabled(true), 500)
-  }, [])
-
+const RecordStep = ({mockRecording = false}) => {
   const dispatch = useAppDispatch()
-  const [recording, setRecording] = useState(mockRecording)
-  const [aspectRatio, setAspectRatio] = useState(1)
+  const webcamRef = useRef<Webcam>(null)
   const mediaRecorderRef = React.useRef<MediaRecorder>(null)
+  const [isStreamReady, setIsStreamReady] = useState(false)
+  const [isRecording, setIsRecording] = useState(mockRecording)
+
+  const [aspectRatio, setAspectRatio] = useState(1)
 
   const onUserMedia = useCallback((stream: MediaStream) => {
     const settings = stream.getVideoTracks()[0].getSettings()
     setAspectRatio((settings.width ?? 1) / (settings.height ?? 1))
-    temporarilyDisableButtons()
+    setIsStreamReady(true)
   }, [])
 
   const startRecording = useCallback(async () => {
-    setRecording(true)
+    setIsRecording(true)
     // @ts-expect-error TODO: why are we assigning to a supposedly readonly ref
     // here? Just copied the example from
     // https://codepen.io/mozmorris/pen/yLYKzyp?editors=0010
@@ -62,125 +62,117 @@ const VideoPage = ({mockRecording = false}) => {
       dispatch(registerSlice.actions.setVideo(URL.createObjectURL(video)))
     })
     mediaRecorderRef.current.start()
-  }, [webcamRef.current, setRecording, mediaRecorderRef.current])
+  }, [webcamRef.current, setIsRecording, mediaRecorderRef.current])
 
   const stopRecording = useCallback(() => {
     mediaRecorderRef.current?.stop()
-    setRecording(false)
-    temporarilyDisableButtons()
-  }, [mediaRecorderRef, setRecording])
-
-  const redoVideo = useCallback(() => {
-    temporarilyDisableButtons()
-    dispatch(registerSlice.actions.setVideo(undefined))
-  }, [])
+    setIsRecording(false)
+    setIsStreamReady(false)
+  }, [mediaRecorderRef, setIsRecording, setIsStreamReady])
 
   return (
-    <Stack spacing="6" flex="1">
-      <MetaTags title="Record Video" />
-      <UserMediaBox position="relative">
-        {video ? (
-          <ReactPlayer
-            url={maybeCidToUrl(video)}
-            controls
-            width="100%"
-            height="100%"
+    <RegisterScreen
+      hero={
+        <UserMediaBox shouldShowLoadingIndicator>
+          <Webcam
+            videoConstraints={videoConstraints}
+            audio
+            muted
+            mirrored
+            ref={webcamRef}
+            style={{position: 'relative'}}
+            onUserMedia={onUserMedia}
           />
-        ) : (
-          <>
-            <Webcam
-              videoConstraints={videoConstraints}
-              audio
-              muted
-              mirrored
-              ref={webcamRef}
-              style={{position: 'relative'}}
-              onUserMedia={onUserMedia}
-            />
-            {/* Recording indicator */}
-            <Fade
-              in={recording}
-              style={{
-                position: 'absolute',
-                top: 0,
-                right: 0,
-                bottom: 0,
-                left: 0,
-                display: 'flex',
-                alignItems: 'center',
-              }}
-            >
-              <AspectRatio ratio={aspectRatio} width="100%" position="relative">
-                <Box>
-                  <Box
-                    backgroundColor="red.500"
-                    shadow="md"
-                    top={3}
-                    right={3}
-                    position="absolute"
-                    h={6}
-                    w={6}
-                    borderRadius="50%"
-                  />
-                </Box>
-              </AspectRatio>
-            </Fade>
-            {/* End recording indicator */}
-          </>
-        )}
-      </UserMediaBox>
-      {!recording && !video && (
-        <>
+          {/* Recording indicator */}
+          <Fade
+            in={isRecording}
+            style={{
+              position: 'absolute',
+              top: 0,
+              right: 0,
+              bottom: 0,
+              left: 0,
+              display: 'flex',
+              alignItems: 'center',
+            }}
+          >
+            <AspectRatio ratio={aspectRatio} width="100%" position="relative">
+              <Box>
+                <Box
+                  backgroundColor="red.500"
+                  shadow="md"
+                  top={5}
+                  right={5}
+                  position="absolute"
+                  h={6}
+                  w={6}
+                  borderRadius="50%"
+                />
+              </Box>
+            </AspectRatio>
+          </Fade>
+          {/* End recording indicator */}
+        </UserMediaBox>
+      }
+      title={!isRecording ? 'Record video' : 'Say this:'}
+      description={
+        !isRecording ? (
           <Text>
             Ready to be sworn in? Just read the words on the next screen.
           </Text>
-          <Spacer />
-          <Button
-            variant="register-primary"
-            onClick={startRecording}
-            disabled={!buttonsEnabled}
-          >
-            I'm ready, start recording
-          </Button>
-        </>
-      )}
-      {recording && (
-        <>
-          <Text>
-            Say this:
-            <br />
-            <strong>
-              "I swear that this is my first time registering on Zorro"
-            </strong>
-          </Text>
-          <Spacer />
-          <Button variant="register-primary" onClick={stopRecording}>
-            Stop recording
-          </Button>
-        </>
-      )}
-      {video && !recording && (
-        <>
-          <Spacer />
-          <Button
-            variant="register-primary"
-            onClick={redoVideo}
-            disabled={!buttonsEnabled}
-          >
-            Redo video
-          </Button>
-          <Button
-            variant="register-primary"
-            as={RLink}
-            href={routes.registerEmail()}
-            px="12"
-            disabled={!buttonsEnabled}
-          >
-            Continue
-          </Button>
-        </>
-      )}
-    </Stack>
+        ) : (
+          <Text>"I swear this is my first time registering on Zorro"</Text>
+        )
+      }
+      primaryButtonLabel={
+        !isRecording ? "I'm ready, start recording" : 'Stop recording'
+      }
+      primaryButtonProps={{
+        onClick: isRecording ? stopRecording : startRecording,
+        disabled: !isStreamReady,
+      }}
+    />
+  )
+}
+
+const ConfirmStep = () => {
+  const dispatch = useAppDispatch()
+  const [isLoaded, setIsLoaded] = useState(false)
+  const [hasPlayed, setHasPlayed] = useState(false)
+  const {video} = useAppSelector((state) => state.register)
+
+  const redoVideo = useCallback(() => {
+    dispatch(registerSlice.actions.setVideo(undefined))
+  }, [])
+
+  const maybeContinue = useCallback(() => {
+    if (hasPlayed) navigate(routes.registerEmail())
+    else alert('maybe play first...?')
+  }, [hasPlayed])
+
+  return (
+    <RegisterScreen
+      hero={
+        <UserMediaBox position="relative">
+          <MinimalVideoPlayer
+            url={maybeCidToUrl(video)}
+            width="100%"
+            height="100%"
+            onReady={() => setTimeout(() => setIsLoaded(true), 500)}
+            onPlay={() => setHasPlayed(true)}
+          />
+        </UserMediaBox>
+      }
+      title="Confirm video"
+      description={<Text>Did the video come out OK?</Text>}
+      primaryButtonLabel="Use this video"
+      primaryButtonProps={{
+        onClick: maybeContinue,
+        disabled: !isLoaded,
+      }}
+      secondaryButtonLabel="Redo video"
+      secondaryButtonProps={{onClick: redoVideo, disabled: !isLoaded}}
+    />
   )
 }
 

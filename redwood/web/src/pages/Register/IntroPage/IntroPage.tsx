@@ -9,6 +9,8 @@ import {useUser} from 'src/layouts/UserContext'
 import {save as saveIntendedConnection} from 'src/lib/intendedConnectionStorage'
 import {requireNoExistingProfile} from '../guards'
 import RegisterLogo from '../RegisterLogo'
+import Title from '../Title'
+import RegisterScreen from '../RegisterScreen'
 
 const IntroPage: React.FC<{
   purposeIdentifier?: string
@@ -29,7 +31,7 @@ const IntroPage: React.FC<{
   const alreadyRegistered = () => {
     toast({
       title:
-        'Please connect the wallet you registered with previously to continue.',
+        'Please connect the wallet account that you previously registered with.',
       status: 'info',
       isClosable: true,
       duration: 15000,
@@ -37,31 +39,29 @@ const IntroPage: React.FC<{
   }
 
   return (
-    <Stack spacing="6" flex="1">
-      <MetaTags title="Register" />
-      <RegisterLogo />
-      <Heading size="lg" pb="4" alignSelf="flex-start">
-        Zorro: web3 citizenship
-      </Heading>
-      <Text>
-        Becoming a web3 citizen will let you claim additional voting rights and
-        other privileges.
-      </Text>
-      <Text>
-        It takes about 5 minutes. The costs are covered by the Zorro community.
-      </Text>
-      <Spacer />
-      <Button
-        variant="register-primary"
-        as={RLink}
-        href={routes.registerConnectWallet()}
-      >
-        Let's go!
-      </Button>
-      <Button variant="register-secondary" onClick={alreadyRegistered}>
-        I'm already registered
-      </Button>
-    </Stack>
+    <RegisterScreen
+      shouldShowLogo
+      title="Zorro: web3 citizenship"
+      description={
+        <>
+          <Text>
+            Becoming a Zorro citizen will let you claim additional voting rights
+            and other privileges.
+          </Text>
+          <Text>
+            It takes about five minutes. The costs are covered by the Zorro
+            community.
+          </Text>
+        </>
+      }
+      primaryButtonLabel="Let's go!"
+      primaryButtonProps={{
+        as: RLink,
+        href: routes.registerConnectWallet(),
+      }}
+      secondaryButtonLabel="I'm already registered"
+      secondaryButtonProps={{onClick: alreadyRegistered}}
+    />
   )
 }
 

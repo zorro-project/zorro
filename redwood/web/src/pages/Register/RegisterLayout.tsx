@@ -17,8 +17,6 @@ const RegisterLayout: React.FC = ({children}) => {
         mx="auto"
         flex="0 1 650px"
         background="white"
-        px="12"
-        py="16"
         shadow="md"
         style={{position: 'relative'}}
         id="register-content"

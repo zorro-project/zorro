@@ -1,5 +1,5 @@
-import {Spacer, Stack, Text} from '@chakra-ui/layout'
-import {Button, Image, ScaleFade} from '@chakra-ui/react'
+import {Spacer, Stack, Text, OrderedList, ListItem} from '@chakra-ui/layout'
+import {Button, Image, ScaleFade, Box} from '@chakra-ui/react'
 import {routes} from '@redwoodjs/router'
 import {MetaTags} from '@redwoodjs/web'
 import {useCallback, useRef, useState} from 'react'
@@ -11,94 +11,96 @@ import {useAppDispatch, useAppSelector} from 'src/state/store'
 import {requireCameraAllowed, requireWalletConnected} from '../guards'
 import UserMediaBox from '../UserMediaBox'
 import {videoConstraints} from '../VideoPage/VideoPage'
+import Title from '../Title'
+import RegisterScreen from '../RegisterScreen'
 
 const PhotoPage = () => {
   requireWalletConnected()
   requireCameraAllowed()
 
   const {photo} = useAppSelector((state) => state.register)
+  return !photo ? <TakePhoto /> : <ConfirmPhoto />
+}
 
+const TakePhoto = () => {
   const dispatch = useAppDispatch()
   const webcamRef = useRef<Webcam>(null)
-  const [buttonsEnabled, setButtonsEnabled] = useState(!!photo)
+  const [isReady, setIsReady] = useState(false)
 
-  const redoPhoto = useCallback(() => {
-    setButtonsEnabled(false)
-    dispatch(registerSlice.actions.setPhoto(undefined))
-  }, [])
-
-  const capturePicture = useCallback(async () => {
+  const capturePhoto = useCallback(async () => {
     const photoUrl = webcamRef.current?.getScreenshot()
     if (!photoUrl) return
-    setButtonsEnabled(false)
+    setIsReady(false)
     dispatch(registerSlice.actions.setPhoto(photoUrl))
   }, [dispatch, webcamRef])
 
   return (
-    <Stack spacing="6" flex="1">
-      <MetaTags title="Take photo" />
-      <UserMediaBox>
-        <ScaleFade
-          in={true}
-          key={photo?.substring(0, 2000)}
-          transition={{enter: {duration: 1}}}
-          initialScale={1}
-          onAnimationComplete={() => setButtonsEnabled(true)}
-          style={{flex: 1, display: 'flex'}}
-        >
-          {photo ? (
-            <Image src={maybeCidToUrl(photo)} />
-          ) : (
-            <Webcam
-              videoConstraints={videoConstraints}
-              screenshotQuality={1}
-              forceScreenshotSourceSize={true}
-              mirrored
-              ref={webcamRef}
-              onUserMedia={() => setButtonsEnabled(true)}
-            />
-          )}
-        </ScaleFade>
-      </UserMediaBox>
-      {photo ? (
-        <>
-          <Spacer />
+    <RegisterScreen
+      hero={
+        <UserMediaBox shouldShowLoadingIndicator>
+          <Webcam
+            videoConstraints={videoConstraints}
+            screenshotQuality={1}
+            forceScreenshotSourceSize={true}
+            mirrored
+            ref={webcamRef}
+            onUserMedia={() => setIsReady(true)}
+          />
+        </UserMediaBox>
+      }
+      title="Take a selfie"
+      description={
+        <OrderedList>
+          <ListItem>Find good lighting</ListItem>
+          <ListItem>Remove glasses or other face coverings</ListItem>
+          <ListItem>Look directly at the camera</ListItem>
+        </OrderedList>
+      }
+      primaryButtonLabel="Take photo"
+      primaryButtonProps={{
+        onClick: capturePhoto,
+        disabled: !isReady,
+      }}
+    />
+  )
+}
 
-          <Button
-            variant="register-primary"
-            onClick={redoPhoto}
-            disabled={!buttonsEnabled}
+const ConfirmPhoto = () => {
+  const dispatch = useAppDispatch()
+  const [areButtonsEnabled, setAreButtonsEnabled] = useState(false)
+  const {photo} = useAppSelector((state) => state.register)
+  const redoPhoto = useCallback(() => {
+    setAreButtonsEnabled(false)
+    dispatch(registerSlice.actions.setPhoto(undefined))
+  }, [])
+
+  return (
+    <RegisterScreen
+      hero={
+        <UserMediaBox>
+          <ScaleFade
+            in={true}
+            key={photo?.substring(0, 2000)}
+            transition={{enter: {duration: 1}}}
+            initialScale={1}
+            onAnimationComplete={() => setAreButtonsEnabled(true)}
+            style={{flex: 1, display: 'flex'}}
           >
-            Redo photo
-          </Button>
-          <Button
-            variant="register-primary"
-            as={RLink}
-            href={routes.registerVideo()}
-            px="12"
-            disabled={!buttonsEnabled}
-          >
-            Use this photo
-          </Button>
-        </>
-      ) : (
-        <>
-          <Text>
-            Make sure you're <strong>looking directly at the camera</strong> in{' '}
-            <strong>good lighting</strong> and that your{' '}
-            <strong>face is fully visible</strong>.
-          </Text>
-          <Spacer />
-          <Button
-            variant="register-primary"
-            onClick={capturePicture}
-            disabled={!buttonsEnabled}
-          >
-            Take photo
-          </Button>
-        </>
-      )}
-    </Stack>
+            <Image src={maybeCidToUrl(photo)} />
+          </ScaleFade>
+        </UserMediaBox>
+      }
+      title="Confirm photo"
+      description={<Text>Can you see your face clearly?</Text>}
+      primaryButtonLabel="Use this photo"
+      primaryButtonProps={{
+        as: RLink,
+        href: routes.registerVideo(),
+        disabled: !areButtonsEnabled,
+      }}
+      secondaryButtonLabel="Retake photo"
+      secondaryButtonProps={{onClick: redoPhoto, disabled: !areButtonsEnabled}}
+    />
   )
 }
 
