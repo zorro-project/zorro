@@ -8,7 +8,7 @@ import {
   requestMediaPermissions,
 } from 'mic-check'
 import {useState} from 'react'
-import {requireWalletConnected} from '../guards'
+import {requireWalletConnected} from '../../../lib/guards'
 import RegisterLogo from '../RegisterLogo'
 
 const AllowCameraPage: React.FC = () => {

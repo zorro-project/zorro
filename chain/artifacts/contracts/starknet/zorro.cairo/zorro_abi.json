@@ -410,22 +410,22 @@
     },
     {
         "inputs": [],
-        "name": "get_time_windows",
+        "name": "get_periods",
         "outputs": [
             {
-                "name": "PROVISIONAL_TIME_WINDOW",
+                "name": "PROVISIONAL_PERIOD",
                 "type": "felt"
             },
             {
-                "name": "ADJUDICATION_TIME_WINDOW",
+                "name": "ADJUDICATION_PERIOD",
                 "type": "felt"
             },
             {
-                "name": "APPEAL_TIME_WINDOW",
+                "name": "APPEAL_PERIOD",
                 "type": "felt"
             },
             {
-                "name": "SUPER_ADJUDICATION_TIME_WINDOW",
+                "name": "SUPER_ADJUDICATION_PERIOD",
                 "type": "felt"
             }
         ],

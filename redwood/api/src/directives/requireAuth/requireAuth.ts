@@ -3,6 +3,10 @@ import gql from 'graphql-tag'
 import {createValidatorDirective} from '@redwoodjs/graphql-server'
 
 import {requireAuth as applicationRequireAuth} from 'src/lib/auth'
+import {
+  requireAuthDirectiveArgs,
+  requireAuthDirectiveResolver,
+} from 'types/graphql'
 
 export const schema = gql`
   """
@@ -13,7 +17,11 @@ export const schema = gql`
 `
 
 // @ts-expect-error directives aren't strongly typed yet
-const validate = ({directiveArgs}) => {
+const validate: requireAuthDirectiveResolver = ({
+  directiveArgs,
+}: {
+  directiveArgs: requireAuthDirectiveArgs
+}) => {
   const {roles} = directiveArgs
   applicationRequireAuth({roles})
 }

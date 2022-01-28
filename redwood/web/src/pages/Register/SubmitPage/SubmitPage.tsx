@@ -15,7 +15,7 @@ import {
   UpdateUnsubmittedProfileMutation,
   UpdateUnsubmittedProfileMutationVariables,
 } from 'types/graphql'
-import {requireWalletConnected} from '../guards'
+import {requireWalletConnected} from '../../../lib/guards'
 import RegisterLogo from '../RegisterLogo'
 import Title from '../Title'
 import UserMediaBox from '../UserMediaBox'

@@ -7,7 +7,7 @@ import {RLink} from 'src/components/links'
 import {useGuard} from 'src/lib/useGuard'
 import {useUser} from 'src/layouts/UserContext'
 import {save as saveIntendedConnection} from 'src/lib/intendedConnectionStorage'
-import {requireNoExistingProfile} from '../guards'
+import {requireNoExistingProfile} from '../../../lib/guards'
 import RegisterLogo from '../RegisterLogo'
 
 const IntroPage: React.FC<{
