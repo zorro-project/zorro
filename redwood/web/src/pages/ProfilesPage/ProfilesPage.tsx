@@ -6,14 +6,22 @@ import {FixedSizeGrid} from 'react-window'
 import InfiniteLoader from 'react-window-infinite-loader'
 import {ProfilesPageQuery} from 'types/graphql'
 import {useWindowSize} from 'usehooks-ts'
-import ProfileCard from './ProfileCard'
+import ProfileCard, {ItemType} from './ProfileCard'
 
 const QUERY = gql`
   query ProfilesPageQuery($cursor: ID) {
+    optimisticallyApprovedRegs {
+      __typename
+      ethereumAddress
+      photoCid
+      reviewedAt
+    }
+
     cachedProfiles(first: 20, cursor: $cursor) {
       id
       edges {
         node {
+          __typename
           ethereumAddress
           photoCid
           currentStatus
@@ -55,6 +63,8 @@ const ProfilesPage = () => {
           // return previousResult
           return newEdges.length
             ? {
+                optimisticallyApprovedRegs:
+                  previousResult.optimisticallyApprovedRegs,
                 cachedProfiles: {
                   ...fetchMoreResult.cachedProfiles,
                   edges: [
@@ -69,13 +79,19 @@ const ProfilesPage = () => {
       })
   }, [fetchMore, data?.cachedProfiles?.pageInfo?.endCursor])
 
-  const profiles = data?.cachedProfiles?.edges?.map((edge) => edge?.node)
+  const items: ItemType[] = (
+    (data?.optimisticallyApprovedRegs ?? []) as ItemType[]
+  ).concat(
+    (data?.cachedProfiles?.edges?.map((edge) => edge?.node) ?? []) as ItemType[]
+  )
   const hasNextPage = data?.cachedProfiles?.pageInfo?.hasNextPage
 
   const profilesCount = data?.cachedProfiles?.count ?? 0
-  const profilesLength = profiles?.length ?? 0
-  const isProfileLoaded = (index: number) =>
-    !hasNextPage || index < profilesLength
+
+  const pendingSubmissions = data?.optimisticallyApprovedRegs?.length ?? 0
+  const itemsCount = profilesCount + pendingSubmissions
+
+  const isItemLoaded = (index: number) => !hasNextPage || index < items.length
 
   if (data == null) return null
 
@@ -89,13 +105,13 @@ const ProfilesPage = () => {
           {({width, height}) => {
             const minCardSize = windowWidth > 800 ? 200 : 150
             const columnCount = Math.floor(width / minCardSize)
-            const rowCount = Math.ceil(profilesCount / columnCount)
+            const rowCount = Math.ceil(itemsCount / columnCount)
             const cardSize = Math.floor(width / columnCount)
 
             return (
               <InfiniteLoader
-                isItemLoaded={isProfileLoaded}
-                itemCount={profilesCount}
+                isItemLoaded={isItemLoaded}
+                itemCount={itemsCount}
                 loadMoreItems={loadMore}
               >
                 {({onItemsRendered, ref}) => (
@@ -122,16 +138,8 @@ const ProfilesPage = () => {
                   >
                     {({columnIndex, rowIndex, style}) => {
                       const idx = rowIndex * columnCount + columnIndex
-                      if (idx >= profilesLength) return null
-                      const profile = (profiles ?? [])[idx]
-                      if (profile == null) return null
-                      return (
-                        profile && (
-                          <Box style={style} p="2">
-                            <ProfileCard profile={profile} />
-                          </Box>
-                        )
-                      )
+                      if (idx >= items.length) return null
+                      return <ProfileCard profile={items[idx]} style={style} />
                     }}
                   </FixedSizeGrid>
                 )}

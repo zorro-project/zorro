@@ -24,7 +24,7 @@ export const createConnection = async ({
   const createOrUpdate = {
     purposeIdentifier: input.purposeIdentifier,
     signature: input.signature,
-    externalAddress: input.externalAddress.toLowerCase(),
+    externalAddress: input.externalAddress,
     cachedProfile: {connect: {ethereumAddress}},
   }
 

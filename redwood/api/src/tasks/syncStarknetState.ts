@@ -114,6 +114,13 @@ export const importProfile = async (profileId: number) => {
       ...profileFields,
     },
   })
+  persistedProfile.ethereumAddress &&
+    (await db.registrationAttempt.updateMany({
+      where: {ethereumAddress: persistedProfile.ethereumAddress},
+      data: {
+        profileId: persistedProfile.id,
+      },
+    }))
 
   const now = parseTimestamp(exported.now) ?? new Date()
   const status = parseChallengeStatus(parseNumber(exported.current_status))

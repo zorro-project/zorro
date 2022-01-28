@@ -1,98 +1,104 @@
 import Icon from '@chakra-ui/icon'
 import {Image} from '@chakra-ui/image'
 import {Box, Stack, Text} from '@chakra-ui/layout'
-import {Skeleton} from '@chakra-ui/skeleton'
 import {routes} from '@redwoodjs/router'
 import dayjs from 'dayjs'
-import {FaCalendarCheck, FaCheck, FaTimes} from 'react-icons/fa'
+import {FaCalendarCheck, FaCheck, FaHourglass, FaTimes} from 'react-icons/fa'
 import {RLink} from 'src/components/links'
 import {cidToUrl} from 'src/lib/ipfs'
-import {ArrayElement} from 'src/lib/util'
+import {IterableElement} from 'type-fest'
 import {ProfilesPageQuery} from 'types/graphql'
 
-const ProfileCard = ({
-  profile,
-}: {
-  profile:
-    | NonNullable<
-        ArrayElement<NonNullable<ProfilesPageQuery['cachedProfiles']>['edges']>
-      >['node']
-    | null
-}) => {
-  if (!profile) {
-    return (
+export type ItemType =
+  | IterableElement<ProfilesPageQuery['optimisticallyApprovedRegs']>
+  | NonNullable<
+      IterableElement<NonNullable<ProfilesPageQuery['cachedProfiles']>['edges']>
+    >['node']
+
+const ItemCard: React.FC<{
+  profile: ItemType
+  style: React.CSSProperties
+}> = ({profile, style}) => {
+  if (profile.__typename == null) return null
+
+  const isOptimistic = profile.__typename == 'RegistrationAttempt'
+
+  const statusIcon = isOptimistic
+    ? FaHourglass
+    : profile.isVerified
+    ? FaCheck
+    : FaTimes
+
+  const statusIconColor = isOptimistic
+    ? 'yellow.500'
+    : profile.isVerified
+    ? 'green.500'
+    : 'red.500'
+
+  const statusText = isOptimistic
+    ? 'Pending'
+    : profile.isVerified
+    ? 'Verified'
+    : 'Not verified'
+
+  return (
+    <Box style={style} p={2}>
       <Box
+        as={RLink}
+        href={isOptimistic ? undefined : routes.profile({id: profile.id})}
+        display="flex"
         shadow="md"
         w="100%"
         h="100%"
         borderRadius="md"
         overflow="hidden"
         bgColor="white"
-      >
-        <Skeleton isLoaded={profile != null} height="100%"></Skeleton>
-      </Box>
-    )
-  }
-
-  return (
-    <Box
-      as={RLink}
-      href={routes.profile({id: profile.id})}
-      display="flex"
-      shadow="md"
-      w="100%"
-      h="100%"
-      borderRadius="md"
-      overflow="hidden"
-      bgColor="white"
-      transition="transform 0.15s ease-in-out"
-      position="relative"
-      _hover={{
-        borderColor: 'gray.300',
-        transform: 'scale(1.03)',
-      }}
-    >
-      <Image
-        src={cidToUrl(profile?.photoCid ?? '')}
-        width="100%"
-        height="100%"
-        objectFit="cover"
-        objectPosition="center"
-        backgroundColor="gray.100"
+        transition="transform 0.15s ease-in-out"
         position="relative"
-      />
-      <Box position="absolute" top="2" right="3">
-        <Text color="white" textShadow="1px 1px 5px black" fontWeight="bold">
-          {profile.id}
-        </Text>
-      </Box>
-      <Stack
-        position="absolute"
-        w="100%"
-        bottom="0"
-        bgColor="rgba(255, 255, 255, 0.8)"
-        align="center"
-        spacing={0}
-        fontSize="sm"
+        _hover={{
+          borderColor: 'gray.300',
+          transform: 'scale(1.03)',
+        }}
       >
-        <Stack direction="row" alignItems="center">
-          <Icon as={FaCalendarCheck} />
-          <Text>
-            {dayjs(profile.submissionTimestamp).format('MMM D, YYYY')}
+        <Image
+          src={cidToUrl(profile.photoCid ?? '')}
+          width="100%"
+          height="100%"
+          objectFit="cover"
+          objectPosition="center"
+          backgroundColor="gray.100"
+          position="relative"
+        />
+        <Box position="absolute" top="2" right="3">
+          <Text color="white" textShadow="1px 1px 5px black" fontWeight="bold">
+            {!isOptimistic && profile.id}
           </Text>
+        </Box>
+        <Stack
+          position="absolute"
+          w="100%"
+          bottom="0"
+          bgColor="rgba(255, 255, 255, 0.8)"
+          align="center"
+          spacing={0}
+          fontSize="sm"
+        >
+          <Stack direction="row" alignItems="center">
+            <Icon as={FaCalendarCheck} />
+            <Text>
+              {dayjs(
+                isOptimistic ? profile.reviewedAt : profile.submissionTimestamp
+              ).format('MMM D, YYYY')}
+            </Text>
+          </Stack>
+          <Stack direction="row" alignItems="center">
+            <Icon as={statusIcon} color={statusIconColor} />
+            <Text fontWeight="bold">{statusText}</Text>
+          </Stack>
         </Stack>
-        <Stack direction="row" alignItems="center">
-          <Icon
-            as={profile.isVerified ? FaCheck : FaTimes}
-            color={profile.isVerified ? 'green.500' : 'red.500'}
-          />
-          <Text fontWeight="bold">
-            {profile.isVerified ? 'Verified' : 'Not Verified'}
-          </Text>
-        </Stack>
-      </Stack>
+      </Box>
     </Box>
   )
 }
 
-export default ProfileCard
+export default ItemCard

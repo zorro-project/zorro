@@ -40,6 +40,11 @@ describe('parseEthereumAddress', () => {
     expect(
       parseEthereumAddress('0x334230242D318b5CA159fc38E07dC1248B7b35e40000')
     ).toEqual(null)
+
+    // If an address is in checksum format, the checksum must be correct
+    expect(
+      parseEthereumAddress('0x327e8AE4F9D6Cca061EE8C05dC728b9545c2AC72')
+    ).toEqual(null)
   })
 
   test('parses a null address', () => {

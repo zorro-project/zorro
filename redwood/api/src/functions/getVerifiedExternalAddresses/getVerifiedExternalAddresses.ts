@@ -1,6 +1,7 @@
 import {db} from 'src/lib/db'
 import {isVerified} from 'src/services/cachedProfiles/helpers'
 import {Handler} from 'aws-lambda'
+import {getAddress} from 'ethers/lib/utils'
 
 type Params = {
   purposeIdentifier: string
@@ -15,7 +16,7 @@ export const handler: Handler = async (event) => {
   const connections = await db.connection.findMany({
     where: {
       purposeIdentifier,
-      externalAddress: {in: externalAddresses.map((str) => str.toLowerCase())},
+      externalAddress: {in: externalAddresses.map((str) => getAddress(str))},
     },
     include: {
       cachedProfile: true,

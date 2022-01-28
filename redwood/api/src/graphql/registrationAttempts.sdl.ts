@@ -18,6 +18,7 @@ export const schema = gql`
     unreviewedRegistrations: [RegistrationAttempt!]!
       @requireAuth(roles: ["NOTARY"])
     latestRegistration(ethereumAddress: ID!): RegistrationAttempt @skipAuth
+    optimisticallyApprovedRegs: [RegistrationAttempt!]! @skipAuth
   }
 
   input AttemptRegistrationInput {
