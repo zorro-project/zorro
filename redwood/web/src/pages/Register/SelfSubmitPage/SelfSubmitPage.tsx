@@ -2,7 +2,7 @@ import {Link, Spacer, Stack} from '@chakra-ui/layout'
 import {Button, Text} from '@chakra-ui/react'
 import {back} from '@redwoodjs/router'
 import React from 'react'
-import {ZorroAddress} from '../../../../../api/src/chain/contracts'
+import {ZorroAddress} from 'src/lib/api'
 import Title from '../Title'
 
 const SelfSubmitPage = () => {
