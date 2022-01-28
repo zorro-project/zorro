@@ -14,10 +14,6 @@ export const isLocalUrl = (url: string | undefined) =>
 export type ArrayElement<ArrayType extends readonly unknown[]> =
   ArrayType extends readonly (infer ElementType)[] ? ElementType : never
 
-export const assert = (condition: boolean, message: string) => {
-  if (!condition) throw new Error(message)
-}
-
 export const appNav = (
   url: string,
   options?: NavigateOptions & {toast?: UseToastOptions}

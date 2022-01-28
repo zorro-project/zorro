@@ -4,7 +4,7 @@ import {NOTARY_PHONE_NUMBERS} from 'src/lib/protocolNotifications'
 import {pusher} from 'src/lib/pusher'
 import {sendMessage} from 'src/lib/twilio'
 import sendNotaryApproved from 'src/mailers/sendNotaryApproved'
-import {submitRegistrationAttemptBackground} from 'src/tasks/submitRegistrationAttempt'
+import {backgroundSubmitRegistration} from 'src/tasks/submitRegistrationAttempt'
 import {
   MutationapproveRegistrationArgs,
   MutationattemptRegistrationArgs,
@@ -123,7 +123,7 @@ export const approveRegistration = async ({
   })
 
   alertUpdated(registration)
-  submitRegistrationAttemptBackground(registration.id)
+  backgroundSubmitRegistration(registration.id)
 
   const user = await db.user.findUnique({
     where: {ethereumAddress: registration.ethereumAddress},
