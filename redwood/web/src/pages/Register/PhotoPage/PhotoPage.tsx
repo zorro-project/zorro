@@ -1,7 +1,6 @@
-import {Spacer, Stack, Text, OrderedList, ListItem} from '@chakra-ui/layout'
-import {Button, Image, ScaleFade, Box} from '@chakra-ui/react'
+import {Text, OrderedList, ListItem} from '@chakra-ui/layout'
+import {Image, ScaleFade, Box} from '@chakra-ui/react'
 import {routes} from '@redwoodjs/router'
-import {MetaTags} from '@redwoodjs/web'
 import {useCallback, useRef, useState} from 'react'
 import Webcam from 'react-webcam'
 import {RLink} from 'src/components/links'
@@ -11,7 +10,6 @@ import {useAppDispatch, useAppSelector} from 'src/state/store'
 import {requireCameraAllowed, requireWalletConnected} from '../guards'
 import UserMediaBox from '../UserMediaBox'
 import {videoConstraints} from '../VideoPage/VideoPage'
-import Title from '../Title'
 import RegisterScreen from '../RegisterScreen'
 
 const PhotoPage = () => {

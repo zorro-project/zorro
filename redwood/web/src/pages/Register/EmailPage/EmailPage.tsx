@@ -1,14 +1,5 @@
-import {
-  Box,
-  Button,
-  Input,
-  ListItem,
-  Spacer,
-  Stack,
-  Text,
-  UnorderedList,
-} from '@chakra-ui/react'
-import {routes} from '@redwoodjs/router'
+import {Box, Input, ListItem, Text, UnorderedList} from '@chakra-ui/react'
+import {routes, RouteFocus} from '@redwoodjs/router'
 import {useMutation} from '@redwoodjs/web'
 import {useEffect, useRef, useState} from 'react'
 import {RLink} from 'src/components/links'
@@ -16,8 +7,7 @@ import {useUser} from 'src/layouts/UserContext'
 import {appNav} from 'src/lib/util'
 import {CreateUserMutation, CreateUserMutationVariables} from 'types/graphql'
 import {requireWalletConnected} from '../guards'
-import RegisterLogo from '../RegisterLogo'
-import Title from '../Title'
+import RegisterScreen, {TextContainer} from '../RegisterScreen'
 
 const EmailPage: React.FC<{next?: 'submitted' | undefined}> = ({next}) => {
   requireWalletConnected()
@@ -48,9 +38,6 @@ const EmailPage: React.FC<{next?: 'submitted' | undefined}> = ({next}) => {
     }
   `)
 
-  const focusRef = useRef<HTMLInputElement>(null)
-  useEffect(() => focusRef.current?.focus(), [focusRef.current])
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!user.ethereumAddress) return
@@ -68,36 +55,38 @@ const EmailPage: React.FC<{next?: 'submitted' | undefined}> = ({next}) => {
 
   return (
     <form onSubmit={handleSubmit} style={{display: 'flex', flex: '1'}}>
-      <Stack spacing="6" flex="1">
-        <RegisterLogo />
-        <Title title="Get important notifications" />
-        <Input
-          type="email"
-          name="email"
-          placeholder="Email address"
-          ref={focusRef}
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
-        <Box>
-          <Text>Get notified about:</Text>
-          <UnorderedList stylePosition="inside" mb={4}>
-            <ListItem>Challenges to your citizenship</ListItem>
-            <ListItem>Citizenship expiration</ListItem>
-          </UnorderedList>
-          <Text>Your email will not be public on-chain.</Text>
+      <RegisterScreen
+        title="Important notifications"
+        primaryButtonLabel="Continue"
+        primaryButtonProps={{type: 'submit', disabled: !emailValid}}
+        secondaryButtonLabel="Skip"
+        secondaryButtonProps={{as: RLink, href: nextPage}}
+      >
+        <Box p="4" alignSelf="center">
+          <RouteFocus>
+            <Input
+              type="email"
+              name="email"
+              placeholder="Email address"
+              value={email}
+              width={300}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+          </RouteFocus>
         </Box>
-        <Spacer />
-        <Button variant="register-primary" type="submit" disabled={!emailValid}>
-          Continue
-        </Button>
-        <Button variant="register-secondary" as={RLink} href={nextPage}>
-          Skip
-        </Button>
-      </Stack>
+        <TextContainer>
+          <Box>
+            <Text>Get notified about:</Text>
+            <UnorderedList stylePosition="inside" mb={4}>
+              <ListItem>Challenges to your citizenship</ListItem>
+              <ListItem>Citizenship expiration</ListItem>
+            </UnorderedList>
+            <Text>Your email will not be public on-chain.</Text>
+          </Box>
+        </TextContainer>
+      </RegisterScreen>
     </form>
   )
-  return null
 }
 
 export default EmailPage

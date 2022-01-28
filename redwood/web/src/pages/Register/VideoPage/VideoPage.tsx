@@ -1,10 +1,8 @@
 import {AspectRatio, Box, Stack, Text} from '@chakra-ui/layout'
-import {Button, Fade, Spacer, Icon, Center} from '@chakra-ui/react'
+import {Fade} from '@chakra-ui/react'
 import {routes, navigate} from '@redwoodjs/router'
-import {MetaTags} from '@redwoodjs/web'
 import {useCallback, useRef, useState} from 'react'
 import Webcam from 'react-webcam'
-import {RLink} from 'src/components/links'
 import {useGuard} from 'src/lib/useGuard'
 import {maybeCidToUrl} from 'src/lib/util'
 import {registerSlice} from 'src/state/registerSlice'
@@ -164,7 +162,7 @@ const ConfirmStep = () => {
         </UserMediaBox>
       }
       title="Confirm video"
-      description={<Text>Did the video come out OK?</Text>}
+      description={<Text>Can see and hear youreslf clearly?</Text>}
       primaryButtonLabel="Use this video"
       primaryButtonProps={{
         onClick: maybeContinue,

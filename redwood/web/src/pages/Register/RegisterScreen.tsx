@@ -2,7 +2,7 @@ import {Spacer, Stack, VStack, Box, Flex, Button} from '@chakra-ui/react'
 import RegisterLogo from './RegisterLogo'
 import Title from './Title'
 
-const TextContainer: React.FC = ({children, ...props}) => (
+export const TextContainer: React.FC = ({children, ...props}) => (
   <Flex maxW="340" alignSelf="center" {...props}>
     <VStack spacing="6" align="left">
       {children}
@@ -15,7 +15,6 @@ const RegisterScreen: React.FC = ({
   title,
   shouldHideTitle,
   description,
-  shouldShowLogo,
   children,
   buttonDescription,
   PrimaryButtonComponent = Button,
@@ -24,6 +23,7 @@ const RegisterScreen: React.FC = ({
   secondaryButtonLabel,
   secondaryButtonProps,
 }) => {
+  const shouldShowLogo = !!hero
   return (
     <Stack flex="1">
       {hero}

@@ -55,7 +55,6 @@ const AllowCameraPage: React.FC = () => {
 
   return (
     <RegisterScreen
-      shouldShowLogo
       shouldHideTitle
       title="Allow camera"
       buttonDescription={

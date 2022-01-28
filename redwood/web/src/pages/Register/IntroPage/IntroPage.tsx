@@ -1,15 +1,12 @@
-import {Heading, Spacer, Stack, Text} from '@chakra-ui/layout'
-import {Button, useToast} from '@chakra-ui/react'
+import {Text} from '@chakra-ui/layout'
+import {useToast} from '@chakra-ui/react'
 import {routes} from '@redwoodjs/router'
-import {MetaTags} from '@redwoodjs/web'
 import {useEffect} from 'react'
 import {RLink} from 'src/components/links'
 import {useGuard} from 'src/lib/useGuard'
 import {useUser} from 'src/layouts/UserContext'
 import {save as saveIntendedConnection} from 'src/lib/intendedConnectionStorage'
 import {requireNoExistingProfile} from '../guards'
-import RegisterLogo from '../RegisterLogo'
-import Title from '../Title'
 import RegisterScreen from '../RegisterScreen'
 
 const IntroPage: React.FC<{
@@ -40,7 +37,6 @@ const IntroPage: React.FC<{
 
   return (
     <RegisterScreen
-      shouldShowLogo
       title="Zorro: web3 citizenship"
       description={
         <>
