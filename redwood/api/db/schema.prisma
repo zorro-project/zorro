@@ -136,11 +136,32 @@ model Notification {
   updatedAt DateTime @updatedAt
 }
 
+enum RoleEnum {
+  NOTARY
+}
+
 model User {
   id              Int     @id @default(autoincrement())
   ethereumAddress String  @unique
   email           String?
 
+  roles             RoleEnum[]
+  sessionAuthString String?
+
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  UserSession UserSession[]
+}
+
+model UserSession {
+  id Int @id @default(autoincrement())
+
+  userId Int
+  token  String @unique
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  expiresAt DateTime
+
+  User User @relation(fields: [userId], references: [id])
 }

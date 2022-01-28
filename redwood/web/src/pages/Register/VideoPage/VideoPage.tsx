@@ -10,7 +10,7 @@ import {useGuard} from 'src/lib/useGuard'
 import {maybeCidToUrl} from 'src/lib/util'
 import {registerSlice} from 'src/state/registerSlice'
 import {useAppDispatch, useAppSelector} from 'src/state/store'
-import {requireCameraAllowed, requireWalletConnected} from '../guards'
+import {requireCameraAllowed, requireWalletConnected} from '../../../lib/guards'
 import UserMediaBox from '../UserMediaBox'
 
 export const videoConstraints: MediaTrackConstraints = {

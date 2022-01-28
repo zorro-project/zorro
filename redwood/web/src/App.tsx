@@ -1,3 +1,5 @@
+import {AuthProvider} from '@redwoodjs/auth'
+
 import {ChakraProvider} from '@chakra-ui/react'
 import {FatalErrorBoundary, RedwoodProvider} from '@redwoodjs/web'
 import {RedwoodApolloProvider} from '@redwoodjs/web/apollo'
@@ -9,22 +11,25 @@ import store from 'src/state/store'
 import type {} from 'types/environment'
 import theme from './config/theme'
 import {UserContextProvider} from './layouts/UserContext'
+import authClient from './lib/authClient'
 
 const App = () => {
   return (
     <FatalErrorBoundary page={FatalErrorPage}>
       <RedwoodProvider titleTemplate="%PageTitle | %AppTitle">
-        <ReactReduxProvider store={store}>
-          <RedwoodApolloProvider>
-            <EthersProvider autoConnect>
-              <UserContextProvider>
-                <ChakraProvider theme={theme}>
-                  <Routes />
-                </ChakraProvider>
-              </UserContextProvider>
-            </EthersProvider>
-          </RedwoodApolloProvider>
-        </ReactReduxProvider>
+        <EthersProvider autoConnect>
+          <ReactReduxProvider store={store}>
+            <AuthProvider type="custom" client={authClient}>
+              <RedwoodApolloProvider>
+                <UserContextProvider>
+                  <ChakraProvider theme={theme}>
+                    <Routes />
+                  </ChakraProvider>
+                </UserContextProvider>
+              </RedwoodApolloProvider>
+            </AuthProvider>
+          </ReactReduxProvider>
+        </EthersProvider>
       </RedwoodProvider>
     </FatalErrorBoundary>
   )

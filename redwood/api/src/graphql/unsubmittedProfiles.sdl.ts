@@ -38,9 +38,12 @@ export const schema = gql`
       input: UpdateUnsubmittedProfileInput!
     ): UnsubmittedProfile! @skipAuth
 
-    markNotaryViewed(id: ID!): UnsubmittedProfile @skipAuth
-    markNotaryWillApprove(id: ID!): UnsubmittedProfile @skipAuth
-    addNotaryFeedback(id: ID!, feedback: String!): UnsubmittedProfile @skipAuth
-    approveProfile(id: ID!): Boolean! @skipAuth
+    markNotaryViewed(id: ID!): UnsubmittedProfile
+      @requireAuth(roles: ["NOTARY"])
+    markNotaryWillApprove(id: ID!): UnsubmittedProfile
+      @requireAuth(roles: ["NOTARY"])
+    addNotaryFeedback(id: ID!, feedback: String!): UnsubmittedProfile
+      @requireAuth(roles: ["NOTARY"])
+    approveProfile(id: ID!): Boolean! @requireAuth(roles: ["NOTARY"])
   }
 `

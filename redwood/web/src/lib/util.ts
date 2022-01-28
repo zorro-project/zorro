@@ -31,3 +31,6 @@ export const maybeCidToUrl: (value: string) => string = (value) => {
   if (isLocalUrl(value)) return value
   return cidToUrl(value)
 }
+
+export const sleep = (ms: number) =>
+  new Promise((resolve) => setTimeout(resolve, ms))

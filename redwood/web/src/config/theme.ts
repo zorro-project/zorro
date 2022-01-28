@@ -2,6 +2,13 @@ import {extendTheme, theme as baseTheme} from '@chakra-ui/react'
 import {StyleFunctionProps} from '@chakra-ui/theme-tools'
 
 const theme = extendTheme({
+  styles: {
+    global: {
+      'html, body': {
+        background: 'gray.50',
+      },
+    },
+  },
   components: {
     Link: {
       variants: {

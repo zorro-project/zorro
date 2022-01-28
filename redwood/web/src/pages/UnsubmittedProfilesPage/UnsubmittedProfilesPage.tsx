@@ -1,10 +1,19 @@
 import {Heading, Stack} from '@chakra-ui/layout'
 import {Table, Tbody, Th, Thead, Tr} from '@chakra-ui/react'
 import {MetaTags, useQuery} from '@redwoodjs/web'
+import {requireRole} from 'src/lib/guards'
 import {UnsubmittedProfilesQuery} from 'types/graphql'
 import UnsubmittedProfile from './UnsubmittedProfile'
 
 const UnsubmittedProfilesPage = () => {
+  requireRole('NOTARY')
+  // const {authenticatedUser} = useUser()
+  // useGuard(
+  //   authenticatedUser?.roles?.includes('NOTARY'),
+  //   routes.authenticate({next: routes.unsubmittedProfiles()}),
+  //   {toast: {title: 'You must be a notary to access this page.'}}
+  // )
+
   const {data} = useQuery<UnsubmittedProfilesQuery>(gql`
     query UnsubmittedProfilesQuery {
       unsubmittedProfiles(pendingReview: true) {

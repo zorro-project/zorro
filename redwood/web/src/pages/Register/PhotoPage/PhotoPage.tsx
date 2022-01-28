@@ -9,7 +9,7 @@ import {maybeCidToUrl} from 'src/lib/util'
 import {registerSlice} from 'src/state/registerSlice'
 import {useAppDispatch, useAppSelector} from 'src/state/store'
 import {useIsFirstRender} from 'usehooks-ts'
-import {requireCameraAllowed, requireWalletConnected} from '../guards'
+import {requireCameraAllowed, requireWalletConnected} from '../../../lib/guards'
 import UserMediaBox from '../UserMediaBox'
 import {videoConstraints} from '../VideoPage/VideoPage'
 

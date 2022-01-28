@@ -17,7 +17,7 @@ import {
   RegisterSubmittedPageQueryVariables,
 } from 'types/graphql'
 import {useInterval} from 'usehooks-ts'
-import {requireWalletConnected} from '../guards'
+import {requireWalletConnected} from '../../../lib/guards'
 import RegisterLogo from '../RegisterLogo'
 import Title from '../Title'
 import UserMediaBox from '../UserMediaBox'
