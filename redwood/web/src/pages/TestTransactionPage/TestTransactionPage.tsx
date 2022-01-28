@@ -6,7 +6,6 @@ import {FormControl, FormLabel} from '@chakra-ui/react'
 import {MetaTags} from '@redwoodjs/web'
 import {Card} from 'src/components/Card'
 import getNotaryKey from 'src/lib/getNotaryKey'
-import {cairoCompatibleAdd} from 'src/lib/ipfs'
 import {
   ERC20Address,
   NotaryAddress,
@@ -21,6 +20,7 @@ import {
   notarySubmitProfile,
 } from '../../../../api/src/chain/starknet'
 import {serializeCid} from '../../../../api/src/chain/serializers'
+import {cairoCompatibleAdd} from '../../../../api/src/lib/ipfs'
 
 const ExportProfileById = () => {
   const profileId = React.useRef<HTMLInputElement>(null)

@@ -25,13 +25,13 @@ import {CellSuccessProps, createCell, MetaTags} from '@redwoodjs/web'
 import {ReactElement} from 'react'
 import ResizeTextarea from 'react-textarea-autosize'
 import {InternalLink, RLink} from 'src/components/links'
-import {cairoCompatibleAdd} from 'src/lib/ipfs'
 import NotFoundPage from 'src/pages/NotFoundPage'
 import {
   ChallengePageQuery,
   ChallengePageQueryVariables,
   StatusEnum,
 } from 'types/graphql'
+import {cairoCompatibleAdd} from '../../../../api/src/lib/ipfs'
 import {serializeCid} from '../../../../api/src/chain/serializers'
 import {
   erc20Approve,
