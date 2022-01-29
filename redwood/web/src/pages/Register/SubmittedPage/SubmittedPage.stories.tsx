@@ -17,7 +17,6 @@ const mockQuery = (query: PartialDeep<RegisterSubmittedPageQuery>) => {
       createdAt: dayjs().toISOString(),
       __typename: 'RegistrationAttempt',
     },
-    cachedProfile: null,
   }
 
   mockGraphQLQuery(
@@ -97,11 +96,6 @@ export const Timeout_No_Email = () => {
       createdAt: dayjs().subtract(1, 'day').toISOString(),
     },
   })
-  return <Page />
-}
-
-export const Citizenship_Active = () => {
-  mockQuery({cachedProfile: {id: '3'}})
   return <Page />
 }
 
