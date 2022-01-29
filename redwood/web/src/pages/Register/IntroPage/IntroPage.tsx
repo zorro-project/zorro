@@ -7,6 +7,7 @@ import {useGuard} from 'src/lib/useGuard'
 import {useUser} from 'src/layouts/UserContext'
 import {save as saveIntendedConnection} from 'src/lib/intendedConnectionStorage'
 import {requireNoExistingProfile} from '../../../lib/guards'
+import RegisterScreen from '../RegisterScreen'
 
 const IntroPage: React.FC<{
   purposeIdentifier?: string

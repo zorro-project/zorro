@@ -18,17 +18,21 @@ export const videoConstraints: MediaTrackConstraints = {
   height: 720,
 }
 
-const VideoPage = () => {
+const VideoPage = ({mockRecording = false}: {mockRecording?: boolean}) => {
   requireWalletConnected()
   requireCameraAllowed()
 
   const {photo, video} = useAppSelector((state) => state.register)
   useGuard(photo, routes.registerPhoto())
 
-  return !video ? <RecordVideoStep /> : <ConfirmVideoStep />
+  return !video ? (
+    <RecordVideoStep mockRecording={mockRecording} />
+  ) : (
+    <ConfirmVideoStep />
+  )
 }
 
-const RecordVideoStep = ({mockRecording = false}) => {
+const RecordVideoStep = ({mockRecording}: {mockRecording?: boolean}) => {
   const dispatch = useAppDispatch()
   const webcamRef = useRef<Webcam>(null)
   const mediaRecorderRef = React.useRef<MediaRecorder>(null)
@@ -153,7 +157,7 @@ const ConfirmVideoStep = () => {
       hero={
         <UserMediaBox position="relative">
           <MinimalVideoPlayer
-            url={maybeCidToUrl(video)}
+            url={maybeCidToUrl(video!)}
             width="100%"
             height="100%"
             onReady={() => setTimeout(() => setIsLoaded(true), 500)}

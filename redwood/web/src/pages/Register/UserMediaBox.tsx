@@ -1,10 +1,9 @@
 import {AspectRatio, Box, BoxProps, Center, Spinner} from '@chakra-ui/react'
 import BeatLoader from 'react-spinners/BeatLoader'
 
-const UserMediaBox: React.FC<BoxProps> = ({
-  shouldShowLoadingIndicator,
-  ...props
-}) => {
+const UserMediaBox: React.FC<
+  BoxProps & {shouldShowLoadingIndicator?: boolean}
+> = ({shouldShowLoadingIndicator, ...props}) => {
   return (
     <AspectRatio
       ratio={16 / 9}

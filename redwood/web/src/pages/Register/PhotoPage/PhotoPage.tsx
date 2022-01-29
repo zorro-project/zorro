@@ -84,7 +84,7 @@ const ConfirmPhotoStep = () => {
             onAnimationComplete={() => setAreButtonsEnabled(true)}
             style={{flex: 1, display: 'flex'}}
           >
-            <Image src={maybeCidToUrl(photo)} />
+            <Image src={maybeCidToUrl(photo!)} />
           </ScaleFade>
         </UserMediaBox>
       }
