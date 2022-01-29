@@ -1,7 +1,7 @@
 import {Box, Input, ListItem, Text, UnorderedList} from '@chakra-ui/react'
 import {routes, RouteFocus} from '@redwoodjs/router'
 import {useMutation} from '@redwoodjs/web'
-import {useEffect, useRef, useState} from 'react'
+import {useEffect, useState} from 'react'
 import {RLink} from 'src/components/links'
 import {useUser} from 'src/layouts/UserContext'
 import {appNav} from 'src/lib/util'

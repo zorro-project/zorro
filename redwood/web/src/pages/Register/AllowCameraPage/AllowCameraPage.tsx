@@ -1,7 +1,6 @@
-import {Spacer, Stack, Text} from '@chakra-ui/layout'
-import {Button, useToast} from '@chakra-ui/react'
+import {Text} from '@chakra-ui/layout'
+import {useToast} from '@chakra-ui/react'
 import {navigate, routes} from '@redwoodjs/router'
-import {MetaTags} from '@redwoodjs/web'
 import {
   MediaPermissionsError,
   MediaPermissionsErrorType,
@@ -9,7 +8,6 @@ import {
 } from 'mic-check'
 import {useState} from 'react'
 import {requireWalletConnected} from '../../../lib/guards'
-import RegisterLogo from '../RegisterLogo'
 import RegisterScreen from '../RegisterScreen'
 
 const AllowCameraPage: React.FC = () => {

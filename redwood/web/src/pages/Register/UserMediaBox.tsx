@@ -1,4 +1,4 @@
-import {AspectRatio, Box, BoxProps, Center, Spinner} from '@chakra-ui/react'
+import {AspectRatio, Box, BoxProps, Center} from '@chakra-ui/react'
 import BeatLoader from 'react-spinners/BeatLoader'
 
 const UserMediaBox: React.FC<

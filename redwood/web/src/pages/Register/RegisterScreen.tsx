@@ -1,12 +1,4 @@
-import {
-  Spacer,
-  Stack,
-  VStack,
-  Box,
-  Flex,
-  FlexProps,
-  Button,
-} from '@chakra-ui/react'
+import {Spacer, Stack, VStack, Flex, FlexProps, Button} from '@chakra-ui/react'
 import RegisterLogo from './RegisterLogo'
 import Title from './Title'
 

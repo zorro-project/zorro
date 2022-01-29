@@ -1,4 +1,4 @@
-import {AspectRatio, Box, Stack, Text} from '@chakra-ui/layout'
+import {AspectRatio, Box, Text} from '@chakra-ui/layout'
 import {Fade} from '@chakra-ui/react'
 import {routes, navigate} from '@redwoodjs/router'
 import {useCallback, useRef, useState} from 'react'

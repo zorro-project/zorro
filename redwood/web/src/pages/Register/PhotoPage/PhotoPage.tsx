@@ -1,5 +1,5 @@
 import {Text, OrderedList, ListItem} from '@chakra-ui/layout'
-import {Image, ScaleFade, Box} from '@chakra-ui/react'
+import {Image, ScaleFade} from '@chakra-ui/react'
 import {routes} from '@redwoodjs/router'
 import {useCallback, useRef, useState} from 'react'
 import Webcam from 'react-webcam'
