@@ -3,7 +3,7 @@ import ReactPlayer from 'react-player'
 import {Box, Icon, Center} from '@chakra-ui/react'
 import {FaPlay} from 'react-icons/fa'
 
-const MinimalVideoPlayer = (props: any) => {
+const MinimalVideoPlayer = (props: ReactPlayer['props']) => {
   const [isPlaying, setIsPlaying] = useState(false)
   const startPlaying = () => setIsPlaying(true)
   const stopPlaying = () => setIsPlaying(false)
