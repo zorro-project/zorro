@@ -1,9 +1,10 @@
 import {Button} from '@chakra-ui/button'
 import {Heading, Spacer, Stack} from '@chakra-ui/layout'
 import {Alert, AlertIcon, CircularProgress, Image, Text} from '@chakra-ui/react'
-import {navigate, Redirect, routes} from '@redwoodjs/router'
+import {navigate, routes} from '@redwoodjs/router'
 import {MetaTags, useQuery} from '@redwoodjs/web'
 import dayjs from 'dayjs'
+import {Fireworks} from 'fireworks-js'
 import React, {useCallback, useEffect} from 'react'
 import ReactPlayer from 'react-player'
 import {InternalLink, RLink} from 'src/components/links'
@@ -21,7 +22,6 @@ import {requireWalletConnected} from '../../../lib/guards'
 import RegisterLogo from '../RegisterLogo'
 import Title from '../Title'
 import UserMediaBox from '../UserMediaBox'
-import {Fireworks} from 'fireworks-js'
 
 const QUERY = gql`
   query RegisterSubmittedPageQuery($ethereumAddress: ID!) {
@@ -41,11 +41,6 @@ const QUERY = gql`
       deniedReason
 
       createdAt
-    }
-    cachedProfile: cachedProfileByEthereumAddress(
-      ethereumAddress: $ethereumAddress
-    ) {
-      id
     }
   }
 `
@@ -142,7 +137,7 @@ const TakingTooLong: React.FC<{query: RegisterSubmittedPageQuery}> = ({
   )
 }
 
-const AwaitingCitizenship: React.FC<{query: RegisterSubmittedPageQuery}> = ({
+const AwaitingReview: React.FC<{query: RegisterSubmittedPageQuery}> = ({
   query,
 }) => {
   if (!query.registrationAttempt) return null
@@ -156,24 +151,6 @@ const AwaitingCitizenship: React.FC<{query: RegisterSubmittedPageQuery}> = ({
       py={12}
     />
   )
-
-  if (query.registrationAttempt.approved) {
-    const notaryApprovedAt = dayjs(query.registrationAttempt.reviewedAt)
-    if (dayjs().subtract(5, 'minutes').isAfter(notaryApprovedAt))
-      return <TakingTooLong query={query} />
-
-    return (
-      <>
-        <Title title="Activating citizenship" />
-        {spinner}
-        <Text textAlign="center">
-          Your application has been approved by a community notary! We're just
-          waiting for the submission to go through on-chain.
-        </Text>
-        <Text textAlign="center">Expected wait: 5 minutes</Text>
-      </>
-    )
-  }
 
   if (query.registrationAttempt.notaryViewedAt) {
     const notaryViewedAt = dayjs(query.registrationAttempt.notaryViewedAt)
@@ -263,17 +240,13 @@ const SubmittedPage = () => {
     variables: {ethereumAddress},
   })
 
-  useGuard(
-    loading || data?.cachedProfile || data?.registrationAttempt,
-    routes.registerIntro(),
-    {
-      toast: {
-        title:
-          "Couldn't find your submitted profile. Are you connected to the correct wallet?",
-        status: 'warning',
-      },
-    }
-  )
+  useGuard(loading || data?.registrationAttempt, routes.registerIntro(), {
+    toast: {
+      title:
+        "Couldn't find your submitted registration. Are you connected to the correct wallet?",
+      status: 'warning',
+    },
+  })
 
   usePusher(
     `registrationAttempt.${data?.registrationAttempt?.ethereumAddress}`,
@@ -282,20 +255,16 @@ const SubmittedPage = () => {
   )
   useInterval(refetch, 60 * 1000)
 
-  if (data == null) return null
+  if (data?.registrationAttempt == null) return null
 
   let body = null
 
-  if (data.cachedProfile) {
+  if (data.registrationAttempt.approved) {
     body = <CitizenshipActive />
-  } else if (data.registrationAttempt) {
-    if (data.registrationAttempt.approved === false) {
-      body = <ShowDeniedReason registrationAttempt={data.registrationAttempt} />
-    } else {
-      body = <AwaitingCitizenship query={data} />
-    }
+  } else if (data.registrationAttempt.approved === false) {
+    body = <ShowDeniedReason registrationAttempt={data.registrationAttempt} />
   } else {
-    body = <Redirect to={routes.registerIntro()} />
+    body = <AwaitingReview query={data} />
   }
 
   return (
