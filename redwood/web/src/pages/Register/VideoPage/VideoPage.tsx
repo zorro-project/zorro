@@ -25,10 +25,10 @@ const VideoPage = () => {
   const {photo, video} = useAppSelector((state) => state.register)
   useGuard(photo, routes.registerPhoto())
 
-  return !video ? <RecordStep /> : <ConfirmStep />
+  return !video ? <RecordVideoStep /> : <ConfirmVideoStep />
 }
 
-const RecordStep = ({mockRecording = false}) => {
+const RecordVideoStep = ({mockRecording = false}) => {
   const dispatch = useAppDispatch()
   const webcamRef = useRef<Webcam>(null)
   const mediaRecorderRef = React.useRef<MediaRecorder>(null)
@@ -133,7 +133,7 @@ const RecordStep = ({mockRecording = false}) => {
   )
 }
 
-const ConfirmStep = () => {
+const ConfirmVideoStep = () => {
   const dispatch = useAppDispatch()
   const [isLoaded, setIsLoaded] = useState(false)
   const [hasPlayed, setHasPlayed] = useState(false)

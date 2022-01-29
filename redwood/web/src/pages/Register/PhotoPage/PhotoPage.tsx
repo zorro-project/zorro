@@ -17,10 +17,10 @@ const PhotoPage = () => {
   requireCameraAllowed()
 
   const {photo} = useAppSelector((state) => state.register)
-  return !photo ? <TakePhoto /> : <ConfirmPhoto />
+  return !photo ? <TakePhotoStep /> : <ConfirmPhotoStep />
 }
 
-const TakePhoto = () => {
+const TakePhotoStep = () => {
   const dispatch = useAppDispatch()
   const webcamRef = useRef<Webcam>(null)
   const [isReady, setIsReady] = useState(false)
@@ -63,7 +63,7 @@ const TakePhoto = () => {
   )
 }
 
-const ConfirmPhoto = () => {
+const ConfirmPhotoStep = () => {
   const dispatch = useAppDispatch()
   const [areButtonsEnabled, setAreButtonsEnabled] = useState(false)
   const {photo} = useAppSelector((state) => state.register)
