@@ -17,7 +17,7 @@ import {
   RegisterSubmittedPageQueryVariables,
 } from 'types/graphql'
 import {useInterval} from 'usehooks-ts'
-import {requireWalletConnected} from '../guards'
+import {requireWalletConnected} from '../../../lib/guards'
 import RegisterLogo from '../RegisterLogo'
 import Title from '../Title'
 import UserMediaBox from '../UserMediaBox'
@@ -29,18 +29,18 @@ const QUERY = gql`
       id
       hasEmail
     }
-    unsubmittedProfile(ethereumAddress: $ethereumAddress) {
+    registrationAttempt: latestRegistration(ethereumAddress: $ethereumAddress) {
       id
       ethereumAddress
       photoCid
       videoCid
-      lastSubmittedAt
       notaryViewedAt
-      notaryApprovedAt
+      reviewedAt
+      approved
 
-      UnaddressedFeedback {
-        feedback
-      }
+      deniedReason
+
+      createdAt
     }
     cachedProfile: cachedProfileByEthereumAddress(
       ethereumAddress: $ethereumAddress
@@ -145,7 +145,7 @@ const TakingTooLong: React.FC<{query: RegisterSubmittedPageQuery}> = ({
 const AwaitingCitizenship: React.FC<{query: RegisterSubmittedPageQuery}> = ({
   query,
 }) => {
-  if (!query.unsubmittedProfile) return null
+  if (!query.registrationAttempt) return null
 
   const spinner = (
     <CircularProgress
@@ -157,8 +157,8 @@ const AwaitingCitizenship: React.FC<{query: RegisterSubmittedPageQuery}> = ({
     />
   )
 
-  if (query.unsubmittedProfile.notaryApprovedAt) {
-    const notaryApprovedAt = dayjs(query.unsubmittedProfile.notaryApprovedAt)
+  if (query.registrationAttempt.approved) {
+    const notaryApprovedAt = dayjs(query.registrationAttempt.reviewedAt)
     if (dayjs().subtract(5, 'minutes').isAfter(notaryApprovedAt))
       return <TakingTooLong query={query} />
 
@@ -175,8 +175,8 @@ const AwaitingCitizenship: React.FC<{query: RegisterSubmittedPageQuery}> = ({
     )
   }
 
-  if (query.unsubmittedProfile.notaryViewedAt) {
-    const notaryViewedAt = dayjs(query.unsubmittedProfile.notaryViewedAt)
+  if (query.registrationAttempt.notaryViewedAt) {
+    const notaryViewedAt = dayjs(query.registrationAttempt.notaryViewedAt)
     if (dayjs().subtract(3, 'minutes').isAfter(notaryViewedAt))
       return <TakingTooLong query={query} />
 
@@ -192,8 +192,8 @@ const AwaitingCitizenship: React.FC<{query: RegisterSubmittedPageQuery}> = ({
     )
   }
 
-  const lastSubmittedAt = dayjs(query.unsubmittedProfile.lastSubmittedAt)
-  if (dayjs().subtract(3, 'minutes').isAfter(lastSubmittedAt))
+  const createdAt = dayjs(query.registrationAttempt.createdAt)
+  if (dayjs().subtract(3, 'minutes').isAfter(createdAt))
     return <TakingTooLong query={query} />
 
   return (
@@ -208,11 +208,11 @@ const AwaitingCitizenship: React.FC<{query: RegisterSubmittedPageQuery}> = ({
   )
 }
 
-const ShowUnaddressedFeedback: React.FC<{
-  unsubmittedProfile: NonNullable<
-    RegisterSubmittedPageQuery['unsubmittedProfile']
+const ShowDeniedReason: React.FC<{
+  registrationAttempt: NonNullable<
+    RegisterSubmittedPageQuery['registrationAttempt']
   >
-}> = ({unsubmittedProfile}) => {
+}> = ({registrationAttempt}) => {
   const dispatch = useAppDispatch()
 
   const startOver = useCallback(() => {
@@ -223,14 +223,14 @@ const ShowUnaddressedFeedback: React.FC<{
   return (
     <>
       <Title title="Feedback from notary" />
-      <Text>"{unsubmittedProfile.UnaddressedFeedback?.feedback}"</Text>
+      <Text>"{registrationAttempt.deniedReason}"</Text>
       <Stack direction="row">
         <UserMediaBox flex="1">
-          <Image src={maybeCidToUrl(unsubmittedProfile.photoCid)} />
+          <Image src={maybeCidToUrl(registrationAttempt.photoCid)} />
         </UserMediaBox>
         <UserMediaBox flex="1">
           <ReactPlayer
-            url={maybeCidToUrl(unsubmittedProfile.videoCid)}
+            url={maybeCidToUrl(registrationAttempt.videoCid)}
             controls
             width="100%"
             height="100%"
@@ -264,7 +264,7 @@ const SubmittedPage = () => {
   })
 
   useGuard(
-    loading || data?.cachedProfile || data?.unsubmittedProfile,
+    loading || data?.cachedProfile || data?.registrationAttempt,
     routes.registerIntro(),
     {
       toast: {
@@ -276,7 +276,7 @@ const SubmittedPage = () => {
   )
 
   usePusher(
-    `unsubmittedProfile.${data?.unsubmittedProfile?.ethereumAddress}`,
+    `registrationAttempt.${data?.registrationAttempt?.ethereumAddress}`,
     'updated',
     refetch
   )
@@ -288,11 +288,9 @@ const SubmittedPage = () => {
 
   if (data.cachedProfile) {
     body = <CitizenshipActive />
-  } else if (data.unsubmittedProfile) {
-    if (data.unsubmittedProfile.UnaddressedFeedback) {
-      body = (
-        <ShowUnaddressedFeedback unsubmittedProfile={data.unsubmittedProfile} />
-      )
+  } else if (data.registrationAttempt) {
+    if (data.registrationAttempt.approved === false) {
+      body = <ShowDeniedReason registrationAttempt={data.registrationAttempt} />
     } else {
       body = <AwaitingCitizenship query={data} />
     }

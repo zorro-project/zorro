@@ -1,16 +1,19 @@
 import {useLazyQuery} from '@apollo/client'
 import {useTimeout} from '@chakra-ui/react'
+import {useAuth} from '@redwoodjs/auth'
 import {getAddress} from 'ethers/lib/utils'
 import {useState} from 'react'
 import {UserContextQuery, UserContextQueryVariables} from 'types/graphql'
 import useLocalStorageState from 'use-local-storage-state'
 import {useAccount} from 'wagmi'
+import {CurrentUser} from '../../../api/src/lib/auth'
 
 export type UserContextType =
   | ({
       ethereumAddress: string
       refetch: () => void
       loading: boolean
+      authenticatedUser?: CurrentUser
     } & UserContextQuery)
   | Record<string, undefined>
 
@@ -18,6 +21,9 @@ const UserContext = React.createContext<UserContextType>({})
 
 export function UserContextProvider({children}: {children: React.ReactNode}) {
   const [account] = useAccount()
+  const rwAuth = useAuth()
+
+  const authenticatedUser = rwAuth.currentUser as CurrentUser | undefined
 
   const [ethereumAddress, setEthereumAddress] = useLocalStorageState<
     string | undefined
@@ -43,7 +49,9 @@ export function UserContextProvider({children}: {children: React.ReactNode}) {
           hasEmail
         }
 
-        unsubmittedProfile(ethereumAddress: $ethereumAddress) {
+        registrationAttempt: latestRegistration(
+          ethereumAddress: $ethereumAddress
+        ) {
           id
         }
 
@@ -53,20 +61,31 @@ export function UserContextProvider({children}: {children: React.ReactNode}) {
           id
         }
       }
-    `
+    `,
+    {fetchPolicy: 'cache-and-network'}
   )
 
   React.useEffect(() => {
-    if (initialLoadTimeoutExpired) {
+    if (initialLoadTimeoutExpired)
       setEthereumAddress(
         account.data?.address ? getAddress(account.data?.address) : undefined
       )
-    }
   }, [account.data?.address, initialLoadTimeoutExpired, setEthereumAddress])
 
   React.useEffect(() => {
-    if (ethereumAddress) queryUser({variables: {ethereumAddress}})
-  }, [ethereumAddress, queryUser])
+    if (ethereumAddress && !rwAuth.loading)
+      queryUser({variables: {ethereumAddress}})
+  }, [ethereumAddress, rwAuth.loading])
+
+  // If you disconnect your wallet, we should deauthenticate you as well.
+  React.useEffect(() => {
+    if (
+      authenticatedUser &&
+      authenticatedUser.ethereumAddress !== ethereumAddress
+    ) {
+      rwAuth.logOut()
+    }
+  }, [ethereumAddress, authenticatedUser])
 
   let context = {} as UserContextType
 
@@ -74,8 +93,9 @@ export function UserContextProvider({children}: {children: React.ReactNode}) {
     context = {
       ethereumAddress,
       refetch: userContextQuery.refetch,
-      loading: userContextQuery.loading,
-      ...userContextQuery.data,
+      loading: !userContextQuery.data,
+      ...userContextQuery?.data,
+      authenticatedUser,
     } as UserContextType
   }
 

@@ -6,7 +6,7 @@ import {RLink} from 'src/components/links'
 import {useUser} from 'src/layouts/UserContext'
 import {appNav} from 'src/lib/util'
 import {CreateUserMutation, CreateUserMutationVariables} from 'types/graphql'
-import {requireWalletConnected} from '../guards'
+import {requireWalletConnected} from '../../../lib/guards'
 import RegisterScreen, {TextContainer} from '../RegisterScreen'
 
 const EmailPage: React.FC<{next?: 'submitted' | undefined}> = ({next}) => {

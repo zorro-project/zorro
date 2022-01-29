@@ -101,7 +101,7 @@ const NavBar = () => {
         href: routes.profile({id: user.cachedProfile.id}),
         icon: BsPersonBadge,
       })
-    } else if (user.unsubmittedProfile) {
+    } else if (user.registrationAttempt) {
       navItems.push({
         label: 'Complete Registration',
         href: routes.registerSubmitted(),

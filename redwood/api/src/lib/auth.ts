@@ -1,25 +1,43 @@
-/**
- * Once you are ready to add authentication to your application
- * you'll build out requireAuth() with real functionality. For
- * now we just return `true` so that the calls in services
- * have something to check against, simulating a logged
- * in user that is allowed to access that service.
- *
- * See https://redwoodjs.com/docs/authentication for more info.
- */
-export const isAuthenticated = () => {
-  return true
+import {RoleEnum} from '@prisma/client'
+import {AuthenticationError, ForbiddenError} from '@redwoodjs/graphql-server'
+import {compact} from 'lodash'
+import {db} from './db'
+
+// Only return fields that are safe to be shared with the client.
+export const getCurrentUser = async (_: unknown, {token}: {token: string}) => {
+  if (token == null || token.length < 10) return null
+  return db.user.findFirst({
+    where: {
+      UserSession: {
+        some: {token, expiresAt: {gt: new Date()}},
+      },
+    },
+    select: {
+      id: true,
+      ethereumAddress: true,
+      roles: true,
+    },
+  })
 }
 
-export const hasRole = ({roles}: {roles: string[]}) => {
-  return roles !== undefined
+export type CurrentUser = Awaited<ReturnType<typeof getCurrentUser>>
+
+export const isAuthenticated = (): boolean => {
+  return !!context.currentUser
 }
 
-// This is used by the redwood directive
-// in ./api/src/directives/requireAuth
+export const hasRole = (roles: (RoleEnum | string | null)[]): boolean =>
+  context.currentUser?.roles?.some((r) => compact(roles).includes(r)) ?? false
 
-// Roles are passed in by the requireAuth directive if you have auth setup
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export const requireAuth = ({roles}: {roles: string[]}) => {
-  return isAuthenticated()
+export const requireAuth = (args?: {
+  roles?: (RoleEnum | null | string)[] | null
+}) => {
+  if (!isAuthenticated()) {
+    throw new AuthenticationError("You don't have permission to do that.")
+  }
+
+  const roles = args?.roles ?? []
+  if (roles.length > 0 && !hasRole(roles)) {
+    throw new ForbiddenError("You don't have access to do that.")
+  }
 }

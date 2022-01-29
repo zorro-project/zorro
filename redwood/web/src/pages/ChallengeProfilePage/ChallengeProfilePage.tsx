@@ -25,21 +25,21 @@ import {CellSuccessProps, createCell, MetaTags} from '@redwoodjs/web'
 import {ReactElement} from 'react'
 import ResizeTextarea from 'react-textarea-autosize'
 import {InternalLink, RLink} from 'src/components/links'
-import {cairoCompatibleAdd} from 'src/lib/ipfs'
 import NotFoundPage from 'src/pages/NotFoundPage'
 import {
   ChallengePageQuery,
   ChallengePageQueryVariables,
   StatusEnum,
 } from 'types/graphql'
-import {serializeCid} from '../../../../api/src/chain/serializers'
 import {
+  cairoCompatibleAdd,
+  serializeCid,
   erc20Approve,
   erc20GetBalanceOf,
   getChallengeDepositSize,
   submitChallenge,
-} from '../../../../api/src/chain/starknet'
-import {ZorroAddress} from '../../../../api/src/chain/contracts'
+  ZorroAddress,
+} from 'src/lib/api'
 
 const QUERY = gql`
   query ChallengePageQuery($id: ID!, $resync: Boolean) {

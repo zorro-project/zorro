@@ -9,8 +9,8 @@ const ConnectWalletPage: React.FC<{
   purposeIdentifier?: string
   externalAddress?: string
 }> = () => {
-  const {ethereumAddress, unsubmittedProfile} = useUser()
-  useGuard(!unsubmittedProfile, routes.registerSubmitted())
+  const {ethereumAddress, registrationAttempt} = useUser()
+  useGuard(!registrationAttempt, routes.registerSubmitted())
   useGuard(!ethereumAddress, routes.registerAllowCamera())
 
   return (

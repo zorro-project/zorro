@@ -6,17 +6,16 @@ import {RLink} from 'src/components/links'
 import {useGuard} from 'src/lib/useGuard'
 import {useUser} from 'src/layouts/UserContext'
 import {save as saveIntendedConnection} from 'src/lib/intendedConnectionStorage'
-import {requireNoExistingProfile} from '../guards'
-import RegisterScreen from '../RegisterScreen'
+import {requireNoExistingProfile} from '../../../lib/guards'
 
 const IntroPage: React.FC<{
   purposeIdentifier?: string
   externalAddress?: string
 }> = ({purposeIdentifier, externalAddress}) => {
-  const {unsubmittedProfile} = useUser()
+  const {registrationAttempt} = useUser()
 
   requireNoExistingProfile()
-  useGuard(!unsubmittedProfile, routes.registerSubmitted())
+  useGuard(!registrationAttempt, routes.registerSubmitted())
 
   useEffect(() => {
     if (purposeIdentifier && externalAddress) {
