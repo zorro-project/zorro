@@ -1,5 +1,8 @@
 {
   "devDependencies": {
     "prettier": "^2.5.1"
+  },
+  "dependencies": {
+    "use-async-effect": "^2.2.5"
   }
 }
