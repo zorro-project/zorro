@@ -56,7 +56,7 @@ const EmailPage: React.FC<{next?: 'submitted' | undefined}> = ({next}) => {
   return (
     <form onSubmit={handleSubmit} style={{display: 'flex', flex: '1'}}>
       <RegisterScreen
-        title="Important notifications"
+        title="Get important notifications"
         primaryButtonLabel="Continue"
         primaryButtonProps={{type: 'submit', disabled: !emailValid}}
         secondaryButtonLabel="Skip"
@@ -74,15 +74,12 @@ const EmailPage: React.FC<{next?: 'submitted' | undefined}> = ({next}) => {
             />
           </RouteFocus>
         </Box>
-        <TextContainer>
-          <Box>
-            <Text>Get notified about:</Text>
-            <UnorderedList stylePosition="inside" mb={4}>
-              <ListItem>Challenges to your citizenship</ListItem>
-              <ListItem>Citizenship expiration</ListItem>
-            </UnorderedList>
-            <Text>Your email will not be public on-chain.</Text>
-          </Box>
+        <TextContainer maxW="300">
+          <Text>
+            Zorro needs to be able to get in touch with you in case your
+            citizenship is challenged for being a duplicate or being mistaken.
+          </Text>
+          <Text>Your email will be kept private.</Text>
         </TextContainer>
       </RegisterScreen>
     </form>
