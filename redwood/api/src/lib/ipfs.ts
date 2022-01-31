@@ -1,3 +1,4 @@
+import btoa from 'btoa-lite'
 import {create, CID} from 'ipfs-http-client'
 import assert from 'minimalistic-assert'
 

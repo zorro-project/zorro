@@ -18,6 +18,24 @@ export const Unsubmitted = () => (
   </StoryMocks>
 )
 
+export const Unsumbitted_Vertical_Video = () => (
+  <StoryMocks
+    user={{ethereumAddress: '0x4567'}}
+    state={{
+      register: {
+        photo:
+          'https://ipfs.kleros.io/ipfs/QmZkijLi6wvNsxwn9NEs6geUKi3geeocL9o9WU1TddTDmi/photo5170237719635405227.jpg',
+        video:
+          'https://ipfs.kleros.io/ipfs/QmVad3G9hmWRJofzpMhHAvERmxbcopYLJpnDacmBV62AFf/31825568-c209-4820-9a8a-250b9ea1d3fe.mp4',
+      },
+    }}
+  >
+    <RegisterLayout>
+      <SubmitPage />
+    </RegisterLayout>
+  </StoryMocks>
+)
+
 export const Resubmit = () => (
   <StoryMocks
     user={{ethereumAddress: '0x4567', registrationAttempt: {id: 1}}}

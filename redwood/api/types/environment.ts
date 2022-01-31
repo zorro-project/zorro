@@ -1,5 +1,5 @@
-interface IProcessEnv {
-  CHAIN_DEPLOYMENT: 'development' | 'production' | 'test'
+export type ApiProcessEnv = {
+  CHAIN_DEPLOYMENT: 'test' | 'development' | 'staging' | 'production'
 
   // Infura IPFS
   INFURA_IPFS_ID?: string
@@ -23,11 +23,3 @@ interface IProcessEnv {
 
   STARKNET_NOTARY_PRIVATE_KEY: string
 }
-
-declare global {
-  namespace NodeJS {
-    interface ProcessEnv extends IProcessEnv {}
-  }
-}
-
-export {}
