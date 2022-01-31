@@ -1,7 +1,7 @@
 from starkware.cairo.common.alloc import alloc
 from starkware.cairo.common.math_cmp import is_le
 from starkware.cairo.common.cairo_builtins import HashBuiltin
-from starkware.cairo.common.default_dict import default_dict_new
+from starkware.cairo.common.default_dict import default_dict_new, default_dict_finalize
 from starkware.cairo.common.dict import dict_write, dict_read, dict_update, DictAccess
 
 from utils import invert
@@ -238,9 +238,11 @@ func _get_is_verified{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr 
     return (0)
 end
 
-func _get_dict_from_profile(profile : Profile) -> (res : DictAccess*):
+func _get_dict_from_profile{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
+        profile : Profile) -> (dict_start_ptr : DictAccess*, dict_ptr : DictAccess*):
     let ptr : felt* = &profile
-    let (dict_ptr) = default_dict_new(0)
+    let (dict_start_ptr) = default_dict_new(0)
+    let dict_ptr = dict_start_ptr
     with dict_ptr:
         dict_write(0, [ptr + 0])
         dict_write(1, [ptr + 1])
@@ -262,13 +264,12 @@ func _get_dict_from_profile(profile : Profile) -> (res : DictAccess*):
         assert Profile.SIZE = 17  # ensure this gets updated if Profile expands
     end
 
-    # Note: we skip default_dict_finalize() because we don't actually rely
-    # on the default value.
-
-    return (dict_ptr)
+    return (dict_start_ptr, dict_ptr)
 end
 
-func _get_profile_from_dict(dict_ptr : DictAccess*) -> (profile : Profile):
+func _get_profile_from_dict{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
+        dict_start_ptr : DictAccess*, dict_ptr : DictAccess*) -> (profile : Profile):
+    alloc_locals
     with dict_ptr:
         let (v0) = dict_read(0)
         let (v1) = dict_read(1)
@@ -289,6 +290,8 @@ func _get_profile_from_dict(dict_ptr : DictAccess*) -> (profile : Profile):
         let (v16) = dict_read(16)
         assert Profile.SIZE = 17  # ensure this gets updated if Profile expands
     end
+
+    default_dict_finalize(dict_start_ptr, dict_ptr, 0)
 
     let mem : felt* = alloc()
     assert mem[0] = v0
