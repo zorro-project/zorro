@@ -1,5 +1,5 @@
 import {useState} from 'react'
-import {Text, VStack} from '@chakra-ui/layout'
+import {Text} from '@chakra-ui/layout'
 import {routes} from '@redwoodjs/router'
 import ConnectButton, {
   reconnect,
