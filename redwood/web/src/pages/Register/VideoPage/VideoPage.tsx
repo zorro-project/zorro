@@ -1,6 +1,7 @@
 import {AspectRatio, Box, Text} from '@chakra-ui/layout'
 import {Fade} from '@chakra-ui/react'
 import {routes, navigate} from '@redwoodjs/router'
+import {useToast} from '@chakra-ui/react'
 import {useCallback, useRef, useState} from 'react'
 import Webcam from 'react-webcam'
 import {useGuard} from 'src/lib/useGuard'
@@ -139,6 +140,7 @@ const RecordVideoStep = ({mockRecording}: {mockRecording?: boolean}) => {
 
 const ConfirmVideoStep = () => {
   const dispatch = useAppDispatch()
+  const toast = useToast()
   const [isLoaded, setIsLoaded] = useState(false)
   const [hasPlayed, setHasPlayed] = useState(false)
   const {video} = useAppSelector((state) => state.register)
@@ -149,7 +151,12 @@ const ConfirmVideoStep = () => {
 
   const maybeContinue = useCallback(() => {
     if (hasPlayed) navigate(routes.registerEmail())
-    else alert('maybe play first...?')
+    else
+      toast({
+        title: 'Make sure you play the video to see if it came out OK!',
+        status: 'info',
+        duration: 3000,
+      })
   }, [hasPlayed])
 
   return (
