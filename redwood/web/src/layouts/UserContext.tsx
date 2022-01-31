@@ -1,4 +1,4 @@
-import {useLazyQuery} from '@apollo/client'
+import {useQuery} from '@apollo/client'
 import {useTimeout} from '@chakra-ui/react'
 import {useAuth} from '@redwoodjs/auth'
 import {getAddress} from 'ethers/lib/utils'
@@ -38,7 +38,7 @@ export function UserContextProvider({children}: {children: React.ReactNode}) {
     useState(false)
   useTimeout(() => setInitialLoadTimeoutExpired(true), 1000)
 
-  const [queryUser, userContextQuery] = useLazyQuery<
+  const userContextQuery = useQuery<
     UserContextQuery,
     UserContextQueryVariables
   >(
@@ -62,7 +62,11 @@ export function UserContextProvider({children}: {children: React.ReactNode}) {
         }
       }
     `,
-    {fetchPolicy: 'cache-and-network'}
+    {
+      fetchPolicy: 'cache-and-network',
+      skip: !ethereumAddress || rwAuth.loading,
+      variables: {ethereumAddress: ethereumAddress!},
+    }
   )
 
   React.useEffect(() => {
@@ -71,11 +75,6 @@ export function UserContextProvider({children}: {children: React.ReactNode}) {
         account.data?.address ? getAddress(account.data?.address) : undefined
       )
   }, [account.data?.address, initialLoadTimeoutExpired, setEthereumAddress])
-
-  React.useEffect(() => {
-    if (ethereumAddress && !rwAuth.loading)
-      queryUser({variables: {ethereumAddress}})
-  }, [ethereumAddress, rwAuth.loading])
 
   // If you disconnect your wallet, we should deauthenticate you as well.
   React.useEffect(() => {
