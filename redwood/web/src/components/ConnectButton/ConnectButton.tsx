@@ -10,7 +10,7 @@ export default function ConnectButton(props: ButtonProps) {
   const user = useUser()
   const modalControl = useDisclosure()
 
-  const [{data, loading: isLoading}, connect] = useConnect()
+  const [{data, loading: isConnecting}, connect] = useConnect()
 
   const signIn = async () => {
     connect(data.connectors[0])
@@ -40,10 +40,20 @@ export default function ConnectButton(props: ButtonProps) {
   ) : (
     <Button
       onClick={signIn}
-      isLoading={isLoading}
+      isLoading={isConnecting}
       // eslint-disable-next-line react/no-children-prop
       children="Connect Wallet"
       {...props}
     />
   )
+}
+
+// wagmi doesn't support forcing a reconnection, so we're stubbing this in.
+export async function reconnect() {
+  await window.ethereum?.request({
+    // @ts-ignore
+    method: 'wallet_requestPermissions',
+    // @ts-ignore
+    params: [{eth_accounts: {}}],
+  })
 }

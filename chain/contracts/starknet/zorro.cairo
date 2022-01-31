@@ -205,11 +205,11 @@ func notarize{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}
     let (status) = _get_current_status(profile, now)
     assert status = StatusEnum.NOT_CHALLENGED
 
-    let (dict_ptr) = _get_dict_from_profile(profile)
+    let (dict_start_ptr, dict_ptr) = _get_dict_from_profile(profile)
     with dict_ptr:
         dict_write(Profile.is_notarized, 1)
     end
-    let (new_profile) = _get_profile_from_dict(dict_ptr)
+    let (new_profile) = _get_profile_from_dict(dict_start_ptr, dict_ptr)
     _profiles.write(profile_id, new_profile)
 
     return ()
@@ -295,11 +295,11 @@ func submit_evidence{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr :
     # Can only submit evidence while status is `challenged` (i.e. before adjudication)
     assert status = StatusEnum.CHALLENGED
 
-    let (dict_ptr) = _get_dict_from_profile(profile)
+    let (dict_start_ptr, dict_ptr) = _get_dict_from_profile(profile)
     with dict_ptr:
         dict_write(Profile.owner_evidence_cid, evidence_cid)
     end
-    let (new_profile) = _get_profile_from_dict(dict_ptr)
+    let (new_profile) = _get_profile_from_dict(dict_start_ptr, dict_ptr)
     _profiles.write(profile_id, new_profile)
 
     return ()
@@ -319,14 +319,14 @@ func adjudicate{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt
     let (status) = _get_current_status(profile, now)
     assert status = StatusEnum.CHALLENGED
 
-    let (dict_ptr) = _get_dict_from_profile(profile)
+    let (dict_start_ptr, dict_ptr) = _get_dict_from_profile(profile)
     with dict_ptr:
         dict_write(Profile.last_recorded_status, StatusEnum.ADJUDICATION_ROUND_COMPLETED)
         dict_write(Profile.adjudication_timestamp, now)
         dict_write(Profile.adjudicator_evidence_cid, evidence_cid)
         dict_write(Profile.did_adjudicator_verify_profile, should_verify_profile)
     end
-    let (new_profile) = _get_profile_from_dict(dict_ptr)
+    let (new_profile) = _get_profile_from_dict(dict_start_ptr, dict_ptr)
     _profiles.write(profile_id, new_profile)
 
     return ()
@@ -346,13 +346,13 @@ func appeal{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
     let (status) = _get_current_status(profile, now)
     assert (status - StatusEnum.ADJUDICATION_ROUND_COMPLETED) = 0
 
-    let (dict_ptr) = _get_dict_from_profile(profile)
+    let (dict_start_ptr, dict_ptr) = _get_dict_from_profile(profile)
     with dict_ptr:
         dict_write(Profile.last_recorded_status, StatusEnum.APPEALED)
         dict_write(Profile.appeal_timestamp, now)
         dict_write(Profile.appeal_id, appeal_id)
     end
-    let (new_profile) = _get_profile_from_dict(dict_ptr)
+    let (new_profile) = _get_profile_from_dict(dict_start_ptr, dict_ptr)
     _profiles.write(profile_id, new_profile)
 
     return ()
@@ -377,13 +377,13 @@ func super_adjudicate{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr 
     let (status) = _get_current_status(profile, now)
     assert status = StatusEnum.APPEALED
 
-    let (dict_ptr) = _get_dict_from_profile(profile)
+    let (dict_start_ptr, dict_ptr) = _get_dict_from_profile(profile)
     with dict_ptr:
         dict_write(Profile.last_recorded_status, StatusEnum.SUPER_ADJUDICATION_ROUND_COMPLETED)
         dict_write(Profile.super_adjudication_timestamp, now)
         dict_write(Profile.did_super_adjudicator_overturn_adjudicator, should_overturn)
     end
-    let (new_profile) = _get_profile_from_dict(dict_ptr)
+    let (new_profile) = _get_profile_from_dict(dict_start_ptr, dict_ptr)
     _profiles.write(profile_id, new_profile)
 
     maybe_settle(profile_id)
@@ -451,11 +451,11 @@ func maybe_settle{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : fe
         _maybe_give_security_bounty(profile.challenger_address, challenge_reward_size)
     end
 
-    let (dict_ptr) = _get_dict_from_profile(profile)
+    let (dict_start_ptr, dict_ptr) = _get_dict_from_profile(profile)
     with dict_ptr:
         dict_write(Profile.last_recorded_status, StatusEnum.SETTLED)
     end
-    let (new_profile) = _get_profile_from_dict(dict_ptr)
+    let (new_profile) = _get_profile_from_dict(dict_start_ptr, dict_ptr)
     _profiles.write(profile_id, new_profile)
 
     return ()
