@@ -8,7 +8,7 @@ const pusher = process.env.PUSHER_KEY
   : null
 
 export const usePusher = (
-  channel: string,
+  channel: string | undefined | null,
   event: string,
   callback: Function
 ) => {
@@ -19,6 +19,7 @@ export const usePusher = (
       )
       return
     }
+    if (channel == null) return
     const pusherChannel = pusher.subscribe(channel)
     pusherChannel.bind(event, callback)
     return () => {
@@ -27,4 +28,16 @@ export const usePusher = (
       pusher.unsubscribe(channel)
     }
   }, [channel, event, callback])
+}
+
+export const watchRegAttempt = (
+  registrationAttempt: {ethereumAddress: string} | undefined | null,
+  onUpdate: Function
+) => {
+  usePusher(
+    registrationAttempt &&
+      `registrationAttempt.${registrationAttempt?.ethereumAddress}`,
+    'updated',
+    onUpdate
+  )
 }

@@ -43,6 +43,19 @@ const QUERY = gql`
   }
 `
 
+export const Breadcrumbs = (props: {pageTitle: string}) => (
+  <Breadcrumb>
+    <BreadcrumbItem>
+      <BreadcrumbLink href={routes.profiles()} as={RLink} fontWeight="bold">
+        Profiles
+      </BreadcrumbLink>
+    </BreadcrumbItem>
+    <BreadcrumbItem isCurrentPage>
+      <BreadcrumbLink>{props.pageTitle}</BreadcrumbLink>
+    </BreadcrumbItem>
+  </Breadcrumb>
+)
+
 const Success = (props: ProfilePageQuery) => {
   const profile = props.cachedProfile
   if (!profile) return <NotFoundPage />
@@ -52,43 +65,32 @@ const Success = (props: ProfilePageQuery) => {
   return (
     <>
       <MetaTags title="Public Profile" />
-      <Breadcrumb>
-        <BreadcrumbItem>
-          <BreadcrumbLink href={routes.profiles()} as={RLink} fontWeight="bold">
-            Profiles
-          </BreadcrumbLink>
-        </BreadcrumbItem>
-        <BreadcrumbItem isCurrentPage>
-          <BreadcrumbLink>{profile.id}</BreadcrumbLink>
-        </BreadcrumbItem>
-      </Breadcrumb>
+      <Breadcrumbs pageTitle={profile.id} />
 
-      <Stack maxW="xl" mx="auto" my="8" spacing="6">
-        <Box>
-          <Stack>
-            <Heading size="md">Profile {profile.id}</Heading>
-            <Stack direction="row" alignItems="center">
-              <Icon as={FaEthereum} />
-              <Link
-                display="flex"
-                alignItems="center"
-                href={`https://etherscan.io/address/${ethereumAddress}`}
-                isExternal
-                color={'black'}
-              >
-                {ethereumAddress}
-                <ExternalLinkIcon ml={1} />
-              </Link>
-            </Stack>
-            <Stack direction="row" alignItems="center">
-              <Icon
-                as={profile.isVerified ? FaCheck : FaTimes}
-                color={profile.isVerified ? 'green.500' : 'red.500'}
-              />
-              <Text>{profile.isVerified ? 'Verified' : 'Not Verified'}</Text>
-            </Stack>
+      <Stack w="xl" maxW="100%" mx="auto" my="8" spacing="6">
+        <Stack>
+          <Heading size="md">Profile {profile.id}</Heading>
+          <Stack direction="row" alignItems="center">
+            <Icon as={FaEthereum} />
+            <Link
+              display="flex"
+              alignItems="center"
+              href={`https://etherscan.io/address/${ethereumAddress}`}
+              isExternal
+              color={'black'}
+            >
+              {ethereumAddress}
+              <ExternalLinkIcon ml={1} />
+            </Link>
           </Stack>
-        </Box>
+          <Stack direction="row" alignItems="center">
+            <Icon
+              as={profile.isVerified ? FaCheck : FaTimes}
+              color={profile.isVerified ? 'green.500' : 'red.500'}
+            />
+            <Text>{profile.isVerified ? 'Verified' : 'Not Verified'}</Text>
+          </Stack>
+        </Stack>
         <Divider />
         <Heading size="md" textAlign="center">
           Photo & Video

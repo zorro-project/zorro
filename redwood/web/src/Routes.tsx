@@ -24,6 +24,7 @@ const Routes = () => {
         <Set wrap={NavLayout}>
           <Route path="/profiles" page={ProfilesPage} name="profiles" />
           <Route path="/profiles/{id}" page={ProfilePage} name="profile" />
+          <Route path="/pending-profile/{id}" page={PendingProfilePage} name="pendingProfile" />
           <Route path="/profiles/{id}/challenge" page={ChallengeProfilePage} name="challengeProfile" />
 
           <Route path="/unreviewed-registrations" page={UnreviewedRegistrationsPage} name="unreviewedRegistrations" />

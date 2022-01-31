@@ -8,7 +8,7 @@ import {Fireworks} from 'fireworks-js'
 import React, {useCallback, useEffect} from 'react'
 import ReactPlayer from 'react-player'
 import {InternalLink, RLink} from 'src/components/links'
-import {usePusher} from 'src/lib/pusher'
+import {watchRegAttempt} from 'src/lib/pusher'
 import {useGuard} from 'src/lib/useGuard'
 import {maybeCidToUrl} from 'src/lib/util'
 import {registerSlice} from 'src/state/registerSlice'
@@ -17,7 +17,6 @@ import {
   RegisterSubmittedPageQuery,
   RegisterSubmittedPageQueryVariables,
 } from 'types/graphql'
-import {useInterval} from 'usehooks-ts'
 import {requireWalletConnected} from '../../../lib/guards'
 import RegisterLogo from '../RegisterLogo'
 import Title from '../Title'
@@ -248,12 +247,7 @@ const SubmittedPage = () => {
     },
   })
 
-  usePusher(
-    `registrationAttempt.${data?.registrationAttempt?.ethereumAddress}`,
-    'updated',
-    refetch
-  )
-  useInterval(refetch, 60 * 1000)
+  watchRegAttempt(data?.registrationAttempt, refetch)
 
   if (data?.registrationAttempt == null) return null
 
