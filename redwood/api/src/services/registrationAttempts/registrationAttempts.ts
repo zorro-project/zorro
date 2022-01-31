@@ -22,6 +22,11 @@ const alertUpdated = (
     {}
   )
 
+export const optimisticallyApprovedRegs = async () =>
+  db.registrationAttempt.findMany({
+    where: {approved: true, profileId: null},
+  })
+
 export const unreviewedRegistrations = async () =>
   db.registrationAttempt.findMany({where: {reviewedAt: null}})
 

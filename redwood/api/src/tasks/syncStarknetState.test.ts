@@ -1,13 +1,11 @@
 import {parseCid} from 'src/chain/serializers'
-import {importProfile, readCids} from './syncStarknetState'
-
 import {exportProfileById} from 'src/chain/starknet'
-import {sendMessage} from 'src/lib/twilio'
 import {db} from 'src/lib/db'
-
+import {sendMessage} from 'src/lib/twilio'
 // TODO: jest includes this natively in 27.4, switch to that version when
 // Redwood upgrades https://github.com/facebook/jest/pull/12089
 import {mocked} from 'ts-jest/dist/utils/testing'
+import {importProfile, readCids} from './syncStarknetState'
 
 jest.mock('src/chain/starknet')
 jest.mock('src/lib/twilio')
@@ -27,10 +25,19 @@ describe('readCids', () => {
 
 describe('importProfile', () => {
   test('sends new challenge notifications', async () => {
+    let registrationAttempt = await db.registrationAttempt.create({
+      data: {
+        approved: true,
+        ethereumAddress: '0x334230242D318b5CA159fc38E07dC1248B7b35e4',
+        photoCid: 'test',
+        videoCid: 'test',
+      },
+    })
+
     mocked(exportProfileById).mockResolvedValueOnce({
       profile: {
         cid: '0x170121b909f5bf9672d64c328fb6196c0042b5bac45a7ce829b3a161a186c',
-        ethereum_address: '0x4956f0cd',
+        ethereum_address: '0x334230242D318b5CA159fc38E07dC1248B7b35e4',
         submitter_address: '0x165dabd',
         submission_timestamp: '0x929',
         is_notarized: '0x1',
@@ -67,6 +74,11 @@ describe('importProfile', () => {
       profileId: 1,
       challengeTimestamp: '2022-01-27T03:09:14.000Z',
     })
+
+    registrationAttempt = (await db.registrationAttempt.findUnique({
+      where: {id: registrationAttempt.id},
+    }))!
+    expect(registrationAttempt.profileId).toEqual(1)
   })
 
   test("doesn't send notifications for unchallenged profiles", async () => {
