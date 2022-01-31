@@ -1,10 +1,9 @@
-import {Spacer, Text} from '@chakra-ui/layout'
+import {Text} from '@chakra-ui/layout'
 import {CircularProgress} from '@chakra-ui/progress'
-import {Button, Image, Stack} from '@chakra-ui/react'
+import {Image, Stack} from '@chakra-ui/react'
 import {navigate, routes} from '@redwoodjs/router'
 import {useMutation} from '@redwoodjs/web'
 import React, {useCallback} from 'react'
-import ReactPlayer from 'react-player'
 import {useUser} from 'src/layouts/UserContext'
 import ipfsClient from 'src/lib/ipfs'
 import {useGuard} from 'src/lib/useGuard'
@@ -13,9 +12,9 @@ import {registerSlice} from 'src/state/registerSlice'
 import {useAppDispatch, useAppSelector} from 'src/state/store'
 import {AttemptRegistration, AttemptRegistrationVariables} from 'types/graphql'
 import {requireWalletConnected} from '../../../lib/guards'
-import RegisterLogo from '../RegisterLogo'
-import Title from '../Title'
 import UserMediaBox from '../UserMediaBox'
+import MinimalVideoPlayer from '../MinimalVideoPlayer'
+import RegisterScreen from '../RegisterScreen'
 
 const SubmitPage = ({initialSubmitProgress = -1}) => {
   const {registrationAttempt, refetch: refetchUser} = useUser()
@@ -96,9 +95,23 @@ const SubmitPage = ({initialSubmitProgress = -1}) => {
   }, [ethereumAddress, attemptRegistrationMutation])
 
   return (
-    <Stack spacing="6" flex="1" width="100%">
-      <RegisterLogo />
-      <Title title={submitting ? 'Uploading video' : 'Ready to submit'} />
+    <RegisterScreen
+      title={submitting ? 'Uploading video' : 'Ready to submit'}
+      buttonDescription={
+        !submitting && (
+          <Text>
+            Note that all applications are public so they can be reviewed by the
+            Zorro community.
+          </Text>
+        )
+      }
+      primaryButtonLabel={
+        registrationAttempt ? 'Resubmit application' : 'Submit application'
+      }
+      primaryButtonProps={{onClick: submit, disabled: submitting}}
+      secondaryButtonLabel="Start over"
+      secondaryButtonProps={{onClick: startOver, disabled: submitting}}
+    >
       {submitting ? (
         <CircularProgress
           size="6rem"
@@ -108,40 +121,20 @@ const SubmitPage = ({initialSubmitProgress = -1}) => {
           py={12}
         />
       ) : (
-        <>
-          <Stack direction="row">
-            <UserMediaBox flex="1">
-              <Image src={maybeCidToUrl(registerState.photo)} />
-            </UserMediaBox>
-            <UserMediaBox flex="1">
-              <ReactPlayer
-                url={maybeCidToUrl(registerState.video)}
-                controls
-                width="100%"
-                height="100%"
-              />
-            </UserMediaBox>
-          </Stack>
-
-          <Text>
-            A volunteer community notary will verify your application in
-            real-time.
-          </Text>
-        </>
+        <Stack direction="row" px="8" pt="4">
+          <UserMediaBox flex="1">
+            <Image src={maybeCidToUrl(registerState.photo)} />
+          </UserMediaBox>
+          <UserMediaBox flex="1">
+            <MinimalVideoPlayer
+              url={maybeCidToUrl(registerState.video)}
+              width="100%"
+              height="100%"
+            />
+          </UserMediaBox>
+        </Stack>
       )}
-      <Spacer />
-
-      <Button variant="register-primary" onClick={submit} disabled={submitting}>
-        {registrationAttempt ? 'Resubmit application' : 'Submit application'}
-      </Button>
-      <Button
-        variant="register-secondary"
-        onClick={startOver}
-        disabled={submitting}
-      >
-        Start over
-      </Button>
-    </Stack>
+    </RegisterScreen>
   )
 }
 
