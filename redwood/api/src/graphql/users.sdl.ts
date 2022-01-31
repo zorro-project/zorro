@@ -18,15 +18,19 @@ export const schema = gql`
   }
 
   input CreateUserInput {
-    ethereumAddress: String!
+    ethereumAddress: String! @validateAddress
     email: String
   }
 
   type Mutation {
     createUser(input: CreateUserInput!): User! @skipAuth
 
-    requestSessionAuthString(ethereumAddress: String!): String! @skipAuth
-    requestSessionToken(ethereumAddress: String!, signature: String!): String
-      @skipAuth
+    requestSessionAuthString(
+      ethereumAddress: String! @validateAddress
+    ): String! @skipAuth
+    requestSessionToken(
+      ethereumAddress: String! @validateAddress
+      signature: String!
+    ): String @skipAuth
   }
 `

@@ -17,12 +17,14 @@ export const schema = gql`
   type Query {
     unreviewedRegistrations: [RegistrationAttempt!]!
       @requireAuth(roles: ["NOTARY"])
-    latestRegistration(ethereumAddress: ID!): RegistrationAttempt @skipAuth
+    latestRegistration(
+      ethereumAddress: ID! @validateAddress
+    ): RegistrationAttempt @skipAuth
     optimisticallyApprovedRegs: [RegistrationAttempt!]! @skipAuth
   }
 
   input AttemptRegistrationInput {
-    ethereumAddress: String!
+    ethereumAddress: String! @validateAddress
     photoCid: String!
     videoCid: String!
   }
