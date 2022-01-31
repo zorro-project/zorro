@@ -20,16 +20,18 @@ export default SquareBox
 export const PhotoBox = ({
   photo,
   ...props
-}: AspectRatioProps & {photo: string}) => (
+}: AspectRatioProps & {photo: string | undefined}) => (
   <SquareBox {...props}>
     <Box>
-      <Image
-        src={maybeCidToUrl(photo)}
-        alt="Profile Photo"
-        objectFit="contain"
-        width="100%"
-        height="100%"
-      />
+      {photo && (
+        <Image
+          src={maybeCidToUrl(photo)}
+          alt="Profile Photo"
+          objectFit="contain"
+          width="100%"
+          height="100%"
+        />
+      )}
     </Box>
   </SquareBox>
 )
@@ -37,7 +39,7 @@ export const PhotoBox = ({
 export const VideoBox = ({
   video,
   ...props
-}: AspectRatioProps & {video: string}) => {
+}: AspectRatioProps & {video: string | undefined}) => {
   return (
     <SquareBox
       {...props}
@@ -52,12 +54,16 @@ export const VideoBox = ({
         },
       }}
     >
-      <ReactPlayer
-        url={maybeCidToUrl(video)}
-        controls
-        width="100%"
-        height="100%"
-      />
+      {video ? (
+        <ReactPlayer
+          url={maybeCidToUrl(video)}
+          controls
+          width="100%"
+          height="100%"
+        />
+      ) : (
+        <Box />
+      )}
     </SquareBox>
   )
 }
