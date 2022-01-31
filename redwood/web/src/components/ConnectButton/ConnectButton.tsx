@@ -50,8 +50,10 @@ export default function ConnectButton(props: ButtonProps) {
 
 // wagmi doesn't support forcing a reconnection, so we're stubbing this in.
 export async function reconnect() {
-  await window.ethereum.request({
+  await window.ethereum?.request({
+    // @ts-ignore
     method: 'wallet_requestPermissions',
+    // @ts-ignore
     params: [{eth_accounts: {}}],
   })
 }

@@ -50,7 +50,9 @@ const ConnectWalletPage: React.FC<{
       if (!ethereumAddress) return
       setIsCheckingFreshness(true)
       const response = await fetch(
-        `${global.RWJS_API_URL}/getEthereumAddressUsage?address=${ethereumAddress}`
+        `${
+          global.RWJS_API_URL as string
+        }/getEthereumAddressUsage?address=${ethereumAddress}`
       )
       const result = await response.json()
       if (!isActive()) return

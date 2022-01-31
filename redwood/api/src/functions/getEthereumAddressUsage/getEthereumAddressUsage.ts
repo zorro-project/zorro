@@ -14,9 +14,9 @@ export const handler: Handler = async (event) => {
           module: 'account',
           action: 'txlist',
           address: ethereumAddress,
-          page: 1, // XXX: check to see whether page should be `0` or `1`
-          offset: 1, // number of results per page
-          apikey: process.env.ETHERSCAN_API_KEY,
+          page: (1).toString(), // XXX: check to see whether page should be `0` or `1`
+          offset: (1).toString(), // number of results per page
+          apikey: process.env.ETHERSCAN_API_KEY!,
         }
         // TODO: we should probably check polygon, bsc, and avascan as well, because they're quite popular
         const response = await fetch(
