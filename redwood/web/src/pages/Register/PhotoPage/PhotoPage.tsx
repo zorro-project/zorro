@@ -89,7 +89,9 @@ const ConfirmPhotoStep = () => {
         </UserMediaBox>
       }
       title="Confirm photo"
-      description={<Text>Can you see your face clearly?</Text>}
+      description={
+        <Text>Can you see your entire face clearly? (No glasses, etc)</Text>
+      }
       primaryButtonLabel="Use this photo"
       primaryButtonProps={{
         as: RLink,
