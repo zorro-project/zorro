@@ -45,7 +45,11 @@ const ItemCard: React.FC<{
     <Box style={style} p={2}>
       <Box
         as={RLink}
-        href={isOptimistic ? undefined : routes.profile({id: profile.id})}
+        href={
+          isOptimistic
+            ? routes.pendingProfile({id: profile.ethereumAddress})
+            : routes.profile({id: profile.id})
+        }
         display="flex"
         shadow="md"
         w="100%"
