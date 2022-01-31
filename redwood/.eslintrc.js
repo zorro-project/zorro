@@ -6,6 +6,7 @@ module.exports = {
     'react-hooks/exhaustive-deps': 'off',
     '@typescript-eslint/no-non-null-assertion': 'off',
     '@typescript-eslint/ban-types': 'off',
+    '@typescript-eslint/ban-ts-comment': 'off',
     'jsx-a11y/no-autofocus': 'off',
     'prettier/prettier': 'error',
   },
