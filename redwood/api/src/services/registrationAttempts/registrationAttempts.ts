@@ -1,4 +1,5 @@
 import type * as Prisma from '@prisma/client'
+import {WEB_DOMAIN} from 'src/lib/config'
 import {db} from 'src/lib/db'
 import {NOTARY_PHONE_NUMBERS} from 'src/lib/protocolNotifications'
 import {pusher} from 'src/lib/pusher'
@@ -59,7 +60,7 @@ export const attemptRegistration = async ({
   if (pendingCount > 0) {
     await sendMessage(
       NOTARY_PHONE_NUMBERS,
-      `${pendingCount} Zorro registrations awaiting review. http://localhost:8910/unreviewed-registrations`
+      `${pendingCount} Zorro registrations awaiting review. ${WEB_DOMAIN}/unreviewed-registrations`
     )
   }
 
