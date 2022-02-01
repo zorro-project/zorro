@@ -15,7 +15,7 @@ export type UserContextType =
       loading: boolean
       authenticatedUser?: CurrentUser
     } & UserContextQuery)
-  | Record<string, undefined>
+  | Record<string, never>
 
 const UserContext = React.createContext<UserContextType>({})
 
@@ -53,6 +53,7 @@ export function UserContextProvider({children}: {children: React.ReactNode}) {
           ethereumAddress: $ethereumAddress
         ) {
           id
+          approved
         }
 
         cachedProfile: cachedProfileByEthereumAddress(
