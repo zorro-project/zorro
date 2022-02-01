@@ -13,7 +13,7 @@ import {
   QuerylatestRegistrationArgs,
 } from 'types/graphql'
 
-const alertUpdated = (
+export const alertUpdated = (
   attempt: Pick<Prisma.RegistrationAttempt, 'ethereumAddress'>
 ) =>
   pusher?.trigger(

@@ -118,7 +118,7 @@ const SubmitPage = ({initialSubmitProgress = -1}) => {
           value={submitProgress}
           color="purple.500"
           alignSelf="center"
-          py={12}
+          py={4}
         />
       ) : (
         <Stack direction="row" px="8" pt="4">

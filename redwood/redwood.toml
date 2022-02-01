@@ -3,7 +3,8 @@
   port = 8910
   apiUrl = "/.redwood/functions"
 
-  # ENV vars that should be available to the web side
+  # ENV vars that should be available to the web side.
+  # Keep in sync with web/types/environment.d.ts
   includeEnvironmentVariables = [
     'CHAIN_DEPLOYMENT',
     'INFURA_IPFS_ID',

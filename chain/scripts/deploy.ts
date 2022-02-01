@@ -36,7 +36,11 @@ const getSetting = (chainDeployment: string, name: string): any => {
       appealBountySize: ethers.utils.parseEther('0.25'),
     },
   }
-  settings.staging = settings.development
+  settings.staging = {
+    ...settings.development,
+    zorroProfileUrlPrefix: 'https://testnet.zorro.xyz/profiles/',
+  }
+  settings.test = settings.development
 
   const result = settings?.[chainDeployment]?.[name]
   if (result === undefined) {

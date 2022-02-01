@@ -24,7 +24,7 @@ export const appNav = (
 }
 
 export const maybeCidToUrl: (value: string) => string = (value) => {
-  if (isLocalUrl(value)) return value
+  if (isLocalUrl(value) || value.startsWith('http')) return value
   return cidToUrl(value)
 }
 
