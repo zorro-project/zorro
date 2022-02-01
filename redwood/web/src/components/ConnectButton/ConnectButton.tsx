@@ -6,7 +6,7 @@ import AccountModal from './AccountModal'
 
 // Adapted from https://dev.to/jacobedawson/build-a-web3-dapp-in-react-login-with-metamask-4chp
 
-export default function ConnectButton(props: ButtonProps) {
+export default function ConnectButton({isLoading, ...props}: ButtonProps) {
   const user = useUser()
   const modalControl = useDisclosure()
 
@@ -40,7 +40,7 @@ export default function ConnectButton(props: ButtonProps) {
   ) : (
     <Button
       onClick={signIn}
-      isLoading={isConnecting}
+      isLoading={isLoading || isConnecting}
       // eslint-disable-next-line react/no-children-prop
       children="Connect Wallet"
       {...props}

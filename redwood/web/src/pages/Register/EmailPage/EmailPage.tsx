@@ -23,6 +23,7 @@ const EmailPage: React.FC<{next?: 'submitted' | undefined}> = ({next}) => {
     }
   }, [user.user?.hasEmail])
 
+  // XXX: has duplicated code with SubmittedPage.tsx
   const [email, setEmail] = useState<string>('')
   const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
 

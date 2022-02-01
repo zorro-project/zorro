@@ -1,12 +1,25 @@
 import {Button} from '@chakra-ui/button'
-import {Heading, Spacer, Stack} from '@chakra-ui/layout'
-import {Alert, AlertIcon, CircularProgress, Image, Text} from '@chakra-ui/react'
+import {Box, Center, Heading, Spacer, Stack, VStack} from '@chakra-ui/layout'
+import {
+  Alert,
+  AlertIcon,
+  CircularProgress,
+  Image,
+  ModalBody,
+  ModalContent,
+  ModalFooter,
+  ModalHeader,
+  ModalOverlay,
+  Text,
+  Modal,
+  Input,
+  AlertTitle,
+  AlertDescription,
+} from '@chakra-ui/react'
 import {navigate, routes} from '@redwoodjs/router'
-import {MetaTags, useQuery} from '@redwoodjs/web'
-import dayjs from 'dayjs'
+import {useMutation, useQuery} from '@redwoodjs/web'
 import {Fireworks} from 'fireworks-js'
-import React, {useCallback, useEffect} from 'react'
-import ReactPlayer from 'react-player'
+import React, {useCallback, useEffect, useState} from 'react'
 import {InternalLink, RLink} from 'src/components/links'
 import {watchRegAttempt} from 'src/lib/pusher'
 import {useGuard} from 'src/lib/useGuard'
@@ -14,13 +27,18 @@ import {maybeCidToUrl} from 'src/lib/util'
 import {registerSlice} from 'src/state/registerSlice'
 import {useAppDispatch} from 'src/state/store'
 import {
+  CreateUserMutation,
+  CreateUserMutationVariables,
   RegisterSubmittedPageQuery,
   RegisterSubmittedPageQueryVariables,
 } from 'types/graphql'
 import {requireWalletConnected} from '../../../lib/guards'
-import RegisterLogo from '../RegisterLogo'
 import Title from '../Title'
 import UserMediaBox from '../UserMediaBox'
+import RegisterScreen, {TextContainer} from '../RegisterScreen'
+import MinimalVideoPlayer from '../MinimalVideoPlayer'
+import useAsyncEffect from 'use-async-effect'
+import {useUser} from 'src/layouts/UserContext'
 
 const QUERY = gql`
   query RegisterSubmittedPageQuery($ethereumAddress: ID!) {
@@ -43,6 +61,241 @@ const QUERY = gql`
     }
   }
 `
+
+const SubmittedPage = () => {
+  const ethereumAddress = requireWalletConnected()
+
+  const {data, loading, refetch} = useQuery<
+    RegisterSubmittedPageQuery,
+    RegisterSubmittedPageQueryVariables
+  >(QUERY, {
+    variables: {ethereumAddress},
+  })
+
+  useGuard(loading || data?.registrationAttempt, routes.registerIntro(), {
+    toast: {
+      title:
+        "Couldn't find your submitted registration. Are you connected to the correct wallet?",
+      status: 'warning',
+    },
+  })
+
+  watchRegAttempt(data?.registrationAttempt, refetch)
+
+  if (data?.registrationAttempt == null) return null
+
+  // These cases are chronologically reversed
+  if (data.registrationAttempt.approved) {
+    return <CitizenshipActive />
+  } else if (data.registrationAttempt.approved === false) {
+    return (
+      <RegistrationFeedback registrationAttempt={data.registrationAttempt} />
+    )
+  } else if (data.registrationAttempt.notaryViewedAt) {
+    return (
+      <AwaitingNotary
+        triggeredAt={data.registrationAttempt.notaryViewedAt}
+        hasEmail={!!data.user?.hasEmail}
+        timeout={80 * 1000} // 80 seconds
+        title="Checking your application"
+        message={
+          <>
+            <Text>
+              A volunteer community notary is looking at your application!
+            </Text>
+            <Text>Expected wait: 2 minutes</Text>
+          </>
+        }
+      />
+    )
+  } else {
+    return (
+      <AwaitingNotary
+        triggeredAt={data.registrationAttempt.createdAt!}
+        hasEmail={!!data.user?.hasEmail}
+        timeout={3 * 60 * 1000} // 3 minutes
+        title="Submitting"
+        message={
+          <>
+            <Text>
+              Please stay on in case there are any problems with your
+              application.
+            </Text>
+            <Text>We'll update you in a minute!</Text>
+          </>
+        }
+      />
+    )
+  }
+}
+
+const wait = async (duration: number) => {
+  return new Promise((resolve) => {
+    setTimeout(resolve, duration)
+  })
+}
+
+const AwaitingNotary = ({
+  triggeredAt,
+  hasEmail,
+  timeout,
+  title,
+  message,
+}: {
+  triggeredAt: string
+  hasEmail: boolean
+  timeout: number
+  title: string
+  message: React.REactNode
+}) => {
+  const triggeredMts = new Date(triggeredAt).getTime()
+  const [mountMts] = useState(Date.now())
+  const [shouldShowTimeoutModal, setShouldShowTimeoutModal] = useState(true)
+  const [didAcknowledgeTimeoutModal, setDidAcknowledgeTimeoutModal] =
+    useState(false)
+
+  const millisecondsUntilTimeoutAtMount = timeout - (mountMts - triggeredMts)
+
+  useAsyncEffect(async (isActive) => {
+    await wait(millisecondsUntilTimeoutAtMount)
+    if (!isActive()) return
+    setShouldShowTimeoutModal(true)
+  }, [])
+
+  if (millisecondsUntilTimeoutAtMount <= 0 || didAcknowledgeTimeoutModal)
+    return <RegistrationPending hasEmail={hasEmail} />
+
+  const TimeoutModal = hasEmail
+    ? TimeoutModalAlreadyHaveEmail
+    : TimeoutModalAskForEmail
+  return (
+    <>
+      <RegisterScreen
+        title={title}
+        primaryButtonLabel="Submit application"
+        primaryButtonProps={{disabled: true}}
+      >
+        <Spinner />
+        <TextContainer>{message}</TextContainer>
+      </RegisterScreen>
+      <TimeoutModal
+        isOpen={shouldShowTimeoutModal}
+        onClose={() => {
+          setDidAcknowledgeTimeoutModal(true)
+        }}
+      />
+    </>
+  )
+}
+
+const TimeoutModalAlreadyHaveEmail = ({isOpen, onClose}) => {
+  return (
+    <Modal isOpen={isOpen} onClose={onClose} isCentered>
+      <ModalOverlay />
+      <ModalContent maxW={350} p={4}>
+        <ModalHeader>Doh, this is taking longer than expected 🙁</ModalHeader>
+        <ModalBody>
+          <Text>
+            We might be overloaded with new citizens. We'll email you when
+            there's an update!
+          </Text>
+        </ModalBody>
+        <ModalFooter>
+          <VStack flex="1" spacing={4}>
+            <Button variant="register-primary" size="md" onClick={onClose}>
+              Ok
+            </Button>
+          </VStack>
+        </ModalFooter>
+      </ModalContent>
+    </Modal>
+  )
+}
+
+// XXX: has code duplication with EmailPage.tsx
+const TimeoutModalAskForEmail = ({
+  isOpen,
+  onClose,
+}: {
+  isOpen: boolean
+  onClose: () => {}
+}) => {
+  const [email, setEmail] = useState<string>('')
+  const user = useUser()
+  const isEmailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+
+  const [createUser] = useMutation<
+    CreateUserMutation,
+    CreateUserMutationVariables
+  >(gql`
+    mutation CreateUserMutation($input: CreateUserInput!) {
+      createUser(input: $input) {
+        id
+        hasEmail
+      }
+    }
+  `)
+
+  const saveEmail = async () => {
+    if (!user.ethereumAddress) return
+    createUser({
+      variables: {
+        input: {
+          ethereumAddress: user.ethereumAddress,
+          email,
+        },
+      },
+    })
+    await user.refetch?.()
+  }
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    await saveEmail()
+    onClose()
+  }
+
+  return (
+    <Modal isOpen={isOpen} onClose={onClose} isCentered>
+      <ModalOverlay />
+      <ModalContent maxW={350} p={4}>
+        <form onSubmit={submit}>
+          <ModalHeader>Doh, this is taking longer than expected 🙁</ModalHeader>
+          <ModalBody>
+            <Text>
+              We might be overloaded with new citizens. If you want, we can
+              email you updates about your registration:
+            </Text>
+            <Input
+              mt={4}
+              type="email"
+              name="email"
+              size="sm"
+              placeholder="Email address"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+          </ModalBody>
+          <ModalFooter>
+            <VStack flex="1" spacing={4}>
+              <Button
+                variant="register-primary"
+                size="md"
+                disabled={!isEmailValid}
+                onClick={submit}
+              >
+                Get notified by email
+              </Button>
+              <Button variant="register-secondary" size="sm" onClick={onClose}>
+                I'll just check back later
+              </Button>
+            </VStack>
+          </ModalFooter>
+        </form>
+      </ModalContent>
+    </Modal>
+  )
+}
 
 const CitizenshipActive = () => {
   useEffect(() => {
@@ -73,118 +326,76 @@ const CitizenshipActive = () => {
     // Stop after 5 seconds
     setTimeout(() => fireworks.stop(), 5000)
   }, [])
-  return (
-    <>
-      <Title title="Congratulations!" />
-      <Alert
-        status="success"
-        variant="solid"
-        alignSelf="center"
-        mt={6}
-        borderRadius={6}
-        width="initial"
-      >
-        <AlertIcon />
-        <Text fontSize="lg">You're now a citizen</Text>
-      </Alert>
-    </>
-  )
-}
 
-const TakingTooLong: React.FC<{query: RegisterSubmittedPageQuery}> = ({
-  query,
-}) => {
   return (
-    <>
-      <Heading size="md">This is taking longer than expected 🙁</Heading>
-      <Text>Sorry about that, we might be overloaded with new citizens.</Text>
-      {query.user?.hasEmail ? (
-        <>
-          <Text>
-            <strong>You can close the page now.</strong> We'll email you when we
-            get to your application!
-          </Text>
-          <Spacer />
-        </>
-      ) : (
-        <>
-          <Text>
-            Check back later, or get email notifications about your application.
-          </Text>
-          <Text>It's fine to close this window.</Text>
-          <Spacer />
-          <Button
-            variant="register-primary"
-            onClick={() => navigate(routes.registerEmail({next: 'submitted'}))}
-          >
-            Get notified by email
-          </Button>
-        </>
-      )}
-      <Text size="sm" color="gray.500">
-        Taking too long? Learn about{' '}
-        <InternalLink
-          href={routes.registerSelfSubmit()}
-          color="inherit"
-          textDecoration="underline"
+    <RegisterScreen title="Congratulations!">
+      <Center>
+        <Alert
+          status="success"
+          variant="subtle"
+          alignItems="center"
+          justifyContent="center"
+          textAlign="center"
+          height="130px"
+          m={8}
         >
-          manual profile submission
-        </InternalLink>
-        .
-      </Text>
-    </>
+          <AlertIcon boxSize="35px" />
+          <Text fontSize="lg">You're a web3 citizen!</Text>
+        </Alert>
+      </Center>
+    </RegisterScreen>
   )
 }
 
-const AwaitingReview: React.FC<{query: RegisterSubmittedPageQuery}> = ({
-  query,
-}) => {
-  if (!query.registrationAttempt) return null
-
-  const spinner = (
-    <CircularProgress
-      size="6rem"
-      isIndeterminate
-      color="purple.500"
-      alignSelf="center"
-      py={12}
-    />
-  )
-
-  if (query.registrationAttempt.notaryViewedAt) {
-    const notaryViewedAt = dayjs(query.registrationAttempt.notaryViewedAt)
-    if (dayjs().subtract(3, 'minutes').isAfter(notaryViewedAt))
-      return <TakingTooLong query={query} />
-
-    return (
-      <>
-        <Title title="Checking your application" />
-        {spinner}
-        <Text>
-          A volunteer community notary is looking at your application!
-        </Text>
-        <Text>Expected wait: 2 minutes</Text>
-      </>
-    )
-  }
-
-  const createdAt = dayjs(query.registrationAttempt.createdAt)
-  if (dayjs().subtract(3, 'minutes').isAfter(createdAt))
-    return <TakingTooLong query={query} />
-
+const RegistrationPending = ({hasEmail}: {hasEmail: boolean}) => {
   return (
     <>
-      <Title title="Checking" />
-      {spinner}
-      <Text>
-        Please stay on in case there are any problems with your application.
-      </Text>
-      <Text>We'll update you within 60 seconds.</Text>
+      <RegisterScreen title="Application pending">
+        <TextContainer maxW={250} pt={8}>
+          {hasEmail ? (
+            <>
+              <Text>We'll email you when we get to your application!</Text>
+              <Text>(You can close this page now)</Text>
+            </>
+          ) : (
+            <>
+              <Text>
+                Check back later, or get email notifications about your
+                application.
+              </Text>
+              <Text>It's fine to close this window.</Text>
+            </>
+          )}
+        </TextContainer>
+      </RegisterScreen>
+      <TextContainer maxW={250}>
+        <Text size="sm" color="gray.400" pb={16}>
+          Taking too long? Learn about{' '}
+          <InternalLink
+            href={routes.registerSelfSubmit()}
+            color="inherit"
+            textDecoration="underline"
+          >
+            manual profile submission
+          </InternalLink>
+          .
+        </Text>
+      </TextContainer>
     </>
   )
 }
 
-const ShowDeniedReason: React.FC<{
+const Spinner = () => (
+  <CircularProgress
+    size="6rem"
+    isIndeterminate
+    color="purple.500"
+    alignSelf="center"
+    py={4}
+  />
+)
+
+const RegistrationFeedback: React.FC<{
   registrationAttempt: NonNullable<
     RegisterSubmittedPageQuery['registrationAttempt']
   >
@@ -197,76 +408,29 @@ const ShowDeniedReason: React.FC<{
   }, [])
 
   return (
-    <>
-      <Title title="Feedback from notary" />
-      <Text>"{registrationAttempt.deniedReason}"</Text>
-      <Stack direction="row">
+    <RegisterScreen
+      title="Feedback from notary"
+      primaryButtonLabel="Make adjustments"
+      primaryButtonProps={{onClick: startOver}}
+      secondaryButtonLabel="I insist that my application is fine"
+      secondaryButtonProps={{as: RLink, href: routes.registerSelfSubmit()}}
+    >
+      <TextContainer p="4">
+        <Text>"{registrationAttempt.deniedReason}"</Text>
+      </TextContainer>
+      <Stack direction="row" px="8" pt="4">
         <UserMediaBox flex="1">
           <Image src={maybeCidToUrl(registrationAttempt.photoCid)} />
         </UserMediaBox>
         <UserMediaBox flex="1">
-          <ReactPlayer
+          <MinimalVideoPlayer
             url={maybeCidToUrl(registrationAttempt.videoCid)}
-            controls
             width="100%"
             height="100%"
           />
         </UserMediaBox>
       </Stack>
-
-      <Spacer />
-      <Button variant="register-primary" onClick={startOver}>
-        Make adjustments
-      </Button>
-      <Button
-        as={RLink}
-        variant="register-secondary"
-        href={routes.registerSelfSubmit()}
-      >
-        I insist that my application is fine
-      </Button>
-    </>
-  )
-}
-
-const SubmittedPage = () => {
-  const ethereumAddress = requireWalletConnected()
-
-  const {data, loading, refetch} = useQuery<
-    RegisterSubmittedPageQuery,
-    RegisterSubmittedPageQueryVariables
-  >(QUERY, {
-    variables: {ethereumAddress},
-  })
-
-  useGuard(loading || data?.registrationAttempt, routes.registerIntro(), {
-    toast: {
-      title:
-        "Couldn't find your submitted registration. Are you connected to the correct wallet?",
-      status: 'warning',
-    },
-  })
-
-  watchRegAttempt(data?.registrationAttempt, refetch)
-
-  if (data?.registrationAttempt == null) return null
-
-  let body = null
-
-  if (data.registrationAttempt.approved) {
-    body = <CitizenshipActive />
-  } else if (data.registrationAttempt.approved === false) {
-    body = <ShowDeniedReason registrationAttempt={data.registrationAttempt} />
-  } else {
-    body = <AwaitingReview query={data} />
-  }
-
-  return (
-    <Stack spacing="6" flex="1">
-      <MetaTags title="Profile Submitted" />
-      <RegisterLogo />
-      {body}
-    </Stack>
+    </RegisterScreen>
   )
 }
 
