@@ -173,7 +173,7 @@ const ConfirmVideoStep = () => {
         </UserMediaBox>
       }
       title="Confirm video"
-      description={<Text>Can see and hear youreslf clearly?</Text>}
+      description={<Text>Can see and hear yourself clearly?</Text>}
       primaryButtonLabel="Use this video"
       primaryButtonProps={{
         onClick: maybeContinue,
