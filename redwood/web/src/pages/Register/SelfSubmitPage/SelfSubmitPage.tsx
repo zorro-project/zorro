@@ -4,7 +4,6 @@ import {back} from '@redwoodjs/router'
 import React from 'react'
 import {ZorroAddress} from 'src/lib/api'
 import RegisterScreen, {TextContainer} from '../RegisterScreen'
-import Title from '../Title'
 
 const SelfSubmitPage = () => {
   return (

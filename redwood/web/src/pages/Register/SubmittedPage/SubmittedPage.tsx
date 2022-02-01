@@ -1,5 +1,5 @@
 import {Button} from '@chakra-ui/button'
-import {Box, Center, Heading, Spacer, Stack, VStack} from '@chakra-ui/layout'
+import {Center, Stack, VStack} from '@chakra-ui/layout'
 import {
   Alert,
   AlertIcon,
@@ -13,8 +13,6 @@ import {
   Text,
   Modal,
   Input,
-  AlertTitle,
-  AlertDescription,
 } from '@chakra-ui/react'
 import {navigate, routes} from '@redwoodjs/router'
 import {useMutation, useQuery} from '@redwoodjs/web'
@@ -33,7 +31,6 @@ import {
   RegisterSubmittedPageQueryVariables,
 } from 'types/graphql'
 import {requireWalletConnected} from '../../../lib/guards'
-import Title from '../Title'
 import UserMediaBox from '../UserMediaBox'
 import RegisterScreen, {TextContainer} from '../RegisterScreen'
 import MinimalVideoPlayer from '../MinimalVideoPlayer'
@@ -146,7 +143,7 @@ const AwaitingNotary = ({
   hasEmail: boolean
   timeout: number
   title: string
-  message: React.REactNode
+  message: React.ReactNode
 }) => {
   const triggeredMts = new Date(triggeredAt).getTime()
   const [mountMts] = useState(Date.now())
@@ -188,7 +185,13 @@ const AwaitingNotary = ({
   )
 }
 
-const TimeoutModalAlreadyHaveEmail = ({isOpen, onClose}) => {
+const TimeoutModalAlreadyHaveEmail = ({
+  isOpen,
+  onClose,
+}: {
+  isOpen: boolean
+  onClose: () => void
+}) => {
   return (
     <Modal isOpen={isOpen} onClose={onClose} isCentered>
       <ModalOverlay />
@@ -218,7 +221,7 @@ const TimeoutModalAskForEmail = ({
   onClose,
 }: {
   isOpen: boolean
-  onClose: () => {}
+  onClose: () => void
 }) => {
   const [email, setEmail] = useState<string>('')
   const user = useUser()

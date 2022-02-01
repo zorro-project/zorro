@@ -14,6 +14,8 @@
     "applyDevMigrations": "yarn redwood prisma migrate dev",
     "syncStarknetState": "yarn redwood exec syncStarknetState",
     "runChecks": "./run_checks.sh",
+    "tsc": "yarn rw tsc",
+    "lint": "yarn rw lint",
     "genTypes": " yarn rw g types",
     "storybook": "yarn rw storybook",
     "clearSpuriousCache": "rm -rf api/node_modules/.prisma web/node_modules/.prisma"
