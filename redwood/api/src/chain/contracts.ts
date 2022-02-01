@@ -3,10 +3,11 @@ import ERC20_ABI from '../../../../chain/artifacts/contracts/starknet/openzeppel
 import ZORRO_ABI from '../../../../chain/artifacts/contracts/starknet/zorro.cairo/zorro_abi.json'
 
 const CHAIN_DEPLOYMENT = process.env.CHAIN_DEPLOYMENT
+type ContractName = 'erc20' | 'zorro' | 'notary'
 
 const maybeRequireContract = (
   chainDeployment: typeof process.env.CHAIN_DEPLOYMENT,
-  name: 'erc20' | 'zorro' | 'notary'
+  name: ContractName
 ) => {
   try {
     return require(`../../../../chain/deployments/${chainDeployment}/${name}.json`)
@@ -25,6 +26,11 @@ const chainDeployments = {
     erc20: maybeRequireContract('production', 'erc20'),
     notary: maybeRequireContract('production', 'notary'),
     zorro: maybeRequireContract('production', 'zorro'),
+  },
+  staging: {
+    erc20: maybeRequireContract('staging', 'erc20'),
+    notary: maybeRequireContract('staging', 'notary'),
+    zorro: maybeRequireContract('staging', 'zorro'),
   },
   test: {
     erc20: maybeRequireContract('test', 'erc20'),

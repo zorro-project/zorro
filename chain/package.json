@@ -11,6 +11,7 @@
     "test": "yarn test:build-cache && yarn test:use-cache",
     "compile": "hardhat starknet-compile && hardhat compile",
     "deploy": "env CHAIN_DEPLOYMENT=development DEV_MODE=1 hardhat run ./scripts/deploy.ts --network goerli --no-compile",
+    "deploy:staging": "env CHAIN_DEPLOYMENT=staging hardhat run ./scripts/deploy.ts --network goerli --no-compile",
     "deploy:production": "env CHAIN_DEPLOYMENT=production hardhat run ./scripts/deploy.ts --network goerli --no-compile",
     "generate-insecure-keypair": "ts-node scripts/generate-insecure-keypair.ts"
   },
@@ -53,5 +54,8 @@
   },
   "dependencies": {
     "@kleros/dispute-resolver-interface-contract": "^8.0.0"
+  },
+  "engines": {
+    "node": "16.x"
   }
 }

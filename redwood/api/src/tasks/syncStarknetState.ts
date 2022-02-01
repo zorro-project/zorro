@@ -20,6 +20,7 @@ import {
   parseChallengeStatus,
 } from 'src/services/cachedProfiles/helpers'
 import {maybeNotify} from 'src/services/notifications/notifications'
+import {alertUpdated} from 'src/services/registrationAttempts/registrationAttempts'
 
 const syncStarknetState = async ({onlyNewProfiles = false} = {}) => {
   console.log('Starting StarkNet sync')
@@ -114,13 +115,16 @@ export const importProfile = async (profileId: number) => {
       ...profileFields,
     },
   })
-  persistedProfile.ethereumAddress &&
-    (await db.registrationAttempt.updateMany({
+  if (persistedProfile.ethereumAddress) {
+    const {count} = await db.registrationAttempt.updateMany({
       where: {ethereumAddress: persistedProfile.ethereumAddress},
       data: {
         profileId: persistedProfile.id,
       },
-    }))
+    })
+    if (count > 0)
+      alertUpdated({ethereumAddress: persistedProfile.ethereumAddress})
+  }
 
   const now = parseTimestamp(exported.now) ?? new Date()
   const status = parseChallengeStatus(parseNumber(exported.current_status))

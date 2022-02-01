@@ -25,7 +25,7 @@ import {Helmet, HelmetProvider} from 'react-helmet-async'
 
 const SplashPage = () => {
   return (
-    <Box>
+    <Box bgColor="white">
       <Nav />
       <Box as="section" py="7.5rem">
         <Hero />

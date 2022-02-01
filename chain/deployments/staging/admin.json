@@ -1,0 +1,1 @@
+{"network":"goerli","address":"0x0695f1eec7af3203379cc1f48ba60d011607d6da1dbd4264b8ea945538f6c0e7","constructorArgs":{},"verificationCommand":"yarn hardhat starknet-verify --starknet-network goerli --path contracts/starknet/simple_account.cairo --address 0x0695f1eec7af3203379cc1f48ba60d011607d6da1dbd4264b8ea945538f6c0e7"}

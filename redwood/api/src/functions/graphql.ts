@@ -10,7 +10,7 @@ import {db} from 'src/lib/db'
 import {logger} from 'src/lib/logger'
 
 // Just make need to make sure this file gets loaded somewhere
-import type {} from 'types/environment'
+import type {} from 'types/globals'
 
 // Just need to make sure this file is imported at least once to start the background worker
 import 'src/lib/backgroundJobs'
