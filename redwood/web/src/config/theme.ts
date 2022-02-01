@@ -41,7 +41,6 @@ const theme = extendTheme({
             ...props,
             colorScheme: 'purple',
           }),
-          ...baseTheme.components.Button.sizes['lg'],
         }),
         'register-secondary': (props: StyleFunctionProps) => ({
           alignSelf: 'center',
@@ -49,8 +48,10 @@ const theme = extendTheme({
             ...props,
             colorScheme: 'purple',
           }),
-          ...baseTheme.components.Button.sizes['lg'],
         }),
+      },
+      defaultProps: {
+        size: 'lg',
       },
     },
   },
