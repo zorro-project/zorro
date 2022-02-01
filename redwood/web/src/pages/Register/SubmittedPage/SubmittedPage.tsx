@@ -91,9 +91,10 @@ const SubmittedPage = () => {
   } else if (data.registrationAttempt.notaryViewedAt) {
     return (
       <AwaitingNotary
+        key="checking-application"
         triggeredAt={data.registrationAttempt.notaryViewedAt}
         hasEmail={!!data.user?.hasEmail}
-        timeout={80 * 1000} // 80 seconds
+        timeout={3 * 60 * 1000} // 3 minutes
         title="Checking your application"
         message={
           <>
@@ -108,9 +109,10 @@ const SubmittedPage = () => {
   } else {
     return (
       <AwaitingNotary
+        key="submitting"
         triggeredAt={data.registrationAttempt.createdAt!}
         hasEmail={!!data.user?.hasEmail}
-        timeout={3 * 60 * 1000} // 3 minutes
+        timeout={80 * 1000} // 80 seconds
         title="Submitting"
         message={
           <>
@@ -147,7 +149,7 @@ const AwaitingNotary = ({
 }) => {
   const triggeredMts = new Date(triggeredAt).getTime()
   const [mountMts] = useState(Date.now())
-  const [shouldShowTimeoutModal, setShouldShowTimeoutModal] = useState(true)
+  const [shouldShowTimeoutModal, setShouldShowTimeoutModal] = useState(false)
   const [didAcknowledgeTimeoutModal, setDidAcknowledgeTimeoutModal] =
     useState(false)
 

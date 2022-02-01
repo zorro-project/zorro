@@ -18,6 +18,7 @@
     "lint": "yarn rw lint",
     "genTypes": " yarn rw g types",
     "storybook": "yarn rw storybook",
+    "database-gui": "yarn rw prisma studio",
     "clearSpuriousCache": "rm -rf api/node_modules/.prisma web/node_modules/.prisma"
   },
   "devDependencies": {
