@@ -8,10 +8,14 @@ import {useGuard} from 'src/lib/useGuard'
 import {maybeCidToUrl} from 'src/lib/util'
 import {registerSlice} from 'src/state/registerSlice'
 import {useAppDispatch, useAppSelector} from 'src/state/store'
-import {requireCameraAllowed, requireWalletConnected} from '../../../lib/guards'
 import UserMediaBox from '../UserMediaBox'
 import MinimalVideoPlayer from '../MinimalVideoPlayer'
 import RegisterScreen from '../RegisterScreen'
+import {
+  requireCameraAllowed,
+  requireNoExistingProfile,
+  requireWalletConnected,
+} from 'src/lib/guards'
 
 export const videoConstraints: MediaTrackConstraints = {
   facingMode: 'user',
@@ -22,6 +26,7 @@ export const videoConstraints: MediaTrackConstraints = {
 const VideoPage = ({mockRecording = false}: {mockRecording?: boolean}) => {
   requireWalletConnected()
   requireCameraAllowed()
+  requireNoExistingProfile()
 
   const {photo, video} = useAppSelector((state) => state.register)
   useGuard(photo, routes.registerPhoto())
