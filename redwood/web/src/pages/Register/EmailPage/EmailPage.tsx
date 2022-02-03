@@ -1,9 +1,10 @@
 import {Box, Input, Text} from '@chakra-ui/react'
-import {routes, RouteFocus} from '@redwoodjs/router'
+import {RouteFocus, routes} from '@redwoodjs/router'
 import {useMutation} from '@redwoodjs/web'
-import {useEffect, useState} from 'react'
+import {useState} from 'react'
 import {RLink} from 'src/components/links'
 import {useUser} from 'src/layouts/UserContext'
+import {useGuard} from 'src/lib/useGuard'
 import {appNav} from 'src/lib/util'
 import {CreateUserMutation, CreateUserMutationVariables} from 'types/graphql'
 import {requireWalletConnected} from '../../../lib/guards'
@@ -16,12 +17,7 @@ const EmailPage: React.FC<{next?: 'submitted' | undefined}> = ({next}) => {
   const nextPage =
     next === 'submitted' ? routes.registerSubmitted() : routes.registerSubmit()
 
-  useEffect(() => {
-    if (user.user?.hasEmail) {
-      // We don't support changing emails yet
-      appNav(nextPage, {replace: true})
-    }
-  }, [user.user?.hasEmail])
+  useGuard(user.loading || !user.user?.hasEmail, nextPage)
 
   // XXX: has duplicated code with SubmittedPage.tsx
   const [email, setEmail] = useState<string>('')
@@ -53,6 +49,8 @@ const EmailPage: React.FC<{next?: 'submitted' | undefined}> = ({next}) => {
     await user.refetch?.()
     appNav(nextPage)
   }
+
+  if (user.loading) return null
 
   return (
     <form onSubmit={handleSubmit} style={{display: 'flex', flex: '1'}}>
