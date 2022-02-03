@@ -1,16 +1,14 @@
-import {AspectRatio, Box, BoxProps, Center} from '@chakra-ui/react'
+import {AspectRatio, Box, Center} from '@chakra-ui/react'
 import BeatLoader from 'react-spinners/BeatLoader'
 
-const UserMediaBox: React.FC<
-  BoxProps & {shouldShowLoadingIndicator?: boolean}
-> = ({shouldShowLoadingIndicator, ...props}) => {
+const UserMediaBox: React.FC<{shouldShowLoadingIndicator?: boolean}> = ({
+  shouldShowLoadingIndicator,
+  children,
+}) => {
   return (
     <AspectRatio
       ratio={16 / 9}
       width="100%"
-      display="flex"
-      justifyContent="center"
-      alignItems="center"
       position="relative"
       backgroundColor="gray.700"
     >
@@ -20,7 +18,16 @@ const UserMediaBox: React.FC<
             <BeatLoader size={20} color="white" />
           </Center>
         )}
-        <Box {...props} />
+        <Center
+          position="absolute"
+          left="0"
+          right="0"
+          top="0"
+          bottom="0"
+          sx={{'img, video': {maxH: '100%'}}}
+        >
+          {children}
+        </Center>
       </Box>
     </AspectRatio>
   )

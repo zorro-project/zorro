@@ -167,7 +167,7 @@ const ConfirmVideoStep = () => {
   return (
     <RegisterScreen
       hero={
-        <UserMediaBox position="relative">
+        <UserMediaBox>
           <MinimalVideoPlayer
             url={maybeCidToUrl(video!)}
             width="100%"

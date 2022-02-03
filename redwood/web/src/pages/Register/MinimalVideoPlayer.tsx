@@ -8,13 +8,13 @@ const MinimalVideoPlayer = (props: ReactPlayer['props']) => {
   const startPlaying = () => setIsPlaying(true)
   const stopPlaying = () => setIsPlaying(false)
   return (
-    <Box position="relative">
+    <Box position="relative" h="100%" w="100%">
       <ReactPlayer {...props} playing={isPlaying} onEnded={stopPlaying} />
 
       {!isPlaying && (
         <Center
           onClick={startPlaying}
-          style={{
+          sx={{
             position: 'absolute',
             backgroundColor: 'rgba(0,0,0,0.2)',
             left: 0,
@@ -22,6 +22,7 @@ const MinimalVideoPlayer = (props: ReactPlayer['props']) => {
             bottom: 0,
             right: 0,
             cursor: 'pointer',
+            _hover: {backgroundColor: 'rgba(0,0,0,0.3)'},
           }}
         >
           <Icon as={FaPlay} w={20} h={20} color="white" opacity={0.65} />
