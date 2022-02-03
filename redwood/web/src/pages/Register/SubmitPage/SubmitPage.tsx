@@ -126,11 +126,7 @@ const SubmitPage = ({initialSubmitProgress = -1}) => {
             <Image src={maybeCidToUrl(registerState.photo)} />
           </UserMediaBox>
           <UserMediaBox>
-            <MinimalVideoPlayer
-              url={maybeCidToUrl(registerState.video)}
-              width="100%"
-              height="100%"
-            />
+            <MinimalVideoPlayer url={maybeCidToUrl(registerState.video)} />
           </UserMediaBox>
         </Stack>
       )}

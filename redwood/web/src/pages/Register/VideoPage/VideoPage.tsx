@@ -170,8 +170,6 @@ const ConfirmVideoStep = () => {
         <UserMediaBox>
           <MinimalVideoPlayer
             url={maybeCidToUrl(video!)}
-            width="100%"
-            height="100%"
             onReady={() => setTimeout(() => setIsLoaded(true), 500)}
             onPlay={() => setHasPlayed(true)}
           />
