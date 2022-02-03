@@ -6,12 +6,13 @@ import {RLink} from 'src/components/links'
 import {useUser} from 'src/layouts/UserContext'
 import {useGuard} from 'src/lib/useGuard'
 import {appNav} from 'src/lib/util'
+import {requireNoExistingProfile, requireWalletConnected} from 'src/lib/guards'
 import {CreateUserMutation, CreateUserMutationVariables} from 'types/graphql'
-import {requireWalletConnected} from '../../../lib/guards'
 import RegisterScreen, {TextContainer} from '../RegisterScreen'
 
 const EmailPage: React.FC<{next?: 'submitted' | undefined}> = ({next}) => {
   requireWalletConnected()
+  requireNoExistingProfile()
   const user = useUser()
 
   const nextPage =

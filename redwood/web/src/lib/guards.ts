@@ -14,13 +14,21 @@ export const requireWalletConnected = () => {
 }
 
 export const requireNoExistingProfile = () => {
-  const {cachedProfile} = useUser()
+  const {cachedProfile, registrationAttempt, ethereumAddress} = useUser()
   useGuard(!cachedProfile, () => routes.profile({id: cachedProfile!.id}), {
     toast: {
-      title:
-        'Your ethereum address already has a profile, so you cannot register again',
+      title: 'You have a live profile, so you cannot register again',
     },
   })
+  useGuard(
+    !registrationAttempt?.approved,
+    routes.pendingProfile({id: ethereumAddress}),
+    {
+      toast: {
+        title: 'Your profile has been submitted on-chain and will go live soon',
+      },
+    }
+  )
 }
 
 export const requireCameraAllowed = async () => {

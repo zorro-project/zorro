@@ -11,14 +11,19 @@ import {dataUrlToBlob, isLocalUrl, maybeCidToUrl} from 'src/lib/util'
 import {registerSlice} from 'src/state/registerSlice'
 import {useAppDispatch, useAppSelector} from 'src/state/store'
 import {AttemptRegistration, AttemptRegistrationVariables} from 'types/graphql'
-import {requireWalletConnected} from '../../../lib/guards'
+import {
+  requireNoExistingProfile,
+  requireWalletConnected,
+} from '../../../lib/guards'
 import UserMediaBox from '../UserMediaBox'
 import MinimalVideoPlayer from '../MinimalVideoPlayer'
 import RegisterScreen from '../RegisterScreen'
 
 const SubmitPage = ({initialSubmitProgress = -1}) => {
-  const {registrationAttempt, refetch: refetchUser} = useUser()
+  requireNoExistingProfile()
   const ethereumAddress = requireWalletConnected()
+
+  const {registrationAttempt, refetch: refetchUser} = useUser()
 
   const [submitProgress, setSubmitProgress] = React.useState(
     initialSubmitProgress

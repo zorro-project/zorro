@@ -7,7 +7,11 @@ import {RLink} from 'src/components/links'
 import {maybeCidToUrl} from 'src/lib/util'
 import {registerSlice} from 'src/state/registerSlice'
 import {useAppDispatch, useAppSelector} from 'src/state/store'
-import {requireCameraAllowed, requireWalletConnected} from '../../../lib/guards'
+import {
+  requireCameraAllowed,
+  requireWalletConnected,
+  requireNoExistingProfile,
+} from '../../../lib/guards'
 import UserMediaBox from '../UserMediaBox'
 import {videoConstraints} from '../VideoPage/VideoPage'
 import RegisterScreen from '../RegisterScreen'
@@ -15,6 +19,7 @@ import RegisterScreen from '../RegisterScreen'
 const PhotoPage = () => {
   requireWalletConnected()
   requireCameraAllowed()
+  requireNoExistingProfile()
 
   const {photo} = useAppSelector((state) => state.register)
   return !photo ? <TakePhotoStep /> : <ConfirmPhotoStep />
