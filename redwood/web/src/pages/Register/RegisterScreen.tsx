@@ -1,4 +1,5 @@
-import {Spacer, Stack, VStack, Flex, FlexProps, Button} from '@chakra-ui/react'
+import {Button, Flex, FlexProps, Spacer, Stack, VStack} from '@chakra-ui/react'
+import {ComponentProps} from 'react'
 import RegisterLogo from './RegisterLogo'
 import Title from './Title'
 
@@ -13,18 +14,21 @@ export const TextContainer = ({
   </Flex>
 )
 
-type RegisterScreenProps = {
+type RegisterScreenProps<
+  PrimaryButtonT extends React.ElementType = typeof Button,
+  SecondaryButtonT extends React.ElementType = typeof Button
+> = {
   hero?: React.ReactNode
   title?: string
   shouldHideTitle?: boolean
   description?: React.ReactNode
   children?: React.ReactNode
   buttonDescription?: React.ReactNode
-  PrimaryButtonComponent?: any
+  PrimaryButtonComponent?: PrimaryButtonT
   primaryButtonLabel?: string
-  primaryButtonProps?: any
+  primaryButtonProps?: ComponentProps<PrimaryButtonT>
   secondaryButtonLabel?: string
-  secondaryButtonProps?: any
+  secondaryButtonProps?: ComponentProps<SecondaryButtonT>
 }
 
 const RegisterScreen = ({
