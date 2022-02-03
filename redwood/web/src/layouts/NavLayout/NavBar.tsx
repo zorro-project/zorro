@@ -101,6 +101,12 @@ const NavBar = () => {
         href: routes.profile({id: user.cachedProfile.id}),
         icon: BsPersonBadge,
       })
+    } else if (user.registrationAttempt?.approved) {
+      navItems.push({
+        label: 'My Profile',
+        href: routes.pendingProfile({id: user.ethereumAddress}),
+        icon: BsPersonBadge,
+      })
     } else if (user.registrationAttempt) {
       navItems.push({
         label: 'Complete Registration',
