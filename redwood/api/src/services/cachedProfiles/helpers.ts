@@ -33,13 +33,12 @@ export const currentStatus = (
     const timePassed =
       now.getTime() - (profile.challengeTimestamp?.getTime() ?? 0)
     const hasAppealOpportunityExpired =
-      ContractCache.adjudicationTimeWindow + ContractCache.appealTimeWindow <
-      timePassed
+      ContractCache.adjudicationPeriod + ContractCache.appealPeriod < timePassed
     if (hasAppealOpportunityExpired)
       return StatusEnum.APPEAL_OPPORTUNITY_EXPIRED
 
     const hasAdjudicationOpportunityExpired =
-      ContractCache.adjudicationTimeWindow < timePassed
+      ContractCache.adjudicationPeriod < timePassed
     if (hasAdjudicationOpportunityExpired)
       return StatusEnum.ADJUDICATION_ROUND_COMPLETED
 
@@ -50,8 +49,7 @@ export const currentStatus = (
     const timePassed =
       now.getTime() - (profile.adjudicationTimestamp?.getTime() ?? 0)
 
-    const hasAppealOpportunityExpired =
-      ContractCache.appealTimeWindow < timePassed
+    const hasAppealOpportunityExpired = ContractCache.appealPeriod < timePassed
     if (hasAppealOpportunityExpired)
       return StatusEnum.APPEAL_OPPORTUNITY_EXPIRED
 
@@ -60,7 +58,7 @@ export const currentStatus = (
     const timePassed = now.getTime() - (profile.appealTimestamp?.getTime() ?? 0)
 
     const hasSuperAdjudicationOpportunityExpired =
-      ContractCache.superAdjudicationTimeWindow < timePassed
+      ContractCache.superAdjudicationPeriod < timePassed
     if (hasSuperAdjudicationOpportunityExpired)
       return StatusEnum.SUPER_ADJUDICATION_ROUND_COMPLETED
 
@@ -77,12 +75,12 @@ export const currentStatus = (
 }
 
 // Keep in sync with profile.cairo#get_is_in_provisional_period
-const isInProvisionalTimeWindow = (
+export const isInProvisionalPeriod = (
   profile: Pick<PrismaCachedProfile, 'submissionTimestamp'>,
   now = new Date()
 ): boolean => {
   const timePassed = now.getTime() - profile.submissionTimestamp.getTime()
-  return timePassed < ContractCache.provisionalTimeWindow
+  return timePassed < ContractCache.provisionalPeriod
 }
 
 // Keep in sync with profile.cairo#_get_is_verified
@@ -103,11 +101,11 @@ export const isVerified = (
 ): boolean => {
   const status = currentStatus(profile, now)
   if (status == StatusEnum.NOT_CHALLENGED) {
-    const isProvisional = isInProvisionalTimeWindow(profile, now)
+    const isProvisional = isInProvisionalPeriod(profile, now)
     return profile.notarized || !isProvisional
   } else if (status == StatusEnum.CHALLENGED) {
     const isPresumedInnocent =
-      ContractCache.provisionalTimeWindow <
+      ContractCache.provisionalPeriod <
       (profile.challengeTimestamp?.getTime() ?? 0) -
         profile.submissionTimestamp.getTime()
 
