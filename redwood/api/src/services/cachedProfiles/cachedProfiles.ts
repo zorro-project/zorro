@@ -1,6 +1,6 @@
 import {CachedProfile as PrismaCachedProfile} from '@prisma/client'
+import importProfile from 'src/chain/importers/importProfile'
 import {db} from 'src/lib/db'
-import {importProfile} from 'src/tasks/syncStarknetState'
 import {
   QuerycachedProfileArgs,
   QuerycachedProfileByEthereumAddressArgs,

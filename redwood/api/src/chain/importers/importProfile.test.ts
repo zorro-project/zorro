@@ -1,27 +1,15 @@
-import {parseCid} from 'src/chain/serializers'
 import {exportProfileById} from 'src/chain/starknet'
 import {db} from 'src/lib/db'
 import {sendMessage} from 'src/lib/twilio'
 // TODO: jest includes this natively in 27.4, switch to that version when
 // Redwood upgrades https://github.com/facebook/jest/pull/12089
 import {mocked} from 'ts-jest/dist/utils/testing'
-import {importProfile, readCids} from './syncStarknetState'
+import importProfile from './importProfile'
+import parseProfileCid from './parseProfileCid'
 
 jest.mock('src/chain/starknet')
 jest.mock('src/lib/twilio')
-
-describe('readCids', () => {
-  test.skip('correctly parses a cid', async () => {
-    const cid = parseCid(
-      '0x0170121be2bfe156987787cd2a79fc49842d0a2143d728f46a28cfd6a31bda'
-    )
-
-    expect(await readCids(cid)).toEqual({
-      photoCid: 'bafybeif63s5tuz2awex7qkmeki4wby25j4ifraa5lziyn3ifx75rv77qc4',
-      videoCid: 'bafybeidadw2rw23ikkrhk7ehcxlaydyor27rslzbubony3qvvgmvt7bww4',
-    })
-  })
-})
+jest.mock('src/chain/importers/parseProfileCid')
 
 describe('importProfile', () => {
   test('sends new challenge notifications', async () => {
@@ -34,6 +22,11 @@ describe('importProfile', () => {
       },
     })
 
+    mocked(parseProfileCid).mockResolvedValueOnce({
+      photoCid: 'bafybeif63s5tuz2awex7qkmeki4wby25j4ifraa5lziyn3ifx75rv77qc4',
+      videoCid: 'bafybeidadw2rw23ikkrhk7ehcxlaydyor27rslzbubony3qvvgmvt7bww4',
+    })
+
     mocked(exportProfileById).mockResolvedValueOnce({
       profile: {
         cid: '0x170121b909f5bf9672d64c328fb6196c0042b5bac45a7ce829b3a161a186c',
@@ -42,7 +35,7 @@ describe('importProfile', () => {
         submission_timestamp: '0x929',
         is_notarized: '0x1',
         last_recorded_status: '0x1',
-        challenge_timestamp: '0x61F20CDA',
+        challenge_timestamp: '0x930',
         challenger_address:
           '0x7283241e75fe4bfa64af202c1243b56e7ab30c7ea41a6e2c6000c5874670dc4',
         challenge_evidence_cid:
@@ -56,10 +49,10 @@ describe('importProfile', () => {
         super_adjudication_timestamp: '0x0',
         did_super_adjudicator_overturn_adjudicator: '0x0',
       },
-      num_profiles: '0xa',
+      num_profiles: '0x1',
       is_verified: '0x0',
       current_status: '0x1',
-      now: '0x75bcd15',
+      now: '0x931',
     })
 
     await importProfile(1)
@@ -72,7 +65,7 @@ describe('importProfile', () => {
     expect(notification?.key).toEqual({
       type: 'NEW_CHALLENGE',
       profileId: 1,
-      challengeTimestamp: '2022-01-27T03:09:14.000Z',
+      challengeTimestamp: '1970-01-01T00:39:12.000Z',
     })
 
     registrationAttempt = (await db.registrationAttempt.findUnique({
@@ -82,6 +75,11 @@ describe('importProfile', () => {
   })
 
   test("doesn't send notifications for unchallenged profiles", async () => {
+    mocked(parseProfileCid).mockResolvedValueOnce({
+      photoCid: 'bafybeif63s5tuz2awex7qkmeki4wby25j4ifraa5lziyn3ifx75rv77qc4',
+      videoCid: 'bafybeidadw2rw23ikkrhk7ehcxlaydyor27rslzbubony3qvvgmvt7bww4',
+    })
+
     mocked(exportProfileById).mockResolvedValueOnce({
       profile: {
         cid: '0x170121b909f5bf9672d64c328fb6196c0042b5bac45a7ce829b3a161a186c',
