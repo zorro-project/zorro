@@ -424,10 +424,10 @@ const RegistrationFeedback: React.FC<{
         <Text>"{registrationAttempt.deniedReason}"</Text>
       </TextContainer>
       <Stack direction="row" px="8" pt="4">
-        <UserMediaBox flex="1">
+        <UserMediaBox>
           <Image src={maybeCidToUrl(registrationAttempt.photoCid)} />
         </UserMediaBox>
-        <UserMediaBox flex="1">
+        <UserMediaBox>
           <MinimalVideoPlayer
             url={maybeCidToUrl(registrationAttempt.videoCid)}
             width="100%"
