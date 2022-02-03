@@ -10,15 +10,16 @@ export const contractCache = () => ContractCache
 const ONE_DAY = 24 * 60 * 60 * 1000
 
 export const ContractCache = {
-  submissionDepositSize: (_time = new Date()) => 25,
-  challengeDepositSize: (_time = new Date()) => 25,
-  challengeRewardSize: (_time = new Date()) => 25,
+  // Keep in sync with zorro/chain/contracts/starknet/consts.cairo
+  submissionDepositSize: (_time = new Date()) => 40,
+  challengeDepositSize: (_time = new Date()) => 5,
+  challengeRewardSize: (_time = new Date()) => 40,
 
   // Note that all of these are 1000x the actual values listed in the contract
   // to make date math on the JS side easier, since JS dates are in
   // milliseconds.
-  provisionalTimeWindow: 9 * ONE_DAY,
-  adjudicationTimeWindow: 6 * ONE_DAY,
-  appealTimeWindow: 3 * ONE_DAY,
-  superAdjudicationTimeWindow: 30 * ONE_DAY,
+  provisionalPeriod: 9 * ONE_DAY,
+  adjudicationPeriod: 6 * ONE_DAY,
+  appealPeriod: 3 * ONE_DAY,
+  superAdjudicationPeriod: 30 * ONE_DAY,
 }
