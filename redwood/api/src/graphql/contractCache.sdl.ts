@@ -3,10 +3,10 @@ export const schema = gql`
     submissionDepositSize(time: Date): Int!
     challengeDepositSize(time: Date): Int!
     challengeRewardSize(time: Date): Int!
-    provisionalTimeWindow: Int!
-    adjudicationTimeWindow: Int!
-    appealTimeWindow: Int!
-    superAdjudicationTimeWindow: Int!
+    provisionalPeriod: Int!
+    adjudicationPeriod: Int!
+    appealPeriod: Int!
+    superAdjudicationPeriod: Int!
   }
 
   type Query {

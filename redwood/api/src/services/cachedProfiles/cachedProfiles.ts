@@ -6,8 +6,7 @@ import {
   QuerycachedProfileByEthereumAddressArgs,
   QuerycachedProfilesArgs,
 } from 'types/graphql'
-import {ContractCache} from '../contractCache/contractCache'
-import {currentStatus, isVerified} from './helpers'
+import {currentStatus, isInProvisionalPeriod, isVerified} from './helpers'
 
 export const cachedProfiles = async ({
   first,
@@ -57,22 +56,11 @@ export const cachedProfileByEthereumAddress = async ({
     where: {ethereumAddress},
   })
 
-// Keep in sync with profile.cairo#get_is_in_provisional_period
-const isInProvisionalTimeWindow = (
-  profile: Pick<PrismaCachedProfile, 'submissionTimestamp'>,
-  now = new Date()
-): boolean => {
-  const timePassed = now.getTime() - profile.submissionTimestamp.getTime()
-  return timePassed < ContractCache.provisionalTimeWindow
-}
-
 export const CachedProfile = {
   currentStatus: (_args: void, {root}: {root: PrismaCachedProfile}) =>
     currentStatus(root),
-  isInProvisionalTimeWindow: (
-    _args: void,
-    {root}: {root: PrismaCachedProfile}
-  ) => isInProvisionalTimeWindow(root),
+  isInProvisionalPeriod: (_args: void, {root}: {root: PrismaCachedProfile}) =>
+    isInProvisionalPeriod(root),
   isVerified: (_args: void, {root}: {root: PrismaCachedProfile}) =>
     isVerified(root),
 }
