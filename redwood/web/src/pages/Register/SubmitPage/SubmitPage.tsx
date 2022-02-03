@@ -1,6 +1,6 @@
 import {Text} from '@chakra-ui/layout'
 import {CircularProgress} from '@chakra-ui/progress'
-import {Image, Stack} from '@chakra-ui/react'
+import {Image, Stack, useToast} from '@chakra-ui/react'
 import {navigate, routes} from '@redwoodjs/router'
 import {useMutation} from '@redwoodjs/web'
 import React, {useCallback} from 'react'
@@ -11,10 +11,11 @@ import {dataUrlToBlob, isLocalUrl, maybeCidToUrl} from 'src/lib/util'
 import {registerSlice} from 'src/state/registerSlice'
 import {useAppDispatch, useAppSelector} from 'src/state/store'
 import {AttemptRegistration, AttemptRegistrationVariables} from 'types/graphql'
+import {useSigner} from 'wagmi'
 import {requireWalletConnected} from '../../../lib/guards'
-import UserMediaBox from '../UserMediaBox'
 import MinimalVideoPlayer from '../MinimalVideoPlayer'
 import RegisterScreen from '../RegisterScreen'
+import UserMediaBox from '../UserMediaBox'
 
 const SubmitPage = ({initialSubmitProgress = -1}) => {
   const {registrationAttempt, refetch: refetchUser} = useUser()
@@ -26,6 +27,8 @@ const SubmitPage = ({initialSubmitProgress = -1}) => {
   const submitting = submitProgress >= 0
   const registerState = useAppSelector((state) => state.register)
   const dispatch = useAppDispatch()
+
+  const [{data: signer}] = useSigner()
 
   useGuard(registerState.photo && registerState.video, routes.registerPhoto())
 
@@ -45,6 +48,7 @@ const SubmitPage = ({initialSubmitProgress = -1}) => {
     navigate(routes.registerPhoto())
   }, [])
 
+  const toast = useToast()
   const submit = React.useCallback(async () => {
     setSubmitProgress(0)
 
@@ -59,6 +63,26 @@ const SubmitPage = ({initialSubmitProgress = -1}) => {
       setSubmitProgress(
         (100 * bytes) / ((photoBlob?.size ?? 0) + (videoBlob?.size ?? 0))
       )
+
+    if (!signer) {
+      setSubmitProgress(-1)
+
+      return toast({
+        status: 'error',
+        title: 'Error, cannot connect to Metamask to generate signature.',
+      })
+    }
+    // This is a dummy signature we don't use for anything right now. Purpose is
+    // simply user testing with a signature in the flow to see whether it
+    // confuses folks.
+    const _signature = await signer.signMessage(
+      `
+Sign this message to authenticate your Zorro account.
+
+Ethereum address: ${ethereumAddress}
+Profile data hash: 79c4078d81cf1d910
+`
+    )
 
     const photoCid = photoBlob
       ? (
@@ -92,7 +116,7 @@ const SubmitPage = ({initialSubmitProgress = -1}) => {
 
     await refetchUser?.()
     navigate(routes.registerSubmitted())
-  }, [ethereumAddress, attemptRegistrationMutation])
+  }, [ethereumAddress, attemptRegistrationMutation, signer])
 
   return (
     <RegisterScreen
