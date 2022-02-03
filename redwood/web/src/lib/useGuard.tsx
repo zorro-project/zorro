@@ -68,7 +68,11 @@ export const GuardHandler: React.FC = ({children}) => {
   useEffect(() => {
     if (!error) return
 
-    if (loadingState[pathname]?.state === 'DONE') {
+    const currentLoadingState = Object.values(loadingState).find(
+      (obj) => obj?.location.pathname === pathname
+    )
+
+    if (currentLoadingState?.state === 'DONE') {
       setError(null)
       errorBoundary.current?.resetError()
     }

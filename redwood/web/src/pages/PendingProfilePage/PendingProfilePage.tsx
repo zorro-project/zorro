@@ -13,7 +13,7 @@ import {
 } from 'types/graphql'
 import {Breadcrumbs} from '../ProfilePage/ProfilePage'
 
-const PendingProfilePage = ({id}: {id: string}) => {
+const PendingProfilePage: React.FC<{id: string}> = ({id}) => {
   const {data, refetch} = useQuery<
     PendingProfilePageQuery,
     PendingProfilePageQueryVariables
@@ -50,7 +50,8 @@ const PendingProfilePage = ({id}: {id: string}) => {
   // Auto-reload the query to redirect us to the profile page if the profile has been confirmed on-chain.
   watchRegAttempt(registration, refetch)
 
-  if (data && !data.registrationAttempt?.approved) return <NotFoundPage />
+  if (!data) return null
+  if (!registration?.approved) return <NotFoundPage />
 
   return (
     <>
@@ -84,10 +85,10 @@ const PendingProfilePage = ({id}: {id: string}) => {
         </Heading>
         <Stack direction="row" spacing="4">
           <Box flex="1">
-            <PhotoBox photo={registration?.photoCid} />
+            <PhotoBox photo={registration.photoCid} />
           </Box>
           <Box flex="1">
-            <VideoBox video={registration?.videoCid} />
+            <VideoBox video={registration.videoCid} />
           </Box>
         </Stack>
       </Stack>
