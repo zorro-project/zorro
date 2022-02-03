@@ -20,7 +20,7 @@ import {
   parseChallengeStatus,
 } from 'src/services/cachedProfiles/helpers'
 import {maybeNotify} from 'src/services/notifications/notifications'
-import {alertUpdated} from 'src/services/registrationAttempts/registrationAttempts'
+import {alertUpdated} from 'src/services/registrationAttempts/helpers'
 
 const syncStarknetState = async ({onlyNewProfiles = false} = {}) => {
   console.log('Starting StarkNet sync')

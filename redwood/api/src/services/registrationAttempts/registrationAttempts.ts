@@ -1,8 +1,6 @@
-import type * as Prisma from '@prisma/client'
 import {WEB_DOMAIN} from 'src/lib/config'
 import {db} from 'src/lib/db'
 import {NOTARY_PHONE_NUMBERS} from 'src/lib/protocolNotifications'
-import {pusher} from 'src/lib/pusher'
 import {sendMessage} from 'src/lib/twilio'
 import sendNotaryApproved from 'src/mailers/sendNotaryApproved'
 import {backgroundSubmitRegistration} from 'src/tasks/submitRegistrationAttempt'
@@ -13,15 +11,7 @@ import {
   MutationmarkRegistrationViewedArgs,
   QuerylatestRegistrationArgs,
 } from 'types/graphql'
-
-export const alertUpdated = (
-  attempt: Pick<Prisma.RegistrationAttempt, 'ethereumAddress'>
-) =>
-  pusher?.trigger(
-    `registrationAttempt.${attempt.ethereumAddress}`,
-    'updated',
-    {}
-  )
+import {alertUpdated} from './helpers'
 
 export const optimisticallyApprovedRegs = async () =>
   db.registrationAttempt.findMany({
