@@ -430,8 +430,6 @@ const RegistrationFeedback: React.FC<{
         <UserMediaBox>
           <MinimalVideoPlayer
             url={maybeCidToUrl(registrationAttempt.videoCid)}
-            width="100%"
-            height="100%"
           />
         </UserMediaBox>
       </Stack>
