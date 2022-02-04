@@ -360,15 +360,11 @@ const RegistrationPending = ({hasEmail}: {hasEmail: boolean}) => {
           {hasEmail ? (
             <>
               <Text>We'll email you when we get to your application!</Text>
-              <Text>(You can close this page now)</Text>
+              <Text>(You can close this page)</Text>
             </>
           ) : (
             <>
-              <Text>
-                Check back later, or get email notifications about your
-                application.
-              </Text>
-              <Text>It's fine to close this window.</Text>
+              <Text>Check back later to get an update!</Text>
             </>
           )}
         </TextContainer>
