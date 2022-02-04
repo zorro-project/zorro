@@ -1,21 +1,20 @@
 import {AspectRatio, Box, Text} from '@chakra-ui/layout'
 import {Fade} from '@chakra-ui/react'
-import {routes, navigate} from '@redwoodjs/router'
-import {useToast} from '@chakra-ui/react'
+import {navigate, routes} from '@redwoodjs/router'
 import {useCallback, useRef, useState} from 'react'
 import Webcam from 'react-webcam'
-import {useGuard} from 'src/lib/useGuard'
-import {maybeCidToUrl} from 'src/lib/util'
-import {registerSlice} from 'src/state/registerSlice'
-import {useAppDispatch, useAppSelector} from 'src/state/store'
-import UserMediaBox from '../UserMediaBox'
-import MinimalVideoPlayer from '../MinimalVideoPlayer'
-import RegisterScreen from '../RegisterScreen'
 import {
   requireCameraAllowed,
   requireNoExistingProfile,
   requireWalletConnected,
 } from 'src/lib/guards'
+import {useGuard} from 'src/lib/useGuard'
+import {maybeCidToUrl} from 'src/lib/util'
+import {registerSlice} from 'src/state/registerSlice'
+import {useAppDispatch, useAppSelector} from 'src/state/store'
+import MinimalVideoPlayer from '../MinimalVideoPlayer'
+import RegisterScreen from '../RegisterScreen'
+import UserMediaBox from '../UserMediaBox'
 
 export const videoConstraints: MediaTrackConstraints = {
   facingMode: 'user',
@@ -150,7 +149,6 @@ const RecordVideoStep = ({mockRecording}: {mockRecording?: boolean}) => {
 
 const ConfirmVideoStep = () => {
   const dispatch = useAppDispatch()
-  const toast = useToast()
   const [isLoaded, setIsLoaded] = useState(false)
   const [hasPlayed, setHasPlayed] = useState(false)
   const {video} = useAppSelector((state) => state.register)
@@ -159,16 +157,6 @@ const ConfirmVideoStep = () => {
     dispatch(registerSlice.actions.setVideo(undefined))
   }, [])
 
-  const maybeContinue = useCallback(() => {
-    if (hasPlayed) navigate(routes.registerEmail())
-    else
-      toast({
-        title: 'Make sure you play the video to see if it came out OK!',
-        status: 'info',
-        duration: 3000,
-      })
-  }, [hasPlayed])
-
   return (
     <RegisterScreen
       hero={
@@ -176,7 +164,8 @@ const ConfirmVideoStep = () => {
           <MinimalVideoPlayer
             url={maybeCidToUrl(video!)}
             onReady={() => setTimeout(() => setIsLoaded(true), 500)}
-            onPlay={() => setHasPlayed(true)}
+            onEnded={() => setHasPlayed(true)}
+            playOnLoad
           />
         </UserMediaBox>
       }
@@ -184,8 +173,8 @@ const ConfirmVideoStep = () => {
       description={<Text>Can see and hear yourself clearly?</Text>}
       primaryButtonLabel="Use this video"
       primaryButtonProps={{
-        onClick: maybeContinue,
-        disabled: !isLoaded,
+        onClick: () => navigate(routes.registerEmail()),
+        disabled: !isLoaded || !hasPlayed,
       }}
       secondaryButtonLabel="Redo video"
       secondaryButtonProps={{onClick: redoVideo, disabled: !isLoaded}}

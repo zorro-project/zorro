@@ -4,19 +4,25 @@ import {Box, Icon, Center} from '@chakra-ui/react'
 import {FaPlay} from 'react-icons/fa'
 
 const MinimalVideoPlayer = (
-  props: Omit<ReactPlayer['props'], 'width' | 'height' | 'playing' | 'onEnded'>
+  props: Omit<ReactPlayer['props'], 'width' | 'height' | 'playing'> & {
+    playOnLoad?: boolean
+  }
 ) => {
-  const [isPlaying, setIsPlaying] = useState(false)
+  const {playOnLoad = false, onEnded, ...rest} = props
+  const [isPlaying, setIsPlaying] = useState(playOnLoad)
   const stopPlaying = () => setIsPlaying(false)
   const togglePlaying = () => setIsPlaying((value) => !value)
   return (
     <Box position="relative" h="100%" w="100%">
       <ReactPlayer
-        {...props}
+        {...rest}
         width="100%"
         height="100%"
         playing={isPlaying}
-        onEnded={stopPlaying}
+        onEnded={() => {
+          stopPlaying()
+          onEnded?.()
+        }}
       />
 
       <Center
