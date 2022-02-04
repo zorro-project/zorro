@@ -39,7 +39,7 @@ export const attemptRegistration = async ({
   if (pendingRegistration)
     throw new Error('Existing registration pending, cannot resubmit')
 
-  const registration = db.registrationAttempt.create({
+  const registration = await db.registrationAttempt.create({
     data: {
       ...input,
     },
@@ -47,13 +47,6 @@ export const attemptRegistration = async ({
 
   const pendingCount = (await unreviewedRegistrations()).length
 
-  console.log(
-    'atteptRegistration',
-    pendingCount,
-    NOTARY_PHONE_NUMBERS,
-    WEB_DOMAIN,
-    sendMessage
-  )
   if (pendingCount > 0) {
     await sendMessage(
       NOTARY_PHONE_NUMBERS,
