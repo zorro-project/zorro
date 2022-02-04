@@ -1,5 +1,4 @@
 import {useAuth} from '@redwoodjs/auth'
-import {ethereum} from '@redwoodjs/auth/dist/authClients/ethereum'
 import {routes, useLocation} from '@redwoodjs/router'
 import {requestMediaPermissions} from 'mic-check'
 import {useEffect} from 'react'
