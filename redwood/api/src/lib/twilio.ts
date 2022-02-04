@@ -14,10 +14,19 @@ export const sendMessage = async (to: string | string[], body: string) => {
     body,
     from: process.env.TWILIO_NUMBER || '+15555555555',
   }
+  console.log(
+    'sendMessage called',
+    mockCalls,
+    message.body,
+    message.from,
+    to,
+    client
+  )
   if (mockCalls) {
     console.log('Would send', {to, ...message})
   } else {
     const toArray = castArray(to)
+    console.log('toArray', toArray)
     await Promise.all(
       toArray.map((to) => client?.messages.create({to, ...message}))
     )
