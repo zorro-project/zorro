@@ -39,7 +39,7 @@ export const attemptRegistration = async ({
   if (pendingRegistration)
     throw new Error('Existing registration pending, cannot resubmit')
 
-  const registration = db.registrationAttempt.create({
+  const registration = await db.registrationAttempt.create({
     data: {
       ...input,
     },
