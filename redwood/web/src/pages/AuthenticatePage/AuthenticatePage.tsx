@@ -11,15 +11,11 @@ import {
 import {useAuth} from '@redwoodjs/auth'
 import {navigate} from '@redwoodjs/router'
 import {MetaTags, useMutation} from '@redwoodjs/web'
+import dayjs from 'dayjs'
 import {useCallback, useState} from 'react'
 import ConnectButton from 'src/components/ConnectButton/ConnectButton'
 import {useUser} from 'src/layouts/UserContext'
-import {
-  RequestSessionAuthString,
-  RequestSessionAuthStringVariables,
-  RequestSessionToken,
-  RequestSessionTokenVariables,
-} from 'types/graphql'
+import {RequestSessionToken, RequestSessionTokenVariables} from 'types/graphql'
 import {useSigner} from 'wagmi'
 
 const AuthenticatePage: React.FC<{next?: string}> = ({next}) => {
@@ -28,25 +24,18 @@ const AuthenticatePage: React.FC<{next?: string}> = ({next}) => {
   const [{data: signer}] = useSigner()
   const [authenticating, setAuthenticating] = useState(false)
 
-  const [requestSessionAuthString] = useMutation<
-    RequestSessionAuthString,
-    RequestSessionAuthStringVariables
-  >(gql`
-    mutation RequestSessionAuthString($ethereumAddress: String!) {
-      requestSessionAuthString(ethereumAddress: $ethereumAddress)
-    }
-  `)
-
   const [requestSessionToken] = useMutation<
     RequestSessionToken,
     RequestSessionTokenVariables
   >(gql`
     mutation RequestSessionToken(
       $ethereumAddress: String!
+      $expiresAt: String!
       $signature: String!
     ) {
       requestSessionToken(
         ethereumAddress: $ethereumAddress
+        expiresAt: $expiresAt
         signature: $signature
       )
     }
@@ -57,23 +46,16 @@ const AuthenticatePage: React.FC<{next?: string}> = ({next}) => {
     setAuthenticating(true)
 
     try {
-      const authStringRequest = await requestSessionAuthString({
-        variables: {ethereumAddress},
-      })
-
-      if (!authStringRequest.data)
-        return alert('requestSessionAuthString error')
-
       if (!signer)
         return alert('Could not detect signer, is Metamask installed?')
-      const signature = await signer.signMessage(
-        authStringRequest.data.requestSessionAuthString
-      )
+
+      const expiresAt = dayjs().add(14, 'days').toISOString()
+      const signature = await signer.signMessage(expiresAt)
 
       if (!signature) return alert('Signature not complete')
 
       const sessionTokenRequest = await requestSessionToken({
-        variables: {ethereumAddress, signature},
+        variables: {ethereumAddress, expiresAt, signature},
       })
 
       if (!sessionTokenRequest.data) return alert('requestSessionToken error')

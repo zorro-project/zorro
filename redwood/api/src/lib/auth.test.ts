@@ -1,36 +1,35 @@
-import dayjs from 'dayjs'
-import {getCurrentUser} from './auth'
+import dayjs, {Dayjs} from 'dayjs'
+import {getCurrentUser, SessionData, SESSION_SECRET} from './auth'
 import {db} from './db'
+import Iron from '@hapi/iron'
+
+const getToken = async (ethereumAddress: string, expiresAt: Dayjs) => {
+  await db.user.upsert({
+    where: {ethereumAddress},
+    create: {ethereumAddress},
+    update: {},
+  })
+  const data: SessionData = {
+    ethereumAddress,
+    expiresAt: expiresAt.toISOString(),
+  }
+  return await Iron.seal(data, SESSION_SECRET, Iron.defaults)
+}
 
 describe('getCurrentUser', () => {
-  it('finds users with valid sessions', async () => {
-    const user = await db.user.create({
-      data: {
-        ethereumAddress: '0x123',
-      },
-    })
-    await db.userSession.createMany({
-      data: [
-        {
-          userId: user.id,
-          token: 'current_session_token',
-          expiresAt: dayjs().add(1, 'day').toDate(),
-        },
-        {
-          userId: user.id,
-          token: 'expired_session_token',
-          expiresAt: dayjs().subtract(1, 'day').toDate(),
-        },
-      ],
-    })
-
+  it('Finds users with a valid token', async () => {
     const currentUser = await getCurrentUser(null, {
-      token: 'current_session_token',
+      token: await getToken('0x456', dayjs().add(1, 'day')),
     })
-    expect(currentUser?.id).toBe(user.id)
-    const expiredUser = await getCurrentUser(null, {
-      token: 'expired_session_token',
+    expect(currentUser?.ethereumAddress).toBe('0x456')
+  })
+
+  it('Does not find users with an invalid token', async () => {
+    const currentUser = await getCurrentUser(null, {
+      token: await getToken('0x456', dayjs().subtract(1, 'day')),
     })
-    expect(expiredUser).toBe(null)
+    expect(currentUser).toBe(null)
+
+    expect(await getCurrentUser(null, {token: '24'})).toBe(null)
   })
 })

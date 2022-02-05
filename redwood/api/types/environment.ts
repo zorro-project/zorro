@@ -1,5 +1,6 @@
 export type ApiProcessEnv = {
   CHAIN_DEPLOYMENT: 'test' | 'development' | 'staging' | 'production'
+  NODE_ENV?: 'development' | 'production' | 'test'
 
   // Infura IPFS
   INFURA_IPFS_ID?: string
@@ -22,4 +23,6 @@ export type ApiProcessEnv = {
   SMTP_PASSWORD: string
 
   STARKNET_NOTARY_PRIVATE_KEY: string
+
+  SESSION_SECRET?: string
 }
