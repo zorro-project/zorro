@@ -53,6 +53,7 @@ export function UserContextProvider({children}: {children: React.ReactNode}) {
   // away from redwood sessions in the future if we want without making everyone
   // sign in again to see their profile. It has an awkward name on purpose.
   // Don't rely on this unless it's to migrate away from redwood sessions.
+  // eslint-disable-next-line no-used-vars
   const [unusedDerivedAddress, setUnusedDerivedAddress] = useLocalStorageState<
     string | undefined
   >('UserContext_unusedDerivedAddress', undefined)
