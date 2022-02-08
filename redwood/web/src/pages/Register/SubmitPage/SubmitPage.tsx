@@ -3,7 +3,7 @@ import {CircularProgress} from '@chakra-ui/progress'
 import {Image, Stack} from '@chakra-ui/react'
 import {navigate, routes} from '@redwoodjs/router'
 import {useMutation} from '@redwoodjs/web'
-import React, {useCallback} from 'react'
+import React, {FC, useCallback} from 'react'
 import {useUser} from 'src/layouts/UserContext'
 import ipfsClient from 'src/lib/ipfs'
 import {useGuard} from 'src/lib/useGuard'
@@ -19,11 +19,13 @@ import UserMediaBox from '../UserMediaBox'
 import MinimalVideoPlayer from '../MinimalVideoPlayer'
 import RegisterScreen from '../RegisterScreen'
 
-const SubmitPage = ({initialSubmitProgress = -1}) => {
+const SubmitPage: FC<{initialSubmitProgress?: number}> = ({
+  initialSubmitProgress = -1,
+}) => {
   requireNoExistingProfile()
-  const ethereumAddress = requireWalletConnected()
+  requireWalletConnected()
 
-  const {registrationAttempt, refetch: refetchUser} = useUser()
+  const {registrationAttempt, auth, user} = useUser()
 
   const [submitProgress, setSubmitProgress] = React.useState(
     initialSubmitProgress
@@ -50,6 +52,7 @@ const SubmitPage = ({initialSubmitProgress = -1}) => {
     navigate(routes.registerPhoto())
   }, [])
 
+  if (!user) return null
   const submit = React.useCallback(async () => {
     setSubmitProgress(0)
 
@@ -88,16 +91,16 @@ const SubmitPage = ({initialSubmitProgress = -1}) => {
     await attemptRegistrationMutation({
       variables: {
         input: {
-          ethereumAddress,
+          ethereumAddress: user?.ethereumAddress,
           photoCid,
           videoCid,
         },
       },
     })
 
-    await refetchUser?.()
+    await auth.reauthenticate()
     navigate(routes.registerSubmitted())
-  }, [ethereumAddress, attemptRegistrationMutation])
+  }, [user?.ethereumAddress, attemptRegistrationMutation])
 
   return (
     <RegisterScreen

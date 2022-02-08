@@ -1,8 +1,7 @@
-import {ExternalLinkIcon} from '@chakra-ui/icons'
-import {Box, Divider, Heading, Icon, Link, Stack, Text} from '@chakra-ui/react'
+import {Box, Divider, Heading, Icon, Stack, Text} from '@chakra-ui/react'
 import {routes} from '@redwoodjs/router'
 import {MetaTags, useQuery} from '@redwoodjs/web'
-import {FaEthereum, FaHourglass} from 'react-icons/fa'
+import {FaHourglass} from 'react-icons/fa'
 import {PhotoBox, VideoBox} from 'src/components/SquareBox'
 import {watchRegAttempt} from 'src/lib/pusher'
 import {useGuard} from 'src/lib/useGuard'
@@ -20,17 +19,13 @@ const PendingProfilePage: React.FC<{id: string}> = ({id}) => {
   >(
     gql`
       query PendingProfilePageQuery($ethereumAddress: ID!) {
-        cachedProfile: cachedProfileByEthereumAddress(
-          ethereumAddress: $ethereumAddress
-        ) {
-          id
-        }
-        registrationAttempt: latestRegistration(
+        registrationAttempt: optimisticallyApprovedReg(
           ethereumAddress: $ethereumAddress
         ) {
           approved
           videoCid
           photoCid
+          profileId
           ethereumAddress
         }
       }
@@ -42,8 +37,9 @@ const PendingProfilePage: React.FC<{id: string}> = ({id}) => {
 
   // If the profile has been confirmed on-chain, take you to the submitted profile page.
   useGuard(
-    !data || data.cachedProfile == null,
-    () => routes.profile({id: data!.cachedProfile!.id}),
+    !data || data.registrationAttempt?.profileId == null,
+    () =>
+      routes.profile({id: data!.registrationAttempt!.profileId!.toString()}),
     {toast: {status: 'success', title: 'Profile confirmed'}}
   )
 
@@ -56,27 +52,14 @@ const PendingProfilePage: React.FC<{id: string}> = ({id}) => {
   return (
     <>
       <MetaTags title="Pending Profile" />
-      <Breadcrumbs pageTitle={id} />
+      <Breadcrumbs pageTitle="Pending Profile" />
       <Stack w="xl" maxW="100%" mx="auto" my="8" spacing="6">
         <Heading size="md">Pending Profile</Heading>
-        <Stack direction="row" alignItems="center">
-          <Icon as={FaEthereum} />
-          <Link
-            display="flex"
-            alignItems="center"
-            href={`https://etherscan.io/address/${id}`}
-            isExternal
-            color={'black'}
-          >
-            {id}
-            <ExternalLinkIcon ml={1} />
-          </Link>
-        </Stack>
         <Stack direction="row" alignItems="center">
           <Icon as={FaHourglass} color="yellow.500" />
           <Text>
             This profile has been notarized and submitted on-chain. It should go
-            live in the next few minutes.
+            live and be assigned an ID in the next few minutes.
           </Text>
         </Stack>
         <Divider />

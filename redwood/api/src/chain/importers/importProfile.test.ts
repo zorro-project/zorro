@@ -16,9 +16,13 @@ describe('importProfile', () => {
     let registrationAttempt = await db.registrationAttempt.create({
       data: {
         approved: true,
-        ethereumAddress: '0x334230242D318b5CA159fc38E07dC1248B7b35e4',
         photoCid: 'test',
         videoCid: 'test',
+        User: {
+          create: {
+            ethereumAddress: '0x334230242D318b5CA159fc38E07dC1248B7b35e4',
+          },
+        },
       },
     })
 

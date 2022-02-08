@@ -1,11 +1,10 @@
 import {Breadcrumb, BreadcrumbItem, BreadcrumbLink} from '@chakra-ui/breadcrumb'
 import Icon from '@chakra-ui/icon'
-import {ExternalLinkIcon} from '@chakra-ui/icons'
-import {Box, Divider, Heading, Link, Stack, Text} from '@chakra-ui/layout'
+import {Box, Divider, Heading, Stack, Text} from '@chakra-ui/layout'
 import {routes} from '@redwoodjs/router'
 import {createCell, MetaTags} from '@redwoodjs/web'
 import React from 'react'
-import {FaCheck, FaEthereum, FaTimes} from 'react-icons/fa'
+import {FaCheck, FaTimes} from 'react-icons/fa'
 import {RLink} from 'src/components/links'
 import {PhotoBox, VideoBox} from 'src/components/SquareBox'
 import {ProfilePageQuery} from 'types/graphql'
@@ -17,7 +16,6 @@ const QUERY = gql`
   query ProfilePageQuery($id: ID!) {
     cachedProfile(id: $id) {
       id
-      ethereumAddress
       currentStatus
       isVerified
       cid
@@ -60,7 +58,7 @@ const Success = (props: ProfilePageQuery) => {
   const profile = props.cachedProfile
   if (!profile) return <NotFoundPage />
 
-  const {ethereumAddress, photoCid, videoCid} = profile
+  const {photoCid, videoCid} = profile
 
   return (
     <>
@@ -70,19 +68,6 @@ const Success = (props: ProfilePageQuery) => {
       <Stack w="xl" maxW="100%" mx="auto" my="8" spacing="6">
         <Stack>
           <Heading size="md">Profile {profile.id}</Heading>
-          <Stack direction="row" alignItems="center">
-            <Icon as={FaEthereum} />
-            <Link
-              display="flex"
-              alignItems="center"
-              href={`https://etherscan.io/address/${ethereumAddress}`}
-              isExternal
-              color={'black'}
-            >
-              {ethereumAddress}
-              <ExternalLinkIcon ml={1} />
-            </Link>
-          </Stack>
           <Stack direction="row" alignItems="center">
             <Icon
               as={profile.isVerified ? FaCheck : FaTimes}

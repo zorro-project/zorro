@@ -5,9 +5,14 @@ import {CurrentUser} from 'src/lib/auth'
 import requireAuth from './requireAuth'
 
 const user: NonNullable<CurrentUser> = {
-  id: 1,
-  ethereumAddress: '0x1',
-  roles: [],
+  user: {
+    id: 1,
+    ethereumAddress: '0x1',
+    email: null,
+    roles: [],
+  },
+  registrationAttempt: null,
+  cachedProfile: null,
 }
 
 describe('requireAuth directive', () => {
@@ -33,7 +38,7 @@ describe('requireAuth directive', () => {
   })
 
   it('should only allow users with the selected roles', () => {
-    const notaryUser = merge({}, user, {roles: ['NOTARY']})
+    const notaryUser = merge({}, user, {user: {roles: ['NOTARY']}})
     const executeRequireNotary = mockRedwoodDirective(requireAuth, {
       context: {currentUser: notaryUser},
       directiveArgs: {roles: ['NOTARY']},

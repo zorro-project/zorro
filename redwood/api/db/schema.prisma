@@ -87,7 +87,7 @@ model RegistrationAttempt {
 
   reviewedAt   DateTime?
   reviewedById Int?
-  reviewedBy   User?     @relation(fields: [reviewedById], references: [id])
+  reviewedBy   User?     @relation("reviewedBy", fields: [reviewedById], references: [id])
   approved     Boolean?
   deniedReason String?
 
@@ -96,6 +96,8 @@ model RegistrationAttempt {
 
   profileId Int?
   profile   CachedProfile? @relation(fields: [profileId], references: [id])
+
+  User User @relation("registrationAttempts", fields: [ethereumAddress], references: [ethereumAddress])
 
   // Used for optimisticallyApprovedRegs
   @@index([profileId, approved])
@@ -136,25 +138,12 @@ model User {
   ethereumAddress String  @unique
   email           String?
 
-  roles             RoleEnum[]
-  sessionAuthString String?
-
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
-  UserSession UserSession[]
-
-  ReviewedRegistrations RegistrationAttempt[]
-}
-
-model UserSession {
-  id Int @id @default(autoincrement())
-
-  userId Int
-  token  String @unique
+  roles RoleEnum[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  expiresAt DateTime
 
-  User User @relation(fields: [userId], references: [id])
+  RegistrationAttempts RegistrationAttempt[] @relation("registrationAttempts")
+
+  ReviewedRegistrations RegistrationAttempt[] @relation("reviewedBy")
 }

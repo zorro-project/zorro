@@ -2,7 +2,6 @@ import {PendingProfilePageQuery} from 'types/graphql'
 import PendingProfilePage from './PendingProfilePage'
 
 const mock: PendingProfilePageQuery = {
-  cachedProfile: null,
   registrationAttempt: {
     approved: true,
     videoCid: 'bafybeiaxvwuj72kcknxm5ofryao4pkqpks5qtadrakzcw743jqruli5zku',

@@ -4,7 +4,7 @@ import VideoPage from './VideoPage'
 
 export const Start_Recording = () => (
   <StoryMocks
-    user={{ethereumAddress: '0x456'}}
+    user={{connectedAddress: '0x456'}}
     state={{register: {photo: 'test'}}}
   >
     <RegisterLayout>
@@ -15,7 +15,7 @@ export const Start_Recording = () => (
 
 export const Recording_Started = () => (
   <StoryMocks
-    user={{ethereumAddress: '0x456'}}
+    user={{connectedAddress: '0x456'}}
     state={{register: {photo: 'test'}}}
   >
     <RegisterLayout>
@@ -26,7 +26,7 @@ export const Recording_Started = () => (
 
 export const Review = () => (
   <StoryMocks
-    user={{ethereumAddress: '0x456'}}
+    user={{connectedAddress: '0x456'}}
     state={{
       register: {
         photo: 'test',
@@ -43,7 +43,7 @@ export const Review = () => (
 
 export const Review_Vertical_Video = () => (
   <StoryMocks
-    user={{ethereumAddress: '0x456'}}
+    user={{connectedAddress: '0x456'}}
     state={{
       register: {
         photo: 'test',

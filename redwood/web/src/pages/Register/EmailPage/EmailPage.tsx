@@ -4,11 +4,21 @@ import {useMutation} from '@redwoodjs/web'
 import {useState} from 'react'
 import {RLink} from 'src/components/links'
 import {useUser} from 'src/layouts/UserContext'
+import {requireNoExistingProfile, requireWalletConnected} from 'src/lib/guards'
 import {useGuard} from 'src/lib/useGuard'
 import {appNav} from 'src/lib/util'
-import {requireNoExistingProfile, requireWalletConnected} from 'src/lib/guards'
-import {CreateUserMutation, CreateUserMutationVariables} from 'types/graphql'
+import {SetEmailMutation, SetEmailMutationVariables} from 'types/graphql'
 import RegisterScreen, {TextContainer} from '../RegisterScreen'
+
+export const useSetEmail = () =>
+  useMutation<SetEmailMutation, SetEmailMutationVariables>(gql`
+    mutation SetEmailMutation($email: String!) {
+      setEmail(email: $email) {
+        id
+        email
+      }
+    }
+  `)
 
 const EmailPage: React.FC<{next?: 'submitted' | undefined}> = ({next}) => {
   requireWalletConnected()
@@ -18,36 +28,19 @@ const EmailPage: React.FC<{next?: 'submitted' | undefined}> = ({next}) => {
   const nextPage =
     next === 'submitted' ? routes.registerSubmitted() : routes.registerSubmit()
 
-  useGuard(user.loading || !user.user?.hasEmail, nextPage)
+  useGuard(!user.user || user.user.email == null, nextPage)
 
   // XXX: has duplicated code with SubmittedPage.tsx
   const [email, setEmail] = useState<string>('')
   const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
 
-  const [createUser] = useMutation<
-    CreateUserMutation,
-    CreateUserMutationVariables
-  >(gql`
-    mutation CreateUserMutation($input: CreateUserInput!) {
-      createUser(input: $input) {
-        id
-        hasEmail
-      }
-    }
-  `)
+  const [setEmailMutation] = useSetEmail()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!user.ethereumAddress) return
-    createUser({
-      variables: {
-        input: {
-          ethereumAddress: user.ethereumAddress,
-          email,
-        },
-      },
-    })
-    await user.refetch?.()
+    if (!user.user?.ethereumAddress) return
+    setEmailMutation({variables: {email}})
+    await user.auth.reauthenticate()
     appNav(nextPage)
   }
 

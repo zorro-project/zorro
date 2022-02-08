@@ -1,36 +1,57 @@
+import dayjs from 'dayjs'
 import {Wallet} from 'ethers'
 import {getCurrentUser} from 'src/lib/auth'
 import {db} from 'src/lib/db'
-import {requestSessionAuthString, requestSessionToken} from './users'
+import {requestSessionToken} from './users'
 
 describe('auth', () => {
   it('round-trips a successful login', async () => {
     const wallet = await Wallet.createRandom()
 
-    const authString = await requestSessionAuthString({
-      ethereumAddress: wallet.address,
-    })
+    const expiresAt = dayjs().add(1, 'days').toISOString()
 
-    expect(authString).toMatch(/^Sign this message to authenticate yourself/)
-    expect(authString).toMatch(new RegExp(wallet.address))
-
-    let user = await db.user.findUnique({
-      where: {ethereumAddress: wallet.address},
-    })
-    expect(user?.sessionAuthString).toBe(authString)
-
-    const signature = await wallet.signMessage(authString)
+    const signature = await wallet.signMessage(expiresAt)
 
     const token = await requestSessionToken({
       ethereumAddress: wallet.address,
+      expiresAt: expiresAt,
       signature,
     })
     expect(token).toBeTruthy()
 
-    user = await db.user.findUnique({where: {ethereumAddress: wallet.address}})
-    expect(user?.sessionAuthString).toBe(null)
-
     const currentUser = await getCurrentUser(null, {token: token!})
-    expect(currentUser!.id).toEqual(user!.id)
+    const sessionUser = await db.user.findUnique({
+      where: {ethereumAddress: wallet.address},
+    })
+
+    expect(currentUser!.user!.id).toEqual(sessionUser!.id)
+  })
+
+  it("Doesn't provide session tokens for invalid signatures", async () => {
+    const wallet = await Wallet.createRandom()
+    const expiresAt = dayjs().add(1, 'days').toISOString()
+    const signature = await wallet.signMessage(expiresAt)
+
+    expect(
+      requestSessionToken({
+        ethereumAddress: wallet.address,
+        expiresAt: expiresAt,
+        signature: signature.slice(0, -1),
+      })
+    ).rejects.toThrow()
+  })
+
+  it("Doesn't provide session tokens for dates too far in the future", async () => {
+    const wallet = await Wallet.createRandom()
+    const expiresAt = dayjs().add(17, 'days').toISOString()
+    const signature = await wallet.signMessage(expiresAt)
+
+    expect(
+      await requestSessionToken({
+        ethereumAddress: wallet.address,
+        expiresAt: expiresAt,
+        signature,
+      })
+    ).toBeNull()
   })
 })

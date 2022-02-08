@@ -8,7 +8,7 @@ import {PartialDeep} from 'type-fest'
 const baseState: RootState = store.getState()
 
 export const StoryMocks: React.FC<{
-  user?: Partial<UserContextType>
+  user?: PartialDeep<UserContextType>
   state?: PartialDeep<RootState>
 }> = ({children, user, state}) => {
   const mergedState: RootState = merge({}, baseState, state)

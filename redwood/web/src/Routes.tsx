@@ -31,7 +31,7 @@ const Routes = () => {
           <Route path="/create-connection" page={CreateConnectionPage} name="createConnection" />
           <Route path="/test-transaction" page={TestTransactionPage} name="testTransaction" />
           <Route notfound page={NotFoundPage} />
-          <Route path="/authenticate" page={AuthenticatePage} name="authenticate" />
+          <Route path="/user" page={UserPage} name="user" />
         </Set>
       </Set>
     </Router>

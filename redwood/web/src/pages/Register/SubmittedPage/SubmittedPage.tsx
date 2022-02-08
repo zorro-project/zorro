@@ -5,44 +5,38 @@ import {
   AlertIcon,
   CircularProgress,
   Image,
+  Input,
+  Modal,
   ModalBody,
   ModalContent,
   ModalFooter,
   ModalHeader,
   ModalOverlay,
   Text,
-  Modal,
-  Input,
 } from '@chakra-ui/react'
 import {navigate, routes} from '@redwoodjs/router'
-import {useMutation, useQuery} from '@redwoodjs/web'
+import {useQuery} from '@redwoodjs/web'
 import {Fireworks} from 'fireworks-js'
 import React, {useCallback, useEffect, useState} from 'react'
 import {InternalLink, RLink} from 'src/components/links'
+import {useUser} from 'src/layouts/UserContext'
 import {watchRegAttempt} from 'src/lib/pusher'
 import {useGuard} from 'src/lib/useGuard'
 import {maybeCidToUrl} from 'src/lib/util'
 import {registerSlice} from 'src/state/registerSlice'
 import {useAppDispatch} from 'src/state/store'
 import {
-  CreateUserMutation,
-  CreateUserMutationVariables,
   RegisterSubmittedPageQuery,
   RegisterSubmittedPageQueryVariables,
 } from 'types/graphql'
-import {requireWalletConnected} from '../../../lib/guards'
-import UserMediaBox from '../UserMediaBox'
-import RegisterScreen, {TextContainer} from '../RegisterScreen'
-import MinimalVideoPlayer from '../MinimalVideoPlayer'
 import useAsyncEffect from 'use-async-effect'
-import {useUser} from 'src/layouts/UserContext'
+import {useSetEmail} from '../EmailPage/EmailPage'
+import MinimalVideoPlayer from '../MinimalVideoPlayer'
+import RegisterScreen, {TextContainer} from '../RegisterScreen'
+import UserMediaBox from '../UserMediaBox'
 
 const QUERY = gql`
   query RegisterSubmittedPageQuery($ethereumAddress: ID!) {
-    user(ethereumAddress: $ethereumAddress) {
-      id
-      hasEmail
-    }
     registrationAttempt: latestRegistration(ethereumAddress: $ethereumAddress) {
       id
       ethereumAddress
@@ -60,13 +54,17 @@ const QUERY = gql`
 `
 
 const SubmittedPage = () => {
-  const ethereumAddress = requireWalletConnected()
+  const {user} = useUser()
 
   const {data, loading, refetch} = useQuery<
     RegisterSubmittedPageQuery,
     RegisterSubmittedPageQueryVariables
   >(QUERY, {
-    variables: {ethereumAddress},
+    variables: {
+      ethereumAddress: user?.ethereumAddress ?? '',
+    },
+    skip: !user?.ethereumAddress,
+    fetchPolicy: 'network-only',
   })
 
   useGuard(loading || data?.registrationAttempt, routes.registerIntro(), {
@@ -93,7 +91,7 @@ const SubmittedPage = () => {
       <AwaitingNotary
         key="checking-application"
         triggeredAt={data.registrationAttempt.notaryViewedAt}
-        hasEmail={!!data.user?.hasEmail}
+        hasEmail={!!user?.email}
         timeout={3 * 60 * 1000} // 3 minutes
         title="Checking your application"
         message={
@@ -111,7 +109,7 @@ const SubmittedPage = () => {
       <AwaitingNotary
         key="submitting"
         triggeredAt={data.registrationAttempt.createdAt!}
-        hasEmail={!!data.user?.hasEmail}
+        hasEmail={!!user?.email}
         timeout={80 * 1000} // 80 seconds
         title="Submitting"
         message={
@@ -229,29 +227,12 @@ const TimeoutModalAskForEmail = ({
   const user = useUser()
   const isEmailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
 
-  const [createUser] = useMutation<
-    CreateUserMutation,
-    CreateUserMutationVariables
-  >(gql`
-    mutation CreateUserMutation($input: CreateUserInput!) {
-      createUser(input: $input) {
-        id
-        hasEmail
-      }
-    }
-  `)
+  const [setEmailMutation] = useSetEmail()
 
   const saveEmail = async () => {
-    if (!user.ethereumAddress) return
-    createUser({
-      variables: {
-        input: {
-          ethereumAddress: user.ethereumAddress,
-          email,
-        },
-      },
-    })
-    await user.refetch?.()
+    if (!user.user?.ethereumAddress) return
+    setEmailMutation({variables: {email}})
+    await user.auth.reauthenticate()
   }
 
   const submit = async (e: React.FormEvent) => {

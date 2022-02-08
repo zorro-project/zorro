@@ -1,11 +1,7 @@
 import {CachedProfile as PrismaCachedProfile} from '@prisma/client'
 import importProfile from 'src/chain/importers/importProfile'
 import {db} from 'src/lib/db'
-import {
-  QuerycachedProfileArgs,
-  QuerycachedProfileByEthereumAddressArgs,
-  QuerycachedProfilesArgs,
-} from 'types/graphql'
+import {QuerycachedProfileArgs, QuerycachedProfilesArgs} from 'types/graphql'
 import {currentStatus, isInProvisionalPeriod, isVerified} from './helpers'
 
 export const cachedProfiles = async ({
@@ -48,13 +44,6 @@ export const cachedProfile = async ({id, resync}: QuerycachedProfileArgs) => {
   })
   return profile
 }
-
-export const cachedProfileByEthereumAddress = async ({
-  ethereumAddress,
-}: QuerycachedProfileByEthereumAddressArgs) =>
-  await db.cachedProfile.findUnique({
-    where: {ethereumAddress},
-  })
 
 export const CachedProfile = {
   currentStatus: (_args: void, {root}: {root: PrismaCachedProfile}) =>

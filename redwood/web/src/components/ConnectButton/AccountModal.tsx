@@ -19,8 +19,8 @@ type Props = {
 }
 
 export default function AccountModal({isOpen, onClose}: Props) {
-  const {ethereumAddress} = useUser()
-  if (!ethereumAddress) return null
+  const {connectedAddress} = useUser()
+  if (!connectedAddress) return null
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} isCentered size="md">
@@ -33,7 +33,7 @@ export default function AccountModal({isOpen, onClose}: Props) {
         <ModalBody>
           <Text fontSize="sm">Connected with MetaMask</Text>
           <Flex alignItems="center" mt={2} mb={4} lineHeight={1}>
-            <Identicon account={ethereumAddress} />
+            <Identicon account={connectedAddress} />
             <Text
               fontSize="xl"
               fontWeight="semibold"
@@ -41,14 +41,14 @@ export default function AccountModal({isOpen, onClose}: Props) {
               lineHeight="1.1"
               wordBreak="break-all"
             >
-              {ethereumAddress}
+              {connectedAddress}
             </Text>
           </Flex>
           <Link
             fontSize="sm"
             display="flex"
             alignItems="center"
-            href={`https://etherscan.io/address/${ethereumAddress}`}
+            href={`https://etherscan.io/address/${connectedAddress}`}
             isExternal
             color="gray.600"
           >
