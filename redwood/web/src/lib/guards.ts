@@ -1,5 +1,4 @@
-import {useAuth} from '@redwoodjs/auth'
-import {routes, useLocation} from '@redwoodjs/router'
+import {routes} from '@redwoodjs/router'
 import {requestMediaPermissions} from 'mic-check'
 import {useEffect} from 'react'
 import {UserContextType, useUser} from 'src/layouts/UserContext'
@@ -8,21 +7,25 @@ import {appNav} from 'src/lib/util'
 import {IterableElement} from 'type-fest'
 
 export const requireWalletConnected = () => {
-  const {ethereumAddress} = useUser()
-  useGuard(ethereumAddress, routes.registerIntro())
-  return ethereumAddress
+  const {connectedAddress} = useUser()
+  useGuard(connectedAddress, routes.registerIntro())
+  return connectedAddress
 }
 
 export const requireNoExistingProfile = () => {
-  const {cachedProfile, registrationAttempt, ethereumAddress} = useUser()
-  useGuard(!cachedProfile, () => routes.profile({id: cachedProfile!.id}), {
-    toast: {
-      title: 'You have a live profile, so you cannot register again',
-    },
-  })
+  const {cachedProfile, registrationAttempt, user} = useUser()
+  useGuard(
+    !cachedProfile,
+    () => routes.profile({id: cachedProfile!.id.toString()}),
+    {
+      toast: {
+        title: 'You have a live profile, so you cannot register again',
+      },
+    }
+  )
   useGuard(
     !registrationAttempt?.approved,
-    () => routes.pendingProfile({id: ethereumAddress}),
+    () => routes.pendingProfile({id: user!.ethereumAddress}),
     {
       toast: {
         title: 'Your profile has been submitted on-chain and will go live soon',
@@ -39,16 +42,12 @@ export const requireCameraAllowed = async () => {
 }
 
 export const requireRole = (
-  role: IterableElement<
-    NonNullable<UserContextType['authenticatedUser']>['roles']
-  >
+  role: IterableElement<NonNullable<UserContextType['user']>['roles']>
 ) => {
-  const {pathname} = useLocation()
-  const {loading, currentUser} = useAuth()
-  const user = currentUser as UserContextType['authenticatedUser']
+  const {loading, user} = useUser()
 
   const hasRole = user?.roles?.includes(role)
-  useGuard(loading || hasRole, routes.authenticate({next: pathname}), {
+  useGuard(loading || hasRole, routes.user(), {
     toast: {
       status: 'error',
       title: `You must be signed in to an account with the ${role} role to access this page.`,

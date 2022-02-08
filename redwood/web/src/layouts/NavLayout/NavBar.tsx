@@ -80,7 +80,7 @@ const MobileNav = ({navItems}: {navItems: Array<NavItem>}) => (
 
 const NavBar = () => {
   const {isOpen, onToggle, onClose} = useDisclosure()
-  const user = useUser()
+  const {loading, user, cachedProfile, registrationAttempt} = useUser()
 
   const {pathname} = useLocation()
 
@@ -94,20 +94,20 @@ const NavBar = () => {
     },
   ]
 
-  if (!user.loading) {
-    if (user.cachedProfile) {
+  if (!loading) {
+    if (cachedProfile) {
       navItems.push({
         label: 'My Profile',
-        href: routes.profile({id: user.cachedProfile.id}),
+        href: routes.profile({id: cachedProfile.id.toString()}),
         icon: BsPersonBadge,
       })
-    } else if (user.registrationAttempt?.approved) {
+    } else if (registrationAttempt?.approved) {
       navItems.push({
         label: 'My Profile',
-        href: routes.pendingProfile({id: user.ethereumAddress}),
+        href: routes.pendingProfile({id: user!.ethereumAddress}),
         icon: BsPersonBadge,
       })
-    } else if (user.registrationAttempt) {
+    } else if (registrationAttempt) {
       navItems.push({
         label: 'Complete Registration',
         href: routes.registerSubmitted(),

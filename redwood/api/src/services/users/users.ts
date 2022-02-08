@@ -1,29 +1,18 @@
-import type {ResolverArgs} from '@redwoodjs/graphql-server'
-import {db} from 'src/lib/db'
-import {
-  MutationcreateUserArgs,
-  MutationrequestSessionAuthStringArgs,
-  MutationrequestSessionTokenArgs,
-  QueryuserArgs,
-} from 'types/graphql'
-import crypto from 'crypto'
+import Iron from '@hapi/iron'
 import dayjs from 'dayjs'
 import {verifyMessage} from 'ethers/lib/utils'
-import Iron from '@hapi/iron'
 import {SessionData, SESSION_SECRET} from 'src/lib/auth'
+import {db} from 'src/lib/db'
+import {
+  MutationrequestSessionTokenArgs,
+  MutationsetEmailArgs,
+} from 'types/graphql'
 
-export const user = async ({ethereumAddress}: QueryuserArgs) =>
-  db.user.findUnique({where: {ethereumAddress}})
-
-export const createUser = async ({input}: MutationcreateUserArgs) =>
-  db.user.create({data: input})
-
-export const User = {
-  hasEmail: (
-    _args: void,
-    {root}: ResolverArgs<NonNullable<Awaited<ReturnType<typeof user>>>>
-  ) => root.email !== null,
-}
+export const setEmail = async ({email}: MutationsetEmailArgs) =>
+  db.user.update({
+    where: {id: context.currentUser!.user!.id},
+    data: {email},
+  })
 
 export const requestSessionToken = async ({
   ethereumAddress,

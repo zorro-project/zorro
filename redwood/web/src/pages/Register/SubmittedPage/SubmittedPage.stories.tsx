@@ -8,7 +8,6 @@ import SubmittedPage from './SubmittedPage'
 
 const mockQuery = (query: PartialDeep<RegisterSubmittedPageQuery>) => {
   const baseMock: RegisterSubmittedPageQuery = {
-    user: {id: '2', hasEmail: true},
     registrationAttempt: {
       id: 3,
       ethereumAddress: '0x136E68D01324D5E183FAE06713f8295b8B4D9C2a',
@@ -25,7 +24,9 @@ const mockQuery = (query: PartialDeep<RegisterSubmittedPageQuery>) => {
   )
 }
 
-const user = {ethereumAddress: '0x136E68D01324D5E183FAE06713f8295b8B4D9C2a'}
+const user = {
+  user: {ethereumAddress: '0x136E68D01324D5E183FAE06713f8295b8B4D9C2a'},
+}
 
 const state = {
   register: {
@@ -91,7 +92,6 @@ export const Timeout_With_Email = () => {
 
 export const Timeout_No_Email = () => {
   mockQuery({
-    user: null,
     registrationAttempt: {
       createdAt: dayjs().subtract(1, 'day').toISOString(),
     },

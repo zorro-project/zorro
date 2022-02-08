@@ -21,7 +21,7 @@ describe('getCurrentUser', () => {
     const currentUser = await getCurrentUser(null, {
       token: await getToken('0x456', dayjs().add(1, 'day')),
     })
-    expect(currentUser?.ethereumAddress).toBe('0x456')
+    expect(currentUser?.user?.ethereumAddress).toBe('0x456')
   })
 
   it('Does not find users with an invalid token', async () => {
