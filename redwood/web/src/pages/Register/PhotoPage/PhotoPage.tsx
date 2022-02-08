@@ -15,6 +15,7 @@ import {
 import UserMediaBox from '../UserMediaBox'
 import {videoConstraints} from '../VideoPage/VideoPage'
 import RegisterScreen from '../RegisterScreen'
+import {track} from 'src/lib/posthog'
 
 const PhotoPage = () => {
   requireWalletConnected()
@@ -31,6 +32,7 @@ const TakePhotoStep = () => {
   const [isReady, setIsReady] = useState(false)
 
   const capturePhoto = useCallback(async () => {
+    track('photo captured')
     const photoUrl = webcamRef.current?.getScreenshot()
     if (!photoUrl) return
     setIsReady(false)
@@ -73,6 +75,7 @@ const ConfirmPhotoStep = () => {
   const [areButtonsEnabled, setAreButtonsEnabled] = useState(false)
   const {photo} = useAppSelector((state) => state.register)
   const redoPhoto = useCallback(() => {
+    track('redo photo clicked')
     setAreButtonsEnabled(false)
     dispatch(registerSlice.actions.setPhoto(undefined))
   }, [])
