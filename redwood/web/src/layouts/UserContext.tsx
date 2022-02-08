@@ -154,7 +154,8 @@ export function UserContextProvider({children}: {children: React.ReactNode}) {
 
     if (connectedAddress !== account.data?.address) {
       await rwAuth.logOut()
-      if (account.data?.address) await maybeAuthenticate(account.data.address)
+      if (account.data?.address && isAuthenticating)
+        await maybeAuthenticate(account.data.address)
     }
   }, [account.data?.address, initialLoadTimeoutExpired, rwAuth.logOut])
 
