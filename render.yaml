@@ -65,6 +65,7 @@ services:
         destination: /index.html
     domains:
       - testnet.zorro.xyz
+    autoDeploy: false
 
   - name: staging-api
     type: web
@@ -82,6 +83,7 @@ services:
       - fromGroup: zorro-staging
     domains:
       - staging-api.zorro.xyz
+    autoDeploy: false
 
   # END STAGING SERVICES
 
