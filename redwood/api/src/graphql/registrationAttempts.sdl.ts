@@ -11,6 +11,8 @@ export const schema = gql`
     approved: Boolean
     deniedReason: String
 
+    profileId: Int
+
     createdAt: DateTime
   }
 
@@ -21,6 +23,9 @@ export const schema = gql`
       ethereumAddress: ID! @validateAddress
     ): RegistrationAttempt @skipAuth
     optimisticallyApprovedRegs: [RegistrationAttempt!]! @skipAuth
+    optimisticallyApprovedReg(
+      ethereumAddress: ID! @validateAddress
+    ): RegistrationAttempt @skipAuth
   }
 
   input AttemptRegistrationInput {

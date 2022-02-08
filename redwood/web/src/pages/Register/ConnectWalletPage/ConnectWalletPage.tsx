@@ -1,37 +1,10 @@
-import {useState} from 'react'
 import {Text} from '@chakra-ui/layout'
 import {routes} from '@redwoodjs/router'
-import ConnectButton, {
-  reconnect,
-} from 'src/components/ConnectButton/ConnectButton'
-import {useGuard} from 'src/lib/useGuard'
+import ConnectButton from 'src/components/ConnectButton/ConnectButton'
 import {useUser} from 'src/layouts/UserContext'
-import RegisterScreen from '../RegisterScreen'
-import useAsyncEffect from 'use-async-effect'
-
-import {Alert, AlertIcon, AlertTitle, AlertDescription} from '@chakra-ui/react'
 import {requireNoExistingProfile} from 'src/lib/guards'
-
-const AddressAlert = () => (
-  <Alert
-    status="info"
-    variant="subtle"
-    flexDirection="column"
-    alignItems="center"
-    justifyContent="center"
-    textAlign="center"
-    height="200px"
-  >
-    <AlertIcon boxSize="40px" mr={0} />
-    <AlertTitle mt={4} mb={1} fontSize="lg">
-      Please make a fresh address
-    </AlertTitle>
-    <AlertDescription maxWidth="sm">
-      Creating a fresh address protects your privacy. When Metamask pops up,
-      click 'New Account'
-    </AlertDescription>
-  </Alert>
-)
+import {useGuard} from 'src/lib/useGuard'
+import RegisterScreen from '../RegisterScreen'
 
 const ConnectWalletPage: React.FC<{
   purposeIdentifier?: string

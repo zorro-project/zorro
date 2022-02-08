@@ -10,14 +10,9 @@ import {
   MutationdenyRegistrationArgs,
   MutationmarkRegistrationViewedArgs,
   QuerylatestRegistrationArgs,
+  QueryoptimisticallyApprovedRegArgs,
 } from 'types/graphql'
 import {alertUpdated} from './helpers'
-
-export const optimisticallyApprovedRegs = async () =>
-  db.registrationAttempt.findMany({
-    where: {approved: true, profileId: null},
-    orderBy: {reviewedAt: 'desc'},
-  })
 
 export const unreviewedRegistrations = async () =>
   db.registrationAttempt.findMany({where: {reviewedAt: null}})
@@ -28,6 +23,20 @@ export const latestRegistration = ({
   db.registrationAttempt.findFirst({
     where: {ethereumAddress},
     orderBy: {createdAt: 'desc'},
+  })
+
+export const optimisticallyApprovedRegs = async () =>
+  db.registrationAttempt.findMany({
+    where: {approved: true, profileId: null},
+    orderBy: {reviewedAt: 'desc'},
+  })
+
+export const optimisticallyApprovedReg = ({
+  ethereumAddress,
+}: QueryoptimisticallyApprovedRegArgs) =>
+  db.registrationAttempt.findFirst({
+    where: {approved: true, ethereumAddress},
+    orderBy: {reviewedAt: 'desc'},
   })
 
 export const attemptRegistration = async ({

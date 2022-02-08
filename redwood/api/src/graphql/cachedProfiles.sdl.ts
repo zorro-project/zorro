@@ -56,10 +56,6 @@ export const schema = gql`
   type Query {
     cachedProfiles(first: Int!, cursor: ID = 0): CachedProfileConnection
       @skipAuth
-
     cachedProfile(id: ID!, resync: Boolean = false): CachedProfile @skipAuth
-    cachedProfileByEthereumAddress(
-      ethereumAddress: ID! @validateAddress
-    ): CachedProfile @skipAuth
   }
 `

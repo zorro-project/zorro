@@ -5,7 +5,6 @@ import ProfilePage from './ProfilePage'
 const baseMock: ProfilePageQuery = {
   cachedProfile: {
     id: '12345',
-    ethereumAddress: '0x334230242d318b5ca159fc38e07dc1248b7b35e4',
     currentStatus: 'NOT_CHALLENGED',
     isVerified: true,
     cid: 'bafybeg4qt5n7szznmtbsr63bs3aaik23vrc2ptuctm5bmgqynq',
