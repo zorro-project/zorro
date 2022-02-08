@@ -49,6 +49,14 @@ export function UserContextProvider({children}: {children: React.ReactNode}) {
     string | undefined
   >('UserContext_connectedAddress', undefined)
 
+  // This is just for future-proofing to make it more more possible to move
+  // away from redwood sessions in the future if we want without making everyone
+  // sign in again to see their profile. It has an awkward name on purpose.
+  // Don't rely on this unless it's to migrate away from redwood sessions.
+  const [unusedDerivedAddress, setUnusedDerivedAddress] = useLocalStorageState<
+    string | undefined
+  >('UserContext_unusedDerivedAddress', undefined)
+
   // Set when we're
   const [isAuthenticating, setIsAuthenticating] = useState(false)
 
@@ -113,6 +121,7 @@ export function UserContextProvider({children}: {children: React.ReactNode}) {
           token: sessionTokenRequest.data?.requestSessionToken,
         })
         setConnectedAddress(address)
+        setUnusedDerivedAddress(wallet.address)
       } finally {
         setIsAuthenticating(false)
       }
