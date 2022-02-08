@@ -24,7 +24,6 @@ const EmailPage: React.FC<{next?: 'submitted' | undefined}> = ({next}) => {
   requireWalletConnected()
   requireNoExistingProfile()
   const user = useUser()
-  console.log(user)
 
   const nextPage =
     next === 'submitted' ? routes.registerSubmitted() : routes.registerSubmit()

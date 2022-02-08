@@ -5,14 +5,11 @@ import AccountModal from './AccountModal'
 
 // Adapted from https://dev.to/jacobedawson/build-a-web3-dapp-in-react-login-with-metamask-4chp
 
-export default function ConnectButton({
-  isLoading: parentDeclaredLoading,
-  ...props
-}: ButtonProps) {
+export default function ConnectButton(props: ButtonProps) {
   const user = useUser()
   const modalControl = useDisclosure()
 
-  const isLoading = user.isAuthenticating || parentDeclaredLoading
+  const isLoading = user.isAuthenticating || props.isLoading
 
   return user.connectedAddress &&
     (user.auth.isAuthenticated || user.auth.loading) &&

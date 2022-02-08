@@ -17,7 +17,6 @@ const QUERY = gql`
   query ProfilePageQuery($id: ID!) {
     cachedProfile(id: $id) {
       id
-      ethereumAddress
       currentStatus
       isVerified
       cid
@@ -60,7 +59,7 @@ const Success = (props: ProfilePageQuery) => {
   const profile = props.cachedProfile
   if (!profile) return <NotFoundPage />
 
-  const {ethereumAddress, photoCid, videoCid} = profile
+  const {photoCid, videoCid} = profile
 
   return (
     <>
@@ -70,19 +69,6 @@ const Success = (props: ProfilePageQuery) => {
       <Stack w="xl" maxW="100%" mx="auto" my="8" spacing="6">
         <Stack>
           <Heading size="md">Profile {profile.id}</Heading>
-          <Stack direction="row" alignItems="center">
-            <Icon as={FaEthereum} />
-            <Link
-              display="flex"
-              alignItems="center"
-              href={`https://etherscan.io/address/${ethereumAddress}`}
-              isExternal
-              color={'black'}
-            >
-              {ethereumAddress}
-              <ExternalLinkIcon ml={1} />
-            </Link>
-          </Stack>
           <Stack direction="row" alignItems="center">
             <Icon
               as={profile.isVerified ? FaCheck : FaTimes}

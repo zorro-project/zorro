@@ -37,59 +37,24 @@ const ConnectWalletPage: React.FC<{
   purposeIdentifier?: string
   externalAddress?: string
 }> = () => {
-  const {connectedAddress} = useUser()
-  const [isCheckingFreshness, setIsCheckingFreshness] = useState(false)
-  const [isFresh, setIsFresh] = useState()
-
   requireNoExistingProfile()
-  useGuard(!(isFresh === true), routes.registerAllowCamera())
 
-  // could use https://www.apollographql.com/docs/react/api/core/ApolloClient/#ApolloClient.query
-  useAsyncEffect(
-    async (isActive) => {
-      if (!connectedAddress) return
-      setIsCheckingFreshness(true)
-      const response = await fetch(
-        `${
-          global.RWJS_API_URL as string
-        }/getEthereumAddressUsage?address=${connectedAddress}`
-      )
-      const result = await response.json()
-      if (!isActive()) return
-      setIsCheckingFreshness(false)
-      setIsFresh(result.isFresh)
-    },
-    [connectedAddress]
-  )
-
-  if (connectedAddress && isFresh === false) {
-    return (
-      <RegisterScreen
-        shouldHideTitle
-        title="Use a fresh address"
-        buttonDescription={<AddressAlert />}
-        PrimaryButtonComponent={!connectedAddress ? ConnectButton : undefined}
-        primaryButtonLabel="Reconnect wallet"
-        primaryButtonProps={{onClick: reconnect}}
-      />
-    )
-  }
+  const {connectedAddress} = useUser()
+  useGuard(!connectedAddress, routes.registerAllowCamera())
 
   return (
     <RegisterScreen
       shouldHideTitle
       title="Connect wallet"
       buttonDescription={
-        !isCheckingFreshness && (
-          <Text>
-            To protect your privacy, connect an Ethereum wallet and{' '}
-            <strong>create a new address</strong>.
-          </Text>
-        )
+        // XXX: You don't need a new address anymore. Should we remove this screen entirely?
+        <Text>
+          To protect your privacy, connect an Ethereum wallet and{' '}
+          <strong>create a new address</strong>.
+        </Text>
       }
       PrimaryButtonComponent={!connectedAddress ? ConnectButton : undefined}
       primaryButtonLabel="Connect wallet"
-      primaryButtonProps={{isLoading: isCheckingFreshness}}
     />
   )
 }

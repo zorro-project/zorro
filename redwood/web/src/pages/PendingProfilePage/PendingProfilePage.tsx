@@ -56,27 +56,14 @@ const PendingProfilePage: React.FC<{id: string}> = ({id}) => {
   return (
     <>
       <MetaTags title="Pending Profile" />
-      <Breadcrumbs pageTitle={id} />
+      <Breadcrumbs pageTitle="Pending Profile" />
       <Stack w="xl" maxW="100%" mx="auto" my="8" spacing="6">
         <Heading size="md">Pending Profile</Heading>
-        <Stack direction="row" alignItems="center">
-          <Icon as={FaEthereum} />
-          <Link
-            display="flex"
-            alignItems="center"
-            href={`https://etherscan.io/address/${id}`}
-            isExternal
-            color={'black'}
-          >
-            {id}
-            <ExternalLinkIcon ml={1} />
-          </Link>
-        </Stack>
         <Stack direction="row" alignItems="center">
           <Icon as={FaHourglass} color="yellow.500" />
           <Text>
             This profile has been notarized and submitted on-chain. It should go
-            live in the next few minutes.
+            live and be assigned an ID in the next few minutes.
           </Text>
         </Stack>
         <Divider />
