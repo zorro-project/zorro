@@ -5,6 +5,7 @@ import {useState} from 'react'
 import {RLink} from 'src/components/links'
 import {useUser} from 'src/layouts/UserContext'
 import {requireNoExistingProfile, requireWalletConnected} from 'src/lib/guards'
+import {track} from 'src/lib/posthog'
 import {useGuard} from 'src/lib/useGuard'
 import {appNav} from 'src/lib/util'
 import {SetEmailMutation, SetEmailMutationVariables} from 'types/graphql'
@@ -37,6 +38,7 @@ const EmailPage: React.FC<{next?: 'submitted' | undefined}> = ({next}) => {
   const [setEmailMutation] = useSetEmail()
 
   const handleSubmit = async (e: React.FormEvent) => {
+    track('email submitted')
     e.preventDefault()
     if (!user.user?.ethereumAddress) return
     setEmailMutation({variables: {email}})

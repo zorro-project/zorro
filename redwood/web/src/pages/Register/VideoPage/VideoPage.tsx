@@ -8,6 +8,7 @@ import {
   requireNoExistingProfile,
   requireWalletConnected,
 } from 'src/lib/guards'
+import {track} from 'src/lib/posthog'
 import {useGuard} from 'src/lib/useGuard'
 import {maybeCidToUrl} from 'src/lib/util'
 import {registerSlice} from 'src/state/registerSlice'
@@ -53,6 +54,8 @@ const RecordVideoStep = ({mockRecording}: {mockRecording?: boolean}) => {
   }, [])
 
   const startRecording = useCallback(async () => {
+    track('recording started')
+
     setIsRecording(true)
     // @ts-expect-error TODO: why are we assigning to a supposedly readonly ref
     // here? Just copied the example from
@@ -67,6 +70,7 @@ const RecordVideoStep = ({mockRecording}: {mockRecording?: boolean}) => {
   }, [webcamRef.current, setIsRecording, mediaRecorderRef.current])
 
   const stopRecording = useCallback(() => {
+    track('recording stopped')
     mediaRecorderRef.current?.stop()
     setIsRecording(false)
     setIsStreamReady(false)
@@ -149,6 +153,7 @@ const ConfirmVideoStep = () => {
   const {video} = useAppSelector((state) => state.register)
 
   const redoVideo = useCallback(() => {
+    track('redo video clicked')
     dispatch(registerSlice.actions.setVideo(undefined))
   }, [])
 

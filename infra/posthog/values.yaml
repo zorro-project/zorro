@@ -1,0 +1,15 @@
+cloud: 'aws'
+ingress:
+  hostname: posthog.zorro.xyz
+  nginx:
+    enabled: true
+cert-manager:
+  enabled: true
+
+ingress-nginx:
+  controller:
+    config:
+      use-proxy-protocol: true
+    service:
+      annotations:
+        service.beta.kubernetes.io/aws-load-balancer-proxy-protocol: '*'

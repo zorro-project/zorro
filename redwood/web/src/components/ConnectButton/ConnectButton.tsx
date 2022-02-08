@@ -1,6 +1,7 @@
 import {Button, ButtonProps, Stack, Text, useDisclosure} from '@chakra-ui/react'
 import Identicon from 'src/components/Identicon'
 import {useUser} from 'src/layouts/UserContext'
+import {track} from 'src/lib/posthog'
 import AccountModal from './AccountModal'
 
 // Adapted from https://dev.to/jacobedawson/build-a-web3-dapp-in-react-login-with-metamask-4chp
@@ -36,8 +37,10 @@ export default function ConnectButton(props: ButtonProps) {
     </>
   ) : (
     <Button
-      onClick={user.onConnectButtonPressed}
-      isLoading={isLoading}
+      onClick={() => {
+        track('connect button pressed')
+        user.onConnectButtonPressed()
+      }}
       // eslint-disable-next-line react/no-children-prop
       children="Connect Wallet"
       {...props}

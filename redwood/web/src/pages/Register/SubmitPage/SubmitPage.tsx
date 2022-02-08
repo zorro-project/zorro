@@ -18,6 +18,7 @@ import {
 import UserMediaBox from '../UserMediaBox'
 import MinimalVideoPlayer from '../MinimalVideoPlayer'
 import RegisterScreen from '../RegisterScreen'
+import {track} from 'src/lib/posthog'
 
 const SubmitPage: FC<{initialSubmitProgress?: number}> = ({
   initialSubmitProgress = -1,
@@ -48,12 +49,15 @@ const SubmitPage: FC<{initialSubmitProgress?: number}> = ({
   `)
 
   const startOver = useCallback(() => {
+    track('registration started over')
     dispatch(registerSlice.actions.resetForm())
     navigate(routes.registerPhoto())
   }, [])
 
   if (!user) return null
-  const submit = React.useCallback(async () => {
+  const submit = useCallback(async () => {
+    track('registration submitted')
+
     setSubmitProgress(0)
 
     const photoBlob = isLocalUrl(registerState.photo)

@@ -8,6 +8,7 @@ import {useUser} from 'src/layouts/UserContext'
 import {save as saveIntendedConnection} from 'src/lib/intendedConnectionStorage'
 import {requireNoExistingProfile} from '../../../lib/guards'
 import RegisterScreen from '../RegisterScreen'
+import {track} from 'src/lib/posthog'
 
 const IntroPage: React.FC<{
   purposeIdentifier?: string
@@ -26,6 +27,7 @@ const IntroPage: React.FC<{
 
   const toast = useToast()
   const alreadyRegistered = () => {
+    track('already registered clicked')
     toast({
       title:
         'Please connect the wallet account that you previously registered with.',
