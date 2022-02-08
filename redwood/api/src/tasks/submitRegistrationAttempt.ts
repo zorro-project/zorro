@@ -39,5 +39,10 @@ const submitRegistrationAttempt = async (args: {id: number}) => {
 export default submitRegistrationAttempt
 
 export const backgroundSubmitRegistration = async (id: number) => {
-  quickAddJob({}, 'submitRegistrationAttempt', {id})
+  quickAddJob(
+    {},
+    'submitRegistrationAttempt',
+    {id},
+    {queueName: 'submitRegistrationAttempt'}
+  )
 }

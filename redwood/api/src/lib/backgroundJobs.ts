@@ -9,13 +9,14 @@ const initialize = async () => {
       // Sync Starknet state every hour at 35 minutes past the hour (arbitrary offset)
       {
         task: 'syncStarknetState',
-        pattern: '35 * * * *',
+        pattern: '08 * * * *',
         options: {
           backfillPeriod: 0,
           maxAttempts: 1,
           queueName: 'scheduled_syncStarknetState',
           priority: 10,
         },
+        identifier: 'scheduled_syncStarknetState',
       },
     ]),
   })
