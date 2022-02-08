@@ -38,7 +38,7 @@ export type UserContextType = {
 const UserContext = React.createContext<UserContextType>({} as UserContextType)
 
 const AUTH_STRING_TO_SIGN =
-  'Sign this string to generate your Zorro authentication credentials. Only sign it if a trusted party asks you to, because your signature can be used to impersonate you on Zorro.'
+  'Only sign this message if you initiated an action with Zorro'
 
 export function UserContextProvider({children}: {children: React.ReactNode}) {
   const [account] = useAccount()
@@ -163,7 +163,8 @@ export function UserContextProvider({children}: {children: React.ReactNode}) {
 
     if (connectedAddress !== account.data?.address) {
       await rwAuth.logOut()
-      if (account.data?.address) await maybeAuthenticate(account.data.address)
+      if (account.data?.address && isAuthenticating)
+        await maybeAuthenticate(account.data.address)
     }
   }, [account.data?.address, initialLoadTimeoutExpired, rwAuth.logOut])
 
