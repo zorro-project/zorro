@@ -58,15 +58,10 @@ const RecordVideoStep = ({mockRecording}: {mockRecording?: boolean}) => {
     // here? Just copied the example from
     // https://codepen.io/mozmorris/pen/yLYKzyp?editors=0010
     mediaRecorderRef.current = new MediaRecorder(webcamRef.current.stream, {
-      mimeType: 'video/webm',
+      mimeType: 'video/webm;codecs=vp8,opus',
     })
     mediaRecorderRef.current.addEventListener('dataavailable', ({data}) => {
-      // Create a copy of the blob with the mime type set to 'video/webm'.
-      // Without this at least on MacOS/Chrome I get a mime type of
-      // video/x-matroska;codecs=avc1,opus, which Infura refuses to accept
-      // as a valid mime-type when uploading the video.
-      const video = data.slice(0, data.size, 'video/webm')
-      dispatch(registerSlice.actions.setVideo(URL.createObjectURL(video)))
+      dispatch(registerSlice.actions.setVideo(URL.createObjectURL(data)))
     })
     mediaRecorderRef.current.start()
   }, [webcamRef.current, setIsRecording, mediaRecorderRef.current])
