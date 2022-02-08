@@ -1,22 +1,22 @@
 import {Button, ButtonProps, Stack, Text, useDisclosure} from '@chakra-ui/react'
 import Identicon from 'src/components/Identicon'
 import {useUser} from 'src/layouts/UserContext'
-import {useConnect} from 'wagmi'
 import AccountModal from './AccountModal'
 
 // Adapted from https://dev.to/jacobedawson/build-a-web3-dapp-in-react-login-with-metamask-4chp
 
-export default function ConnectButton({isLoading, ...props}: ButtonProps) {
+export default function ConnectButton({
+  isLoading: parentDeclaredLoading,
+  ...props
+}: ButtonProps) {
   const user = useUser()
   const modalControl = useDisclosure()
 
-  const [{data, loading: isConnecting}, connect] = useConnect()
+  const isLoading = user.isAuthenticating || parentDeclaredLoading
 
-  const signIn = async () => {
-    connect(data.connectors[0])
-  }
-
-  return user.ethereumAddress ? (
+  return user.connectedAddress &&
+    (user.auth.isAuthenticated || user.auth.loading) &&
+    !isLoading ? (
     <>
       <Stack>
         <AccountModal
@@ -26,21 +26,21 @@ export default function ConnectButton({isLoading, ...props}: ButtonProps) {
         <Button variant="outline" onClick={modalControl.onOpen}>
           <Stack direction="row" alignItems="center">
             <Text fontWeight="bold">
-              {user.ethereumAddress.slice(0, 6)}...
-              {user.ethereumAddress.slice(
-                user.ethereumAddress.length - 4,
-                user.ethereumAddress.length
+              {user.connectedAddress.slice(0, 6)}...
+              {user.connectedAddress.slice(
+                user.connectedAddress.length - 4,
+                user.connectedAddress.length
               )}
             </Text>
-            <Identicon account={user.ethereumAddress} />
+            <Identicon account={user.connectedAddress} />
           </Stack>
         </Button>
       </Stack>
     </>
   ) : (
     <Button
-      onClick={signIn}
-      isLoading={isLoading || isConnecting}
+      onClick={user.onConnectButtonPressed}
+      isLoading={isLoading}
       // eslint-disable-next-line react/no-children-prop
       children="Connect Wallet"
       {...props}

@@ -1,9 +1,9 @@
+import Iron from '@hapi/iron'
 import {RoleEnum} from '@prisma/client'
 import {AuthenticationError, ForbiddenError} from '@redwoodjs/graphql-server'
+import dayjs from 'dayjs'
 import {compact} from 'lodash'
 import {db} from './db'
-import Iron from '@hapi/iron'
-import dayjs from 'dayjs'
 
 if (!process.env.SESSION_SECRET && process.env.NODE_ENV === 'production')
   throw new Error('SESSION_SECRET must be set in production. See .env.example')
@@ -29,16 +29,35 @@ export const getCurrentUser = async (_: unknown, {token}: {token: string}) => {
   // If we've passed the expiration date you need a new token
   if (dayjs(sessionData.expiresAt).isBefore(dayjs())) return null
 
-  return db.user.findFirst({
-    where: {
-      ethereumAddress: sessionData.ethereumAddress,
-    },
-    select: {
-      id: true,
-      ethereumAddress: true,
-      roles: true,
-    },
-  })
+  const {ethereumAddress} = sessionData
+
+  const [user, registrationAttempt, cachedProfile] = await Promise.all([
+    db.user.findFirst({
+      where: {ethereumAddress},
+      select: {
+        id: true,
+        ethereumAddress: true,
+        roles: true,
+        email: true,
+      },
+    }),
+    db.registrationAttempt.findFirst({
+      where: {ethereumAddress},
+      orderBy: {createdAt: 'desc'},
+      select: {
+        id: true,
+        approved: true,
+      },
+    }),
+    db.cachedProfile.findUnique({
+      where: {ethereumAddress},
+      select: {
+        id: true,
+      },
+    }),
+  ])
+
+  return {user, registrationAttempt, cachedProfile}
 }
 
 export type CurrentUser = Awaited<ReturnType<typeof getCurrentUser>>
@@ -48,7 +67,8 @@ export const isAuthenticated = (): boolean => {
 }
 
 export const hasRole = (roles: (RoleEnum | string | null)[]): boolean =>
-  context.currentUser?.roles?.some((r) => compact(roles).includes(r)) ?? false
+  context.currentUser?.user?.roles?.some((r) => compact(roles).includes(r)) ??
+  false
 
 export const requireAuth = (args?: {
   roles?: (RoleEnum | null | string)[] | null

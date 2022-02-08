@@ -10,6 +10,7 @@ import RegisterScreen from '../RegisterScreen'
 import useAsyncEffect from 'use-async-effect'
 
 import {Alert, AlertIcon, AlertTitle, AlertDescription} from '@chakra-ui/react'
+import {requireNoExistingProfile} from 'src/lib/guards'
 
 const AddressAlert = () => (
   <Alert
@@ -36,39 +37,38 @@ const ConnectWalletPage: React.FC<{
   purposeIdentifier?: string
   externalAddress?: string
 }> = () => {
-  const {ethereumAddress, registrationAttempt} = useUser()
-  //const [hadEthereumAddressOnLoad] = useState(!!ethereumAddress)
+  const {connectedAddress} = useUser()
   const [isCheckingFreshness, setIsCheckingFreshness] = useState(false)
   const [isFresh, setIsFresh] = useState()
 
-  useGuard(!registrationAttempt, routes.registerSubmitted())
+  requireNoExistingProfile()
   useGuard(!(isFresh === true), routes.registerAllowCamera())
 
   // could use https://www.apollographql.com/docs/react/api/core/ApolloClient/#ApolloClient.query
   useAsyncEffect(
     async (isActive) => {
-      if (!ethereumAddress) return
+      if (!connectedAddress) return
       setIsCheckingFreshness(true)
       const response = await fetch(
         `${
           global.RWJS_API_URL as string
-        }/getEthereumAddressUsage?address=${ethereumAddress}`
+        }/getEthereumAddressUsage?address=${connectedAddress}`
       )
       const result = await response.json()
       if (!isActive()) return
       setIsCheckingFreshness(false)
       setIsFresh(result.isFresh)
     },
-    [ethereumAddress]
+    [connectedAddress]
   )
 
-  if (ethereumAddress && isFresh === false) {
+  if (connectedAddress && isFresh === false) {
     return (
       <RegisterScreen
         shouldHideTitle
         title="Use a fresh address"
         buttonDescription={<AddressAlert />}
-        PrimaryButtonComponent={!ethereumAddress ? ConnectButton : undefined}
+        PrimaryButtonComponent={!connectedAddress ? ConnectButton : undefined}
         primaryButtonLabel="Reconnect wallet"
         primaryButtonProps={{onClick: reconnect}}
       />
@@ -87,7 +87,7 @@ const ConnectWalletPage: React.FC<{
           </Text>
         )
       }
-      PrimaryButtonComponent={!ethereumAddress ? ConnectButton : undefined}
+      PrimaryButtonComponent={!connectedAddress ? ConnectButton : undefined}
       primaryButtonLabel="Connect wallet"
       primaryButtonProps={{isLoading: isCheckingFreshness}}
     />

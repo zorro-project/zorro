@@ -2,7 +2,7 @@ import dayjs from 'dayjs'
 import {Wallet} from 'ethers'
 import {getCurrentUser} from 'src/lib/auth'
 import {db} from 'src/lib/db'
-import {requestSessionAuthString, requestSessionToken} from './users'
+import {requestSessionToken} from './users'
 
 describe('auth', () => {
   it('round-trips a successful login', async () => {
@@ -24,7 +24,7 @@ describe('auth', () => {
       where: {ethereumAddress: wallet.address},
     })
 
-    expect(currentUser!.id).toEqual(sessionUser!.id)
+    expect(currentUser!.user!.id).toEqual(sessionUser!.id)
   })
 
   it("Doesn't provide session tokens for invalid signatures", async () => {

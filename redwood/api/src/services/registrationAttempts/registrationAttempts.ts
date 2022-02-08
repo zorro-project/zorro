@@ -92,7 +92,7 @@ export const denyRegistration = async ({
     data: {
       approved: false,
       reviewedAt: new Date(),
-      reviewedById: context.currentUser.id,
+      reviewedById: context.currentUser.user?.id,
       deniedReason: feedback,
     },
   })
@@ -115,7 +115,7 @@ export const approveRegistration = async ({
     data: {
       approved: true,
       reviewedAt: new Date(),
-      reviewedById: context.currentUser.id,
+      reviewedById: context.currentUser.user?.id,
     },
   })
 
