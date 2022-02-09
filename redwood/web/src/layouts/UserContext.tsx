@@ -9,7 +9,7 @@ import {RequestSessionToken, RequestSessionTokenVariables} from 'types/graphql'
 import useAsyncEffect from 'use-async-effect'
 import useLocalStorageState from 'use-local-storage-state'
 import {useAccount, useConnect, useSigner} from 'wagmi'
-import {CurrentUser} from '../../../api/src/lib/auth'
+import {ClientCurrentUser} from '../../../api/src/lib/auth'
 
 export type UserContextType = {
   // The `connectedAddress` is the address that is both connected and
@@ -33,7 +33,7 @@ export type UserContextType = {
   auth: AuthContextInterface
 
   // We also return all the fields from the `CurrentUser` type for convenience.
-} & (CurrentUser | undefined)
+} & (ClientCurrentUser | undefined)
 
 const UserContext = React.createContext<UserContextType>({} as UserContextType)
 
@@ -184,7 +184,7 @@ export function UserContextProvider({children}: {children: React.ReactNode}) {
     onConnectButtonPressed,
     auth: rwAuth,
     loading: rwAuth.loading,
-    ...(rwAuth.currentUser as CurrentUser | undefined),
+    ...(rwAuth.currentUser as ClientCurrentUser | undefined),
   } as UserContextType
 
   return <UserContext.Provider value={context}>{children}</UserContext.Provider>
