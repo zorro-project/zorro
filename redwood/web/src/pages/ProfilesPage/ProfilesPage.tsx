@@ -99,7 +99,7 @@ const ProfilesPage = () => {
       <MetaTags title="All Profiles" />
       <Heading as="h1">All Profiles</Heading>
 
-      <Box mx="-2" mt="6" flex={1} height="100%">
+      <Box mx="-2" mt="6" flex={1}>
         <AutoSizer>
           {({width, height}) => {
             const minCardSize = windowWidth > 800 ? 200 : 150
