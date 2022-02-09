@@ -9,7 +9,7 @@ import {RequestSessionToken, RequestSessionTokenVariables} from 'types/graphql'
 import useAsyncEffect from 'use-async-effect'
 import useLocalStorageState from 'use-local-storage-state'
 import {useAccount, useConnect, useSigner} from 'wagmi'
-import {CurrentUser} from '../../../api/src/lib/auth'
+import {ClientCurrentUser} from '../../../api/src/lib/auth'
 
 export type UserContextType = {
   // The `connectedAddress` is the address that is both connected and
@@ -33,12 +33,12 @@ export type UserContextType = {
   auth: AuthContextInterface
 
   // We also return all the fields from the `CurrentUser` type for convenience.
-} & (CurrentUser | undefined)
+} & (ClientCurrentUser | undefined)
 
 const UserContext = React.createContext<UserContextType>({} as UserContextType)
 
 const AUTH_STRING_TO_SIGN =
-  'Sign this string to generate your Zorro authentication credentials. Only sign it if a trusted party asks you to, because your signature can be used to impersonate you on Zorro.'
+  'Only sign this message if you initiated an action with Zorro'
 
 export function UserContextProvider({children}: {children: React.ReactNode}) {
   const [account] = useAccount()
@@ -48,6 +48,15 @@ export function UserContextProvider({children}: {children: React.ReactNode}) {
   const [connectedAddress, setConnectedAddress] = useLocalStorageState<
     string | undefined
   >('UserContext_connectedAddress', undefined)
+
+  // This is just for future-proofing to make it more more possible to move
+  // away from redwood sessions in the future if we want without making everyone
+  // sign in again to see their profile. It has an awkward name on purpose.
+  // Don't rely on this unless it's to migrate away from redwood sessions.
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [unusedDerivedAddress, setUnusedDerivedAddress] = useLocalStorageState<
+    string | undefined
+  >('UserContext_unusedDerivedAddress', undefined)
 
   // Set when we're
   const [isAuthenticating, setIsAuthenticating] = useState(false)
@@ -113,6 +122,7 @@ export function UserContextProvider({children}: {children: React.ReactNode}) {
           token: sessionTokenRequest.data?.requestSessionToken,
         })
         setConnectedAddress(address)
+        setUnusedDerivedAddress(wallet.address)
       } finally {
         setIsAuthenticating(false)
       }
@@ -154,7 +164,8 @@ export function UserContextProvider({children}: {children: React.ReactNode}) {
 
     if (connectedAddress !== account.data?.address) {
       await rwAuth.logOut()
-      if (account.data?.address) await maybeAuthenticate(account.data.address)
+      if (account.data?.address && isAuthenticating)
+        await maybeAuthenticate(account.data.address)
     }
   }, [account.data?.address, initialLoadTimeoutExpired, rwAuth.logOut])
 
@@ -173,7 +184,7 @@ export function UserContextProvider({children}: {children: React.ReactNode}) {
     onConnectButtonPressed,
     auth: rwAuth,
     loading: rwAuth.loading,
-    ...(rwAuth.currentUser as CurrentUser | undefined),
+    ...(rwAuth.currentUser as ClientCurrentUser | undefined),
   } as UserContextType
 
   return <UserContext.Provider value={context}>{children}</UserContext.Provider>

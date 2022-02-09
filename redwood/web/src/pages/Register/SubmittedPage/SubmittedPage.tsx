@@ -20,6 +20,7 @@ import {Fireworks} from 'fireworks-js'
 import React, {useCallback, useEffect, useState} from 'react'
 import {InternalLink, RLink} from 'src/components/links'
 import {useUser} from 'src/layouts/UserContext'
+import {track, useTrackOnMount} from 'src/lib/posthog'
 import {watchRegAttempt} from 'src/lib/pusher'
 import {useGuard} from 'src/lib/useGuard'
 import {maybeCidToUrl} from 'src/lib/util'
@@ -96,9 +97,7 @@ const SubmittedPage = () => {
         title="Checking your application"
         message={
           <>
-            <Text>
-              A volunteer community notary is looking at your application!
-            </Text>
+            <Text>A Zorro notary is looking at your application!</Text>
             <Text>Expected wait: 2 minutes</Text>
           </>
         }
@@ -151,11 +150,14 @@ const AwaitingNotary = ({
   const [didAcknowledgeTimeoutModal, setDidAcknowledgeTimeoutModal] =
     useState(false)
 
+  useTrackOnMount('submission awaiting notary shown', {title})
+
   const millisecondsUntilTimeoutAtMount = timeout - (mountMts - triggeredMts)
 
   useAsyncEffect(async (isActive) => {
     await wait(millisecondsUntilTimeoutAtMount)
     if (!isActive()) return
+    track('submission timeout modal shown', {hasEmail})
     setShouldShowTimeoutModal(true)
   }, [])
 
@@ -178,6 +180,7 @@ const AwaitingNotary = ({
       <TimeoutModal
         isOpen={shouldShowTimeoutModal}
         onClose={() => {
+          track('submitted timeout modal closed')
           setDidAcknowledgeTimeoutModal(true)
         }}
       />
@@ -229,15 +232,15 @@ const TimeoutModalAskForEmail = ({
 
   const [setEmailMutation] = useSetEmail()
 
-  const saveEmail = async () => {
-    if (!user.user?.ethereumAddress) return
-    setEmailMutation({variables: {email}})
-    await user.auth.reauthenticate()
-  }
-
   const submit = async (e: React.FormEvent) => {
     e.preventDefault()
-    await saveEmail()
+    if (!user.user?.ethereumAddress) return
+
+    track('email submitted')
+
+    setEmailMutation({variables: {email}})
+    await user.auth.reauthenticate()
+
     onClose()
   }
 
@@ -284,6 +287,8 @@ const TimeoutModalAskForEmail = ({
 }
 
 const CitizenshipActive = () => {
+  useTrackOnMount('submission citizenship active shown')
+
   useEffect(() => {
     const fireworksContainer = document.createElement('div')
     fireworksContainer.style.position = 'absolute'
@@ -334,6 +339,8 @@ const CitizenshipActive = () => {
 }
 
 const RegistrationPending = ({hasEmail}: {hasEmail: boolean}) => {
+  useTrackOnMount('submission registration pending shown', {hasEmail})
+
   return (
     <>
       <RegisterScreen title="Application pending">
@@ -382,6 +389,8 @@ const RegistrationFeedback: React.FC<{
     RegisterSubmittedPageQuery['registrationAttempt']
   >
 }> = ({registrationAttempt}) => {
+  useTrackOnMount('submission feedback shown')
+
   const dispatch = useAppDispatch()
 
   const startOver = useCallback(() => {

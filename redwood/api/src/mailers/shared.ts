@@ -1,6 +1,7 @@
 import html from 'html-template-tag'
+import {urlConfig} from 'src/lib/config'
 
-export default function layout(content: string): string {
+export function layout(content: string): string {
   return html`
     <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
@@ -15,3 +16,5 @@ export default function layout(content: string): string {
     $${content}
   `
 }
+
+export const defaultFrom = `Zorro Protocol <no-reply@${urlConfig.domain}>`

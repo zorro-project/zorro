@@ -1,26 +1,84 @@
-import {Button, ButtonProps, Stack, Text, useDisclosure} from '@chakra-ui/react'
+import {
+  Button,
+  ButtonProps,
+  Link,
+  Modal,
+  ModalBody,
+  ModalCloseButton,
+  ModalContent,
+  ModalHeader,
+  ModalOverlay,
+  Stack,
+  Text,
+  useDisclosure,
+  UseDisclosureReturn,
+} from '@chakra-ui/react'
 import Identicon from 'src/components/Identicon'
 import {useUser} from 'src/layouts/UserContext'
+import {track} from 'src/lib/posthog'
+import {useConnect} from 'wagmi'
 import AccountModal from './AccountModal'
 
-// Adapted from https://dev.to/jacobedawson/build-a-web3-dapp-in-react-login-with-metamask-4chp
+const NoMetamask = ({control}: {control: UseDisclosureReturn}) => (
+  <Modal isOpen={control.isOpen} onClose={control.onClose} isCentered>
+    <ModalOverlay />
+    <ModalContent p={4}>
+      <ModalHeader>Please install a browser wallet</ModalHeader>
+      <ModalCloseButton />
+
+      <ModalBody>
+        <Stack spacing={4}>
+          <Text>
+            Zorro needs a browser crypto wallet to work, and we can't detect
+            one. 😧 Please{' '}
+            <Link
+              href="https://metamask.io/"
+              onClick={() => track('clicked install metamask')}
+              isExternal
+              fontWeight="bold"
+            >
+              install MetaMask
+            </Link>{' '}
+            and come back.
+          </Text>
+          <Text>
+            Supporting more wallets is a high priority. Let us know{' '}
+            <Link
+              href="https://discord.com/channels/905249020576944139/940975443790684170"
+              isExternal
+              onClick={() => track('clicked discord feedback')}
+            >
+              on Discord
+            </Link>{' '}
+            if you need another wallet type so we can ping you when that's
+            ready! 🙏
+          </Text>
+        </Stack>
+      </ModalBody>
+    </ModalContent>
+  </Modal>
+)
 
 export default function ConnectButton(props: ButtonProps) {
   const user = useUser()
-  const modalControl = useDisclosure()
+  const accountModalControl = useDisclosure()
+  const noMetamaskModalControl = useDisclosure()
 
   const isLoading = user.isAuthenticating || props.isLoading
+
+  const [{data: connectors}] = useConnect()
 
   return user.connectedAddress &&
     (user.auth.isAuthenticated || user.auth.loading) &&
     !isLoading ? (
     <>
       <Stack>
-        <AccountModal
-          isOpen={modalControl.isOpen}
-          onClose={modalControl.onClose}
-        />
-        <Button variant="outline" onClick={modalControl.onOpen} {...props}>
+        <AccountModal control={accountModalControl} />
+        <Button
+          variant="outline"
+          onClick={accountModalControl.onOpen}
+          {...props}
+        >
           <Stack direction="row" alignItems="center">
             <Text fontWeight="bold">
               {user.connectedAddress.slice(0, 6)}...
@@ -35,13 +93,23 @@ export default function ConnectButton(props: ButtonProps) {
       </Stack>
     </>
   ) : (
-    <Button
-      onClick={user.onConnectButtonPressed}
-      isLoading={isLoading}
-      // eslint-disable-next-line react/no-children-prop
-      children="Connect Wallet"
-      {...props}
-    />
+    <>
+      <Button
+        onClick={() => {
+          track('connect button pressed')
+          if (!connectors.connector) {
+            track('no connector available')
+            noMetamaskModalControl.onOpen()
+          } else {
+            user.onConnectButtonPressed()
+          }
+        }}
+        // eslint-disable-next-line react/no-children-prop
+        children="Connect Wallet"
+        {...props}
+      />
+      <NoMetamask control={noMetamaskModalControl} />
+    </>
   )
 }
 
