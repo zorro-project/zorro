@@ -1,4 +1,4 @@
-import {WEB_DOMAIN} from 'src/lib/config'
+import {urlBase} from 'src/lib/config'
 import {db} from 'src/lib/db'
 import {NOTARY_PHONE_NUMBERS} from 'src/lib/protocolNotifications'
 import {sendMessage} from 'src/lib/twilio'
@@ -59,7 +59,7 @@ export const attemptRegistration = async ({
   if (pendingCount > 0) {
     await sendMessage(
       NOTARY_PHONE_NUMBERS,
-      `${pendingCount} Zorro registrations awaiting review. ${WEB_DOMAIN}/unreviewed-registrations`
+      `${pendingCount} Zorro registrations awaiting review. ${urlBase}/unreviewed-registrations`
     )
   }
 

@@ -97,9 +97,7 @@ const SubmittedPage = () => {
         title="Checking your application"
         message={
           <>
-            <Text>
-              A volunteer community notary is looking at your application!
-            </Text>
+            <Text>A Zorro notary is looking at your application!</Text>
             <Text>Expected wait: 2 minutes</Text>
           </>
         }

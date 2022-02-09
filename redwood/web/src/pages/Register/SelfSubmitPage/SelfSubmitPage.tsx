@@ -14,7 +14,7 @@ const SelfSubmitPage = () => {
     >
       <TextContainer pt="8">
         <Text>
-          If the Zorro community notary is down, or is taking too long to review
+          If the Zorro notary service is down, or is taking too long to review
           and approve your profile, or wrongly denies it, you have the option to{' '}
           <strong>self submit</strong>.
         </Text>
@@ -24,11 +24,11 @@ const SelfSubmitPage = () => {
         </Text>
         <Text>
           Self-submitting is more expensive than submitting through the Zorro
-          community notary, because you'll be required to pay your own
-          transaction fees and security deposit (the security deposit is
-          forfeited if your profile does not meet the registry requirements and
-          is successfully challenged). It is also slower, since there's a 3-day
-          mandatory challenge period before your profile becomes live.
+          notary service, because you'll be required to pay your own transaction
+          fees and security deposit (the security deposit is forfeited if your
+          profile does not meet the registry requirements and is successfully
+          challenged). It is also slower, since there's a 3-day mandatory
+          challenge period before your profile becomes live.
         </Text>
         <Text>
           The easiest way to self-submit is to use the{' '}

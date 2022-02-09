@@ -8,7 +8,7 @@ import {IterableElement} from 'type-fest'
 
 export const requireWalletConnected = () => {
   const {connectedAddress} = useUser()
-  useGuard(connectedAddress, routes.registerIntro())
+  // useGuard(connectedAddress, routes.registerIntro())
   return connectedAddress
 }
 
