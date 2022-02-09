@@ -296,6 +296,7 @@ const CitizenshipActive = () => {
     fireworksContainer.style.bottom = '0'
     fireworksContainer.style.left = '0'
     fireworksContainer.style.right = '0'
+    fireworksContainer.style.pointerEvents = 'none'
     document.getElementById('register-content')?.appendChild(fireworksContainer)
     const fireworks = new Fireworks(fireworksContainer, {
       friction: 0.95,
@@ -319,7 +320,14 @@ const CitizenshipActive = () => {
   }, [])
 
   return (
-    <RegisterScreen title="Congratulations!">
+    <RegisterScreen
+      title="Congratulations!"
+      primaryButtonLabel="Finish"
+      primaryButtonProps={{
+        as: RLink,
+        to: routes.home(),
+      }}
+    >
       <Center>
         <Alert
           status="success"
