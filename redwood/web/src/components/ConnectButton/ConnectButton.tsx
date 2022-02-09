@@ -103,6 +103,7 @@ export default function ConnectButton(props: ButtonProps) {
         }}
         // eslint-disable-next-line react/no-children-prop
         children="Connect Wallet"
+        isLoading={isLoading}
         {...props}
       />
       <NoMetamask control={noMetamaskModalControl} />
