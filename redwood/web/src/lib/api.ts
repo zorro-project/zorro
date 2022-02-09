@@ -23,3 +23,5 @@ export {
   ERC20Address,
   NotaryAddress,
 } from '../../../api/src/chain/contracts'
+
+export {registrationStatement} from '../../../api/src/services/registrationAttempts/approvalChecklist'

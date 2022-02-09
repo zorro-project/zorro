@@ -89,7 +89,8 @@ model RegistrationAttempt {
   reviewedById Int?
   reviewedBy   User?     @relation("reviewedBy", fields: [reviewedById], references: [id])
   approved     Boolean?
-  deniedReason String?
+
+  approvalChecklist Json @db.JsonB
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

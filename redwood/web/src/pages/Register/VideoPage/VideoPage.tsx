@@ -3,6 +3,7 @@ import {Fade} from '@chakra-ui/react'
 import {navigate, routes} from '@redwoodjs/router'
 import {useCallback, useRef, useState} from 'react'
 import Webcam from 'react-webcam'
+import {registrationStatement} from 'src/lib/api'
 import {
   requireCameraAllowed,
   requireNoExistingProfile,
@@ -76,11 +77,6 @@ const RecordVideoStep = ({mockRecording}: {mockRecording?: boolean}) => {
     setIsStreamReady(false)
   }, [mediaRecorderRef, setIsRecording, setIsStreamReady])
 
-  const registrationStatement =
-    process.env.CHAIN_DEPLOYMENT === 'production'
-      ? 'I swear this is my first time registering on Zorro'
-      : "I swear that I'm registering on Zorro for testing purposes"
-
   return (
     <RegisterScreen
       hero={
@@ -132,7 +128,7 @@ const RecordVideoStep = ({mockRecording}: {mockRecording?: boolean}) => {
             Ready to be sworn in? Just read the words on the next screen.
           </Text>
         ) : (
-          <Text fontSize="xl">{`"${registrationStatement}"`}</Text>
+          <Text fontSize="xl">"{registrationStatement}"</Text>
         )
       }
       primaryButtonLabel={
