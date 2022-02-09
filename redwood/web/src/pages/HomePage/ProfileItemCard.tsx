@@ -1,6 +1,7 @@
 import Icon from '@chakra-ui/icon'
 import {Image} from '@chakra-ui/image'
 import {Box, Text, HStack, Flex} from '@chakra-ui/layout'
+import {BoxProps} from '@chakra-ui/react'
 import {routes} from '@redwoodjs/router'
 import dayjs from 'dayjs'
 import {
