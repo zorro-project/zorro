@@ -9,21 +9,26 @@ import {
   ModalHeader,
   ModalOverlay,
   Text,
+  UseDisclosureReturn,
 } from '@chakra-ui/react'
 import Identicon from 'src/components/Identicon'
 import {useUser} from 'src/layouts/UserContext'
 
-type Props = {
-  isOpen: boolean
-  onClose: () => void
-}
-
-export default function AccountModal({isOpen, onClose}: Props) {
+export default function AccountModal({
+  control,
+}: {
+  control: UseDisclosureReturn
+}) {
   const {connectedAddress} = useUser()
   if (!connectedAddress) return null
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} isCentered size="md">
+    <Modal
+      isOpen={control.isOpen}
+      onClose={control.onClose}
+      isCentered
+      size="md"
+    >
       <ModalOverlay />
       <ModalContent>
         <ModalHeader px={4} fontSize="lg" fontWeight="medium">
