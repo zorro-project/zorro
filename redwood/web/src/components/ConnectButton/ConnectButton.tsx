@@ -20,7 +20,7 @@ export default function ConnectButton(props: ButtonProps) {
           isOpen={modalControl.isOpen}
           onClose={modalControl.onClose}
         />
-        <Button variant="outline" onClick={modalControl.onOpen}>
+        <Button variant="outline" onClick={modalControl.onOpen} {...props}>
           <Stack direction="row" alignItems="center">
             <Text fontWeight="bold">
               {user.connectedAddress.slice(0, 6)}...

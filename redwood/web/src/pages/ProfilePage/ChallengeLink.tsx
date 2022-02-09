@@ -46,7 +46,7 @@ const ChallengeLink = ({
     ADJUDICATION_ROUND_COMPLETED: (
       <Text>
         Did the adjudicators make a mistake and this profile should actually be{' '}
-        {profile.didAdjudicatorVerifyProfile ? 'unverified' : 'verified'}?
+        {profile.didAdjudicatorVerifyProfile ? 'unverified' : 'verified'}?{' '}
         <ChallengePageLink profile={profile} text="submit an appeal" />.
       </Text>
     ),

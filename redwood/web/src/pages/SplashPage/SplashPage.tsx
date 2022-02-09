@@ -38,6 +38,7 @@ const SplashPage = () => {
 
 const Hero = () => (
   <>
+    {/* This outer box is also in HomePage.tsx */}
     <Box maxW={{base: 'xl', md: '5xl'}} mx="auto" px={{base: '6', md: '8'}}>
       {/* Override the Redwood-managed Helmet provider on this page only to avoid appending " | Zorro" to the title. */}
       <HelmetProvider>
