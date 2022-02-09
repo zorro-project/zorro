@@ -23,7 +23,7 @@ const HomePage = () => {
             {
               __typename: 'CachedProfile',
               ...cachedProfile,
-            } as any // @typescript-eslint/no-explicit-any
+            } as any
           }
         />
       ) : registrationAttempt?.approved ? (
