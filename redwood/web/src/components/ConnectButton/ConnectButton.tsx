@@ -71,7 +71,11 @@ export default function ConnectButton(props: ButtonProps) {
     <>
       <Stack>
         <AccountModal control={accountModalControl} />
-        <Button variant="outline" onClick={accountModalControl.onOpen}>
+        <Button
+          variant="outline"
+          onClick={accountModalControl.onOpen}
+          {...props}
+        >
           <Stack direction="row" alignItems="center">
             <Text fontWeight="bold">
               {user.connectedAddress.slice(0, 6)}...

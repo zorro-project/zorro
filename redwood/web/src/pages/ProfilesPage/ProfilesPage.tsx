@@ -24,7 +24,6 @@ const QUERY = gql`
           __typename
           ethereumAddress
           photoCid
-          currentStatus
           submissionTimestamp
           id
           isVerified

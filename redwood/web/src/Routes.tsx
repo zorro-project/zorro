@@ -1,6 +1,6 @@
 import {Route, Router, Set} from '@redwoodjs/router'
 import AppLayout from './layouts/AppLayout/AppLayout'
-import NavLayout from './layouts/NavLayout/NavLayout'
+import MinimalNavLayout from './layouts/MinimalNavLayout/MinimalNavLayout'
 import ChallengeProfilePage from './pages/ChallengeProfilePage/ChallengeProfilePage'
 import RegisterLayout from 'src/pages/Register/RegisterLayout'
 
@@ -21,12 +21,12 @@ const Routes = () => {
           <Route path="/register/submitted" page={RegisterSubmittedPage} name="registerSubmitted" />
           <Route path="/register/self-submit" page={RegisterSelfSubmitPage} name="registerSelfSubmit" />
         </Set>
-        <Set wrap={NavLayout}>
-          <Route path="/profiles" page={ProfilesPage} name="profiles" />
+        <Set wrap={MinimalNavLayout}>
+          <Route path="/home" page={HomePage} name="home" />
           <Route path="/profiles/{id}" page={ProfilePage} name="profile" />
-          <Route path="/pending-profile/{id}" page={PendingProfilePage} name="pendingProfile" />
           <Route path="/profiles/{id}/challenge" page={ChallengeProfilePage} name="challengeProfile" />
-
+          {/*<Route path="/profiles" page={ProfilesPage} name="profiles" />*/}
+          <Route path="/pending-profile/{id}" page={PendingProfilePage} name="pendingProfile" />
           <Route path="/unreviewed-registrations" page={UnreviewedRegistrationsPage} name="unreviewedRegistrations" />
           <Route path="/create-connection" page={CreateConnectionPage} name="createConnection" />
           <Route path="/test-transaction" page={TestTransactionPage} name="testTransaction" />
