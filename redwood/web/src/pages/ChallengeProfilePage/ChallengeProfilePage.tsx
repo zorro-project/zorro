@@ -221,8 +221,8 @@ const Success = (props: CellSuccessProps<ChallengePageQuery>) => {
       <MetaTags title="Challenge Profile" />
       <Breadcrumb>
         <BreadcrumbItem>
-          <BreadcrumbLink href={routes.profiles()} as={RLink}>
-            Profiles
+          <BreadcrumbLink href={routes.home()} as={RLink}>
+            home
           </BreadcrumbLink>
         </BreadcrumbItem>
         <BreadcrumbItem>

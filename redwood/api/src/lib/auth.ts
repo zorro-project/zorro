@@ -4,6 +4,8 @@ import {AuthenticationError, ForbiddenError} from '@redwoodjs/graphql-server'
 import dayjs from 'dayjs'
 import {compact} from 'lodash'
 import {db} from './db'
+import type {Replaced} from '../../types/utils'
+import {isVerified} from '../services/cachedProfiles/helpers'
 
 if (!process.env.SESSION_SECRET && process.env.NODE_ENV === 'production')
   throw new Error('SESSION_SECRET must be set in production. See .env.example')
@@ -31,7 +33,7 @@ export const getCurrentUser = async (_: unknown, {token}: {token: string}) => {
 
   const {ethereumAddress} = sessionData
 
-  const [user, registrationAttempt, cachedProfile] = await Promise.all([
+  const [user, registrationAttempt, rawCachedProfile] = await Promise.all([
     db.user.findFirst({
       where: {ethereumAddress},
       select: {
@@ -47,20 +49,42 @@ export const getCurrentUser = async (_: unknown, {token}: {token: string}) => {
       select: {
         id: true,
         approved: true,
+        ethereumAddress: true,
+        photoCid: true,
+        reviewedAt: true,
       },
     }),
     db.cachedProfile.findUnique({
       where: {ethereumAddress},
       select: {
         id: true,
+        ethereumAddress: true,
+        lastRecordedStatus: true,
+        notarized: true,
+        challengeTimestamp: true,
+        superAdjudicationTimestamp: true,
+        didAdjudicatorVerifyProfile: true,
+        didSuperAdjudicatorOverturnAdjudicator: true,
+        adjudicationTimestamp: true,
+        appealTimestamp: true,
+        submissionTimestamp: true,
+        photoCid: true,
       },
     }),
   ])
+
+  const cachedProfile = rawCachedProfile && {
+    ...rawCachedProfile,
+    isVerified: isVerified(rawCachedProfile),
+  }
 
   return {user, registrationAttempt, cachedProfile}
 }
 
 export type CurrentUser = Awaited<ReturnType<typeof getCurrentUser>>
+
+// Redwood's serialization round-trip converts dates to ISO8601 strings.
+export type ClientCurrentUser = Replaced<CurrentUser, Date, string>
 
 export const isAuthenticated = (): boolean => {
   return !!context.currentUser

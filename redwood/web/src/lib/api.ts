@@ -4,6 +4,7 @@ export {cairoCompatibleAdd} from '../../../api/src/lib/ipfs'
 export {serializeCid} from '../../../api/src/chain/serializers'
 
 export type {ApiProcessEnv} from '../../../api/types/environment'
+export type {ClientCurrentUser} from '../../../api/src/lib/auth'
 
 export {
   erc20Approve,
