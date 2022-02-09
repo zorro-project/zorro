@@ -1,6 +1,6 @@
 import Icon from '@chakra-ui/icon'
 import {Image} from '@chakra-ui/image'
-import {Box, Text, HStack, Flex, BoxProps} from '@chakra-ui/layout'
+import {Box, Text, HStack, Flex} from '@chakra-ui/layout'
 import {routes} from '@redwoodjs/router'
 import dayjs from 'dayjs'
 import {
@@ -12,29 +12,6 @@ import {RLink} from 'src/components/links'
 import {cidToUrl} from 'src/lib/ipfs'
 import {IterableElement} from 'type-fest'
 import {ProfilesPageQuery} from 'types/graphql'
-
-import relativeTime from 'dayjs/plugin/relativeTime'
-import updateLocale from 'dayjs/plugin/updateLocale'
-dayjs.extend(relativeTime)
-dayjs.extend(updateLocale)
-
-dayjs.updateLocale('en', {
-  relativeTime: {
-    past: '%s old',
-    future: '%s old',
-    s: 'just now',
-    m: 'just now',
-    mm: '%d min',
-    h: '1h',
-    hh: '%dh',
-    d: '1d',
-    dd: '%dd',
-    M: '1m',
-    MM: '%dm',
-    y: '1y',
-    yy: '%dy',
-  },
-})
 
 export type ProfileItemType =
   | IterableElement<ProfilesPageQuery['optimisticallyApprovedRegs']>
@@ -97,17 +74,6 @@ const ProfileItemCard: React.FC<
               {status.text}
             </Text>
           </HStack>
-
-          {/*
-          <Text color="gray.500">
-            {dayjs(
-              isOptimistic
-                ? profileItem.reviewedAt
-                : profileItem.submissionTimestamp
-            ).fromNow(true)}{' '}
-            old
-          </Text>
-            */}
 
           {!isOptimistic && <Text color="gray.500">#{profileItem.id}</Text>}
         </Flex>
