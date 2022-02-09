@@ -8,8 +8,8 @@ export default async () => {
 
   const notary = await db.user.create({
     data: {
-      ethereumAddress: '0x334230242D318b5CA159fc38E07dC1248B7b35e4',
-      email: 'test@test.com',
+      ethereumAddress: '0x18445eb5aaac66025fF4937385daC271E2b46982',
+      email: 'kyle@example.com',
       roles: ['NOTARY'],
     },
   })
