@@ -16,7 +16,6 @@ import {
 import Identicon from 'src/components/Identicon'
 import {useUser} from 'src/layouts/UserContext'
 import {track} from 'src/lib/posthog'
-import {useConnect} from 'wagmi'
 import AccountModal from './AccountModal'
 
 const NoMetamask = ({control}: {control: UseDisclosureReturn}) => (
@@ -66,8 +65,6 @@ export default function ConnectButton(props: ButtonProps) {
 
   const isLoading = user.isAuthenticating || props.isLoading
 
-  const [{data: connectors}] = useConnect()
-
   return user.connectedAddress &&
     (user.auth.isAuthenticated || user.auth.loading) &&
     !isLoading ? (
@@ -93,8 +90,8 @@ export default function ConnectButton(props: ButtonProps) {
       <Button
         onClick={() => {
           track('connect button pressed')
-          if (!connectors.connector) {
-            track('no connector available')
+          if (typeof web3 == 'undefined') {
+            track('no injected connector')
             noMetamaskModalControl.onOpen()
           } else {
             user.onConnectButtonPressed()

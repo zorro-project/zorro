@@ -14,6 +14,9 @@ declare global {
   namespace NodeJS {
     interface ProcessEnv extends SharedEnvVariables {}
   }
+
+  const RWJS_API_URL: string // eslint-disable-line no-var
+  const web3: Object | undefined
 }
 
 export {}
