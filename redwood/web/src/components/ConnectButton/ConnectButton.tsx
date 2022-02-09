@@ -97,12 +97,12 @@ export default function ConnectButton(props: ButtonProps) {
       <Button
         onClick={() => {
           track('connect button pressed')
-          if (!connectors.connector) {
-            track('no connector available')
-            noMetamaskModalControl.onOpen()
-          } else {
-            user.onConnectButtonPressed()
-          }
+          //if (!connectors.connector) {
+          //track('no connector available')
+          //noMetamaskModalControl.onOpen()
+          //} else {
+          user.onConnectButtonPressed()
+          //}
         }}
         // eslint-disable-next-line react/no-children-prop
         children="Connect Wallet"

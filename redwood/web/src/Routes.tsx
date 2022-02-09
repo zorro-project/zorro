@@ -25,7 +25,7 @@ const Routes = () => {
           <Route path="/home" page={HomePage} name="home" />
           <Route path="/profiles/{id}" page={ProfilePage} name="profile" />
           <Route path="/profiles/{id}/challenge" page={ChallengeProfilePage} name="challengeProfile" />
-          <Route path="/profiles" page={ProfilesPage} name="profiles" />
+          {/*<Route path="/profiles" page={ProfilesPage} name="profiles" />*/}
           <Route path="/pending-profile/{id}" page={PendingProfilePage} name="pendingProfile" />
           <Route path="/unreviewed-registrations" page={UnreviewedRegistrationsPage} name="unreviewedRegistrations" />
           <Route path="/create-connection" page={CreateConnectionPage} name="createConnection" />

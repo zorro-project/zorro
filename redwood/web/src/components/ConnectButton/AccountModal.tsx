@@ -1,7 +1,5 @@
-import {ExternalLinkIcon} from '@chakra-ui/icons'
 import {
   Flex,
-  Link,
   Modal,
   ModalBody,
   ModalCloseButton,

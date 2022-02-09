@@ -1,26 +1,13 @@
 import {routes} from '@redwoodjs/router'
-import {Box, Button, Heading, Text, Flex, Spacer} from '@chakra-ui/react'
+import {Box, Button, Heading, Text, Flex, BoxProps} from '@chakra-ui/react'
 import {MetaTags, useQuery} from '@redwoodjs/web'
 import ProfileItemCard, {ProfileItemType} from './ProfileItemCard'
 import {RLink} from 'src/components/links'
 import {useUser} from 'src/layouts/UserContext'
+import {LatestRegistrationsQuery} from 'types/graphql'
 
 const HomePage = () => {
-  const {
-    loading: isUserLoading,
-    user,
-    cachedProfile,
-    registrationAttempt,
-    someDate,
-  } = useUser()
-
-  console.log('someDate', someDate)
-
-  const {data, loading, fetchMore} = useQuery<ProfilesPageQuery>(QUERY, {
-    notifyOnNetworkStatusChange: true, // XXX: look into purpose of this
-    variables: {cursor: null},
-    skip: isUserLoading,
-  })
+  const {loading, cachedProfile, registrationAttempt} = useUser()
 
   if (loading) return null
 
@@ -31,7 +18,14 @@ const HomePage = () => {
         Zorro: web3 citizenship
       </Heading>
       {cachedProfile ? (
-        <Profile profileItem={cachedProfile} />
+        <Profile
+          profileItem={
+            {
+              __typename: 'CachedProfile',
+              ...cachedProfile,
+            } as any // @typescript-eslint/no-explicit-any
+          }
+        />
       ) : registrationAttempt?.approved ? (
         <PendingProfile
           profileItem={{
@@ -52,11 +46,10 @@ const HomePage = () => {
 const Profile = ({profileItem}: {profileItem: ProfileItemType}) => {
   return (
     <>
-      <Heading as="h2" size="lg" mt="16">
+      <Heading as="h2" size="lg" mt="8">
         Your registration
       </Heading>
-      Cached profile:
-      <ProfileItemCard profileItem={profileItem} />
+      <ProfileItemCard profileItem={profileItem} mt="4" />
     </>
   )
 }
@@ -64,11 +57,13 @@ const Profile = ({profileItem}: {profileItem: ProfileItemType}) => {
 const PendingProfile = ({profileItem}: {profileItem: ProfileItemType}) => {
   return (
     <>
-      <Heading as="h2" size="lg" mt="16">
+      <Heading as="h2" size="lg" mt="8">
         Your registration
       </Heading>
-      Pending profile:
-      <ProfileItemCard profileItem={profileItem} />
+      <Text mt="2">
+        Your registration has been notarized and is being saved on-chain.
+      </Text>
+      <ProfileItemCard profileItem={profileItem} mt="4" />
     </>
   )
 }
@@ -78,13 +73,20 @@ const UnfinishedRegistrationPrompt = () => {
   // - Waiting for feedback
   // - Got feedback
   return (
-    <>
-      <Heading as="h2" size="lg" mt="16">
+    <Box>
+      <Heading as="h2" size="lg" mt="8">
         Your registration
       </Heading>
-
-      <Text>Unfinished registration prompt - would link user in to finish</Text>
-    </>
+      <Text mt="4">You've started registering. Check in for updates:</Text>
+      <Button
+        mt="4"
+        variant="register-primary"
+        as={RLink}
+        href={routes.registerIntro()}
+      >
+        Check registration status
+      </Button>
+    </Box>
   )
 }
 
@@ -108,7 +110,7 @@ const RegistrationPrompt = () => {
 }
 
 const QUERY = gql`
-  query ProfilesPageQuery($cursor: ID) {
+  query LatestRegistrationsQuery($cursor: ID) {
     optimisticallyApprovedRegs {
       __typename
       ethereumAddress
@@ -116,14 +118,13 @@ const QUERY = gql`
       reviewedAt
     }
 
-    cachedProfiles(first: 20, cursor: $cursor) {
+    cachedProfiles(first: 1000, cursor: $cursor) {
       id
       edges {
         node {
           __typename
           ethereumAddress
           photoCid
-          currentStatus
           submissionTimestamp
           id
           isVerified
@@ -139,8 +140,8 @@ const QUERY = gql`
 `
 
 // XXX: handle loading state
-const LatestRegistrations = (props) => {
-  const {data, loading, fetchMore} = useQuery<ProfilesPageQuery>(QUERY, {
+const LatestRegistrations = (props: BoxProps) => {
+  const {data} = useQuery<LatestRegistrationsQuery>(QUERY, {
     notifyOnNetworkStatusChange: true, // XXX: look into purpose of this
     variables: {cursor: null},
   })

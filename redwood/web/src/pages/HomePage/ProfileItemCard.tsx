@@ -1,6 +1,6 @@
 import Icon from '@chakra-ui/icon'
 import {Image} from '@chakra-ui/image'
-import {Box, Text, HStack, Flex} from '@chakra-ui/layout'
+import {Box, Text, HStack, Flex, BoxProps} from '@chakra-ui/layout'
 import {routes} from '@redwoodjs/router'
 import dayjs from 'dayjs'
 import {
@@ -42,9 +42,11 @@ export type ProfileItemType =
       IterableElement<NonNullable<ProfilesPageQuery['cachedProfiles']>['edges']>
     >['node']
 
-const ProfileItemCard: React.FC<{profileItem: ProfileItemType}> = ({
-  profileItem,
-}) => {
+const ProfileItemCard: React.FC<
+  {
+    profileItem: ProfileItemType
+  } & BoxProps
+> = ({profileItem, ...rest}) => {
   if (profileItem.__typename == null) return null
 
   const isOptimistic = profileItem.__typename == 'RegistrationAttempt'
@@ -71,7 +73,7 @@ const ProfileItemCard: React.FC<{profileItem: ProfileItemType}> = ({
       }
 
   return (
-    <Box position="relative">
+    <Box position="relative" {...rest}>
       <Box
         as={RLink}
         href={

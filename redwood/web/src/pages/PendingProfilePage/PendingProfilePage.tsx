@@ -58,8 +58,8 @@ const PendingProfilePage: React.FC<{id: string}> = ({id}) => {
         <Stack direction="row" alignItems="center">
           <Icon as={FaHourglass} color="yellow.500" />
           <Text>
-            This profile has been notarized and submitted on-chain. It should go
-            live and be assigned an ID in the next few minutes.
+            This profile has been notarized and submitted on-chain. It should
+            soon go live and be assigned a profile id.
           </Text>
         </Stack>
         <Divider />

@@ -44,8 +44,8 @@ const QUERY = gql`
 export const Breadcrumbs = (props: {pageTitle: string}) => (
   <Breadcrumb>
     <BreadcrumbItem>
-      <BreadcrumbLink href={routes.profiles()} as={RLink} fontWeight="bold">
-        Profiles
+      <BreadcrumbLink href={routes.home()} as={RLink} fontWeight="bold">
+        Home
       </BreadcrumbLink>
     </BreadcrumbItem>
     <BreadcrumbItem isCurrentPage>
