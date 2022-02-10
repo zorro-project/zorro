@@ -1,7 +1,6 @@
 import nodemailer from 'nodemailer'
 import {htmlToText} from 'nodemailer-html-to-text'
 import * as sesClient from '@aws-sdk/client-ses'
-import {urlConfig} from './config'
 
 let transport: nodemailer.Transporter = nodemailer.createTransport({
   streamTransport: true,
@@ -15,7 +14,6 @@ if (process.env.CHAIN_DEPLOYMENT === 'staging') {
 
   transport = nodemailer.createTransport({
     SES: {ses, aws: sesClient},
-    from: `Zorro Protocol <no-reply@${urlConfig.domain}>`,
   })
 } else if (process.env.SMTP_HOST) {
   transport = nodemailer.createTransport({
