@@ -23,7 +23,7 @@ import {useUser} from 'src/layouts/UserContext'
 import {track, useTrackOnMount} from 'src/lib/posthog'
 import {watchRegAttempt} from 'src/lib/pusher'
 import {useGuard} from 'src/lib/useGuard'
-import {maybeCidToUrl} from 'src/lib/util'
+import {appNav, maybeCidToUrl} from 'src/lib/util'
 import {registerSlice} from 'src/state/registerSlice'
 import {useAppDispatch} from 'src/state/store'
 import {
@@ -289,6 +289,8 @@ const TimeoutModalAskForEmail = ({
 const CitizenshipActive = () => {
   useTrackOnMount('submission citizenship active shown')
 
+  const {auth} = useUser()
+
   useEffect(() => {
     const fireworksContainer = document.createElement('div')
     fireworksContainer.style.position = 'absolute'
@@ -325,7 +327,11 @@ const CitizenshipActive = () => {
       primaryButtonLabel="Finish"
       primaryButtonProps={{
         as: RLink,
-        to: routes.home(),
+        onClick: async () => {
+          // If the user navigates back to the homescreen we want to make sure we show their new state.
+          await auth.reauthenticate()
+          appNav(routes.home())
+        },
       }}
     >
       <Center>
