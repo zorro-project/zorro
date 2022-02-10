@@ -14,12 +14,34 @@ export const sendMessage = async (to: string | string[], body: string) => {
     body,
     from: process.env.TWILIO_NUMBER || '+15555555555',
   }
-  if (mockCalls) {
+  if (!client) {
     console.log('Would send', {to, ...message})
   } else {
     const toArray = castArray(to)
     await Promise.all(
-      toArray.map((to) => client?.messages.create({to, ...message}))
+      toArray.map((to) => client.messages.create({to, ...message}))
+    )
+  }
+}
+
+export const makeCall = async (to: string | string[], text: string) => {
+  const message = {
+    twiml: `<Response><Say>${text}</Say></Response>`,
+    from: process.env.TWILIO_NUMBER || '+15555555555',
+  }
+  if (!client) {
+    console.log('Would make call', {to, ...message})
+  } else {
+    const toArray = castArray(to)
+    await Promise.all(
+      toArray.map((to) =>
+        client.calls
+          .create({
+            to,
+            ...message,
+          })
+          .then((call) => console.log(call.sid))
+      )
     )
   }
 }
