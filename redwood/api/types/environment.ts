@@ -23,6 +23,9 @@ export type ApiProcessEnv = {
   SMTP_USER: string
   SMTP_PASSWORD: string
 
+  // Postmark
+  POSTMARK_API_KEY?: string
+
   STARKNET_NOTARY_PRIVATE_KEY: string
 
   SESSION_SECRET?: string
