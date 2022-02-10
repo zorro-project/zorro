@@ -1,7 +1,6 @@
-import {urlBase} from 'src/lib/config'
 import {db} from 'src/lib/db'
 import {NOTARY_PHONE_NUMBERS} from 'src/lib/protocolNotifications'
-import {sendMessage} from 'src/lib/twilio'
+import {makeCall} from 'src/lib/twilio'
 import sendNotaryApproved from 'src/mailers/sendNotaryApproved'
 import {backgroundSubmitRegistration} from 'src/tasks/submitRegistrationAttempt'
 import {
@@ -57,9 +56,9 @@ export const attemptRegistration = async ({
   const pendingCount = (await unreviewedRegistrations()).length
 
   if (pendingCount > 0) {
-    await sendMessage(
+    makeCall(
       NOTARY_PHONE_NUMBERS,
-      `${pendingCount} Zorro registrations awaiting review. ${urlBase}/unreviewed-registrations`
+      `${pendingCount} Zorro registrations awaiting review.`
     )
   }
 
