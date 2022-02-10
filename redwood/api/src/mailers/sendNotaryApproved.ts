@@ -14,7 +14,7 @@ export default function sendNotaryApproved(to: string, address: string) {
 
     <p>
       To view your profile, just
-      <a href="${urlBase}/pending-profile/${address}">click here</a>. And
+      <a href="${urlBase}/pending-profiles/${address}">click here</a>. And
       welcome to the community! 🤗
     </p>
   `)

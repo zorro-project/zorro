@@ -32,7 +32,7 @@ import {
 } from 'types/graphql'
 import useAsyncEffect from 'use-async-effect'
 import {useSetEmail} from '../EmailPage/EmailPage'
-import MinimalVideoPlayer from '../MinimalVideoPlayer'
+import MinimalVideoPlayer from 'src/components/MinimalVideoPlayer'
 import RegisterScreen, {TextContainer} from '../RegisterScreen'
 import UserMediaBox from '../UserMediaBox'
 

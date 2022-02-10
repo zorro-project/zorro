@@ -78,7 +78,7 @@ export const getCurrentUser = async (_: unknown, {token}: {token: string}) => {
     isVerified: isVerified(rawCachedProfile),
   }
 
-  return {user, registrationAttempt, cachedProfile}
+  return {user: user!, registrationAttempt, cachedProfile}
 }
 
 export type CurrentUser = Awaited<ReturnType<typeof getCurrentUser>>

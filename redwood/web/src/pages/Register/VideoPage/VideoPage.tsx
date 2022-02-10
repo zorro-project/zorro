@@ -13,7 +13,7 @@ import {useGuard} from 'src/lib/useGuard'
 import {maybeCidToUrl} from 'src/lib/util'
 import {registerSlice} from 'src/state/registerSlice'
 import {useAppDispatch, useAppSelector} from 'src/state/store'
-import MinimalVideoPlayer from '../MinimalVideoPlayer'
+import MinimalVideoPlayer from 'src/components/MinimalVideoPlayer'
 import RegisterScreen from '../RegisterScreen'
 import UserMediaBox from '../UserMediaBox'
 

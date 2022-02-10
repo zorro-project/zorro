@@ -1,3 +1,4 @@
+import dayjs from 'dayjs'
 import {db} from 'src/lib/db'
 import {NOTARY_PHONE_NUMBERS} from 'src/lib/protocolNotifications'
 import {makeCall} from 'src/lib/twilio'
@@ -10,11 +11,18 @@ import {
   MutationmarkRegistrationViewedArgs,
   QuerylatestRegistrationArgs,
   QueryoptimisticallyApprovedRegArgs,
+  QueryregistrationAttemptArgs,
 } from 'types/graphql'
 import {alertUpdated} from './helpers'
 
-export const unreviewedRegistrations = async () =>
-  db.registrationAttempt.findMany({where: {reviewedAt: null}})
+export const latestRegistrations = async () =>
+  db.registrationAttempt.findMany({
+    orderBy: {createdAt: 'desc'},
+    take: 500,
+  })
+
+export const registrationAttempt = async ({id}: QueryregistrationAttemptArgs) =>
+  db.registrationAttempt.findUnique({where: {id: parseInt(id, 10)}})
 
 export const latestRegistration = ({
   ethereumAddress,
@@ -53,31 +61,37 @@ export const attemptRegistration = async ({
     },
   })
 
-  const pendingCount = (await unreviewedRegistrations()).length
-
-  if (pendingCount > 0) {
-    makeCall(
-      NOTARY_PHONE_NUMBERS,
-      `${pendingCount} Zorro registrations awaiting review.`
-    )
-  }
+  alertNotariesNewAttempt()
 
   return registration
 }
 
+export const nextUnassignedRegistration = async () =>
+  // Find the newest unreviewed registration. That way if we get super behind at least some of our users will still have a good experience.
+  db.registrationAttempt.findFirst({
+    where: {
+      reviewedAt: null,
+      approved: null,
+      OR: [
+        {
+          notaryViewedAt: {lt: dayjs().subtract(2, 'minutes').toDate()},
+        },
+        {
+          notaryViewedAt: null,
+        },
+      ],
+    },
+    orderBy: {createdAt: 'desc'},
+  })
+
 export const markRegistrationViewed = async ({
   id,
 }: MutationmarkRegistrationViewedArgs) => {
-  let registration = await db.registrationAttempt.findFirst({
-    where: {id: parseInt(id), notaryViewedAt: null},
-  })
-  if (!registration) return null
-
-  registration = await db.registrationAttempt.update({
-    where: {id: registration.id},
+  const registration = await db.registrationAttempt.update({
+    where: {id: parseInt(id)},
     data: {notaryViewedAt: new Date()},
   })
-  alertUpdated(registration)
+  if (registration) alertUpdated(registration)
   return registration
 }
 
@@ -100,7 +114,7 @@ export const denyRegistration = async ({
     data: {
       approved: false,
       reviewedAt: new Date(),
-      reviewedById: context.currentUser.user?.id,
+      reviewedById: context.currentUser.user!.id,
       deniedReason: feedback,
     },
   })
@@ -116,14 +130,12 @@ export const approveRegistration = async ({
 
   if (!registration) return null
 
-  if (!context.currentUser) return null
-
   registration = await db.registrationAttempt.update({
     where: {id: registration.id},
     data: {
       approved: true,
       reviewedAt: new Date(),
-      reviewedById: context.currentUser.user?.id,
+      reviewedById: context.currentUser!.user!.id,
     },
   })
 
@@ -135,8 +147,20 @@ export const approveRegistration = async ({
     select: {email: true},
   })
 
-  if (user?.email)
-    await sendNotaryApproved(user?.email, registration.ethereumAddress)
+  if (user?.email) sendNotaryApproved(user?.email, registration.ethereumAddress)
 
   return registration
+}
+
+export const alertNotariesNewAttempt = async () => {
+  const pendingCount = await db.registrationAttempt.count({
+    where: {reviewedAt: null},
+  })
+
+  if (pendingCount > 0) {
+    makeCall(
+      NOTARY_PHONE_NUMBERS,
+      `${pendingCount} Zorro registrations awaiting review.`
+    )
+  }
 }
