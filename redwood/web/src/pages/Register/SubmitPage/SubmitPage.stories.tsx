@@ -4,7 +4,7 @@ import SubmitPage from './SubmitPage'
 
 export const Unsubmitted = () => (
   <StoryMocks
-    user={{connectedAddress: '0x4567'}}
+    user={{connectedAddress: '0x4567', user: {ethereumAddress: '0x1234'}}}
     state={{
       register: {
         photo: 'bafybeicxoq24v5sxcz4myt5kx35kluclpoqhsfb2qdf5oevfuklprux2em',
@@ -20,7 +20,7 @@ export const Unsubmitted = () => (
 
 export const Unsumbitted_Vertical_Video = () => (
   <StoryMocks
-    user={{connectedAddress: '0x4567'}}
+    user={{connectedAddress: '0x4567', user: {ethereumAddress: '0x1234'}}}
     state={{
       register: {
         photo:
@@ -38,7 +38,11 @@ export const Unsumbitted_Vertical_Video = () => (
 
 export const Resubmit = () => (
   <StoryMocks
-    user={{connectedAddress: '0x4567', registrationAttempt: {id: 1}}}
+    user={{
+      connectedAddress: '0x4567',
+      user: {ethereumAddress: '0x1234'},
+      registrationAttempt: {id: 1},
+    }}
     state={{
       register: {
         photo: 'bafybeicxoq24v5sxcz4myt5kx35kluclpoqhsfb2qdf5oevfuklprux2em',
@@ -54,7 +58,7 @@ export const Resubmit = () => (
 
 export const Submitting = () => (
   <StoryMocks
-    user={{connectedAddress: '0x4567'}}
+    user={{connectedAddress: '0x4567', user: {ethereumAddress: '0x1234'}}}
     state={{register: {photo: 'test', video: 'test'}}}
   >
     <RegisterLayout>
