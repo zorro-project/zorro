@@ -16,7 +16,7 @@ import {
   requireWalletConnected,
 } from '../../../lib/guards'
 import UserMediaBox from '../UserMediaBox'
-import MinimalVideoPlayer from '../MinimalVideoPlayer'
+import MinimalVideoPlayer from 'src/components/MinimalVideoPlayer'
 import RegisterScreen from '../RegisterScreen'
 import {track} from 'src/lib/posthog'
 

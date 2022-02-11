@@ -31,16 +31,15 @@ export const makeCall = async (to: string | string[], text: string) => {
   }
   if (!client) {
     console.log('Would make call', {to, ...message})
+    return []
   } else {
     const toArray = castArray(to)
-    await Promise.all(
+    return Promise.all(
       toArray.map((to) =>
-        client.calls
-          .create({
-            to,
-            ...message,
-          })
-          .then((call) => console.log(call.sid))
+        client.calls.create({
+          to,
+          ...message,
+        })
       )
     )
   }

@@ -21,6 +21,7 @@
     "nodemailer-postmark-transport": "^5.2.1",
     "pusher": "^5.0.0",
     "starknet": "^2.5.1",
+    "timekeeper": "^2.2.0",
     "ts-jest": "^27.1.2",
     "twilio": "^3.70.0"
   },

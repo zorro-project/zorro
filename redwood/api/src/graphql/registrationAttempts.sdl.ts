@@ -13,16 +13,26 @@ export const schema = gql`
 
     profileId: Int
 
+    reviewedBy: User @requireAuth(roles: ["NOTARY"])
+
     createdAt: DateTime
   }
 
   type Query {
-    unreviewedRegistrations: [RegistrationAttempt!]!
+    latestRegistrations: [RegistrationAttempt!]! @requireAuth(roles: ["NOTARY"])
+
+    registrationAttempt(id: ID!): RegistrationAttempt
       @requireAuth(roles: ["NOTARY"])
+
+    nextUnassignedRegistration: RegistrationAttempt
+      @requireAuth(roles: ["NOTARY"])
+
     latestRegistration(
       ethereumAddress: ID! @validateAddress
     ): RegistrationAttempt @skipAuth
+
     optimisticallyApprovedRegs: [RegistrationAttempt!]! @skipAuth
+
     optimisticallyApprovedReg(
       ethereumAddress: ID! @validateAddress
     ): RegistrationAttempt @skipAuth
