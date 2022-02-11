@@ -1,8 +1,6 @@
 import dayjs from 'dayjs'
 import {db} from 'src/lib/db'
 import {alertNotaries} from 'src/lib/pagerduty'
-import {NOTARY_PHONE_NUMBERS} from 'src/lib/protocolNotifications'
-import {makeCall} from 'src/lib/twilio'
 import sendNotaryApproved from 'src/mailers/sendNotaryApproved'
 import {backgroundSubmitRegistration} from 'src/tasks/submitRegistrationAttempt'
 import {

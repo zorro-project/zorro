@@ -1,7 +1,7 @@
 import Iron from '@hapi/iron'
 import dayjs from 'dayjs'
 import {verifyMessage} from 'ethers/lib/utils'
-import {SessionData, SESSION_SECRET} from 'src/lib/auth'
+import {SessionData} from 'src/lib/auth'
 import {db} from 'src/lib/db'
 import {
   MutationrequestSessionTokenArgs,
@@ -40,6 +40,10 @@ export const requestSessionToken = async ({
     ethereumAddress,
     expiresAt: expiresAtDate.toISOString(),
   }
-  const token = await Iron.seal(sessionData, SESSION_SECRET, Iron.defaults)
+  const token = await Iron.seal(
+    sessionData,
+    process.env.SESSION_SECRET,
+    Iron.defaults
+  )
   return token
 }

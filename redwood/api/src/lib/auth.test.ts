@@ -1,5 +1,5 @@
 import dayjs, {Dayjs} from 'dayjs'
-import {getCurrentUser, SessionData, SESSION_SECRET} from './auth'
+import {getCurrentUser, SessionData} from './auth'
 import {db} from './db'
 import Iron from '@hapi/iron'
 
@@ -13,7 +13,7 @@ const getToken = async (ethereumAddress: string, expiresAt: Dayjs) => {
     ethereumAddress,
     expiresAt: expiresAt.toISOString(),
   }
-  return await Iron.seal(data, SESSION_SECRET, Iron.defaults)
+  return await Iron.seal(data, process.env.SESSION_SECRET, Iron.defaults)
 }
 
 describe('getCurrentUser', () => {

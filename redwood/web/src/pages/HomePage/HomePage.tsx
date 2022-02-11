@@ -17,14 +17,14 @@ const HomePage = () => {
       <Heading as="h1" size="xl" fontWeight="extrabold" mt="10">
         Zorro: web3 citizenship
       </Heading>
-      {cachedProfile ? (
+      {cachedProfile?.ethereumAddress ? (
         <Profile
-          profileItem={
-            {
-              __typename: 'CachedProfile',
-              ...cachedProfile,
-            } as any
-          }
+          profileItem={{
+            __typename: 'CachedProfile',
+            ...cachedProfile,
+            id: cachedProfile.id.toString(),
+            ethereumAddress: cachedProfile.ethereumAddress,
+          }}
         />
       ) : registrationAttempt?.approved ? (
         <PendingProfile

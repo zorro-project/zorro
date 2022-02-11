@@ -7,12 +7,12 @@ import {db} from './db'
 import type {Replaced} from '../../types/utils'
 import {isVerified} from '../services/cachedProfiles/helpers'
 
-if (!process.env.SESSION_SECRET && process.env.NODE_ENV === 'production')
+if (
+  process.env.SESSION_SECRET ===
+    'fallback_secret_fallback_secret_fallback_secret' &&
+  process.env.NODE_ENV === 'production'
+)
   throw new Error('SESSION_SECRET must be set in production. See .env.example')
-
-export const SESSION_SECRET =
-  process.env.SESSION_SECRET ??
-  'fallback_secret_fallback_secret_fallback_secret'
 
 export type SessionData = {
   ethereumAddress: string
@@ -24,7 +24,7 @@ export const getCurrentUser = async (_: unknown, {token}: {token: string}) => {
   if (token == null || token.length < 10) return null
   const sessionData: SessionData = await Iron.unseal(
     token,
-    SESSION_SECRET,
+    process.env.SESSION_SECRET!,
     Iron.defaults
   )
 
