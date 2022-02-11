@@ -28,5 +28,7 @@ export type ApiProcessEnv = {
 
   STARKNET_NOTARY_PRIVATE_KEY: string
 
-  SESSION_SECRET?: string
+  SESSION_SECRET: string
+
+  PAGERDUTY_TOKEN?: string
 }

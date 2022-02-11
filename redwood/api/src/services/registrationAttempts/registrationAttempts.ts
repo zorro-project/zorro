@@ -1,7 +1,6 @@
 import dayjs from 'dayjs'
 import {db} from 'src/lib/db'
-import {NOTARY_PHONE_NUMBERS} from 'src/lib/protocolNotifications'
-import {makeCall} from 'src/lib/twilio'
+import {alertNotaries} from 'src/lib/pagerduty'
 import sendNotaryApproved from 'src/mailers/sendNotaryApproved'
 import {backgroundSubmitRegistration} from 'src/tasks/submitRegistrationAttempt'
 import {
@@ -158,9 +157,6 @@ export const alertNotariesNewAttempt = async () => {
   })
 
   if (pendingCount > 0) {
-    makeCall(
-      NOTARY_PHONE_NUMBERS,
-      `${pendingCount} Zorro registrations awaiting review.`
-    )
+    alertNotaries(`${pendingCount} Zorro registrations awaiting review.`)
   }
 }

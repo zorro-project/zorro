@@ -4,6 +4,7 @@
   "private": true,
   "dependencies": {
     "@hapi/iron": "^6.0.0",
+    "@pagerduty/pdjs": "^2.2.4",
     "@redwoodjs/api": "^0.42.0",
     "@redwoodjs/api-server": "^0.42.0",
     "@redwoodjs/graphql-server": "^0.42.0",
