@@ -106,9 +106,15 @@ const RegistrationAttemptsPage = () => {
   return (
     <Stack>
       <MetaTags title="Registration Attempts" />
-      <Stack flexDir="row">
+      <Stack flexDir="row" alignItems="center">
         <Heading size="lg">Registration Attempts</Heading>
         <Spacer />
+        <Text pr={4}>
+          {data?.latestRegistrations.filter(
+            (attempt) => attempt.reviewedAt == null
+          ).length ?? 0}{' '}
+          unreviewed
+        </Text>
         <Button onClick={navigateToNextRegistration} colorScheme="blue">
           Review Next
         </Button>
