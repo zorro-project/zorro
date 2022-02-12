@@ -1,7 +1,21 @@
-import {Button, Flex, FlexProps, Spacer, Stack, VStack} from '@chakra-ui/react'
+import {
+  Box,
+  BoxProps,
+  Button,
+  Flex,
+  FlexProps,
+  Spacer,
+  Stack,
+  VStack,
+} from '@chakra-ui/react'
 import {ComponentProps} from 'react'
 import RegisterLogo from './RegisterLogo'
 import Title from './Title'
+
+const containerHorizontalPadding = 4
+export const FullWidthBox = (props: BoxProps) => (
+  <Box mx={-containerHorizontalPadding} {...props} />
+)
 
 export const TextContainer = ({
   children,
@@ -46,9 +60,8 @@ const RegisterScreen = ({
 }: RegisterScreenProps) => {
   const shouldShowLogo = !!hero
   return (
-    <Stack flex="1" height="100%">
-      {hero}
-      {!hero && <RegisterLogo pt={20} />}
+    <Stack flex="1" height="100%" px={containerHorizontalPadding}>
+      {hero ? <FullWidthBox>{hero}</FullWidthBox> : <RegisterLogo pt={20} />}
       {title && !shouldHideTitle && (
         <Title title={title} pt={shouldShowLogo ? 4 : 8} />
       )}

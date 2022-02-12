@@ -3,26 +3,16 @@ import {useTimeout} from '@chakra-ui/react'
 import {AuthContextInterface, useAuth} from '@redwoodjs/auth'
 import dayjs from 'dayjs'
 import {Wallet} from 'ethers'
-import {entropyToMnemonic, getAddress, keccak256} from 'ethers/lib/utils'
+import {entropyToMnemonic, keccak256} from 'ethers/lib/utils'
 import {useCallback, useEffect, useState} from 'react'
 import {RequestSessionToken, RequestSessionTokenVariables} from 'types/graphql'
 import useAsyncEffect from 'use-async-effect'
 import useLocalStorageState from 'use-local-storage-state'
-import {useAccount, useConnect, useSigner} from 'wagmi'
+import {useAccount, useSignMessage} from 'wagmi'
 import {ClientCurrentUser} from '../../../api/src/lib/auth'
 
 export type UserContextType = {
-  // The `connectedAddress` is the address that is both connected and
-  // authenticated. If the address is either not connected, or not
-  // authenticated, this will return `undefined`. Note that this is **NOT** the
-  // address associated with the profiles on-chain, because that one is derived
-  // from string the user uses this address to sign.
-  connectedAddress?: string
-
-  // Returns true if the user is in the process either of connecting their
-  // wallet or signing the string to authenticate it.
-  isAuthenticating: boolean
-  onConnectButtonPressed: () => Promise<void>
+  onAuthenticate: () => Promise<void>
 
   // Returns true if Redwood auth is fetching the user data from the server.
   // Will be true right after the initial pageload, and also right after the
@@ -41,27 +31,17 @@ const AUTH_STRING_TO_SIGN =
   'Only sign this message if you initiated an action with Zorro'
 
 export function UserContextProvider({children}: {children: React.ReactNode}) {
-  const [account] = useAccount()
+  const [account, disconnect] = useAccount()
   const rwAuth = useAuth()
 
-  // This is set once the account is both connected and authenticated.
-  const [connectedAddress, setConnectedAddress] = useLocalStorageState<
-    string | undefined
-  >('UserContext_connectedAddress', undefined)
+  // We use this to determine if the user has changed the connected wallet, in
+  // which case we invalidate the session.
+  const [addressCache, setAddressCache] = useLocalStorageState<{
+    connectedAddress: string
+    derivedAddress: string
+  } | null>('UserContext_addressCache', null)
 
-  // This is just for future-proofing to make it more more possible to move
-  // away from redwood sessions in the future if we want without making everyone
-  // sign in again to see their profile. It has an awkward name on purpose.
-  // Don't rely on this unless it's to migrate away from redwood sessions.
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [unusedDerivedAddress, setUnusedDerivedAddress] = useLocalStorageState<
-    string | undefined
-  >('UserContext_unusedDerivedAddress', undefined)
-
-  // Set when we're
-  const [isAuthenticating, setIsAuthenticating] = useState(false)
-
-  const [requestSessionToken] = useMutation<
+  const requestSessionToken = useMutation<
     RequestSessionToken,
     RequestSessionTokenVariables
   >(gql`
@@ -78,73 +58,49 @@ export function UserContextProvider({children}: {children: React.ReactNode}) {
     }
   `)
 
-  const [_, getSigner] = useSigner()
+  const [signedMessage, signMessage] = useSignMessage({
+    message: AUTH_STRING_TO_SIGN,
+  })
 
   // This function uses a signed string from the user's connected wallet as the
   // entropy to create a new wallet. This ensures their existing wallet is not
   // tied to the identity we use for authentication with Zorro, and also acts as
   // a temporary credential.
-  const maybeAuthenticate = useCallback(
-    async (newAddress) => {
-      setIsAuthenticating(true)
+  // It can throw errors, which the caller should handle.
+  const onAuthenticate = useCallback(async () => {
+    if (!account.data?.address)
+      throw new Error('No account connected, please reconnect and try again')
 
-      const address = getAddress(newAddress)
-      const signer = await getSigner()
+    const walletSeedSignature = await signMessage()
+    if (walletSeedSignature.error) throw walletSeedSignature.error
 
-      try {
-        if (!signer)
-          return alert('Could not detect signer, is Metamask installed?')
-        const walletSeedSignature = await signer.signMessage(
-          AUTH_STRING_TO_SIGN
-        )
+    const wallet = await Wallet.fromMnemonic(
+      entropyToMnemonic(keccak256(walletSeedSignature.data))
+    )
 
-        const wallet = await Wallet.fromMnemonic(
-          entropyToMnemonic(keccak256(walletSeedSignature))
-        )
+    const expiresAt = dayjs().add(14, 'days').toISOString()
+    const sessionTokenSignature = await wallet.signMessage(expiresAt)
 
-        const expiresAt = dayjs().add(14, 'days').toISOString()
-        const sessionTokenSignature = await wallet.signMessage(expiresAt)
+    const sessionTokenRequest = await requestSessionToken[0]({
+      variables: {
+        ethereumAddress: wallet.address,
+        expiresAt,
+        signature: sessionTokenSignature,
+      },
+    })
 
-        const sessionTokenRequest = await requestSessionToken({
-          variables: {
-            ethereumAddress: wallet.address,
-            expiresAt,
-            signature: sessionTokenSignature,
-          },
-        })
-
-        if (!sessionTokenRequest.data) return alert('requestSessionToken error')
-        if (!sessionTokenRequest.data.requestSessionToken)
-          return alert(
-            'error signing in, contact support in the Zorro discord!'
-          )
-        await rwAuth.logIn({
-          token: sessionTokenRequest.data?.requestSessionToken,
-        })
-        setConnectedAddress(address)
-        setUnusedDerivedAddress(wallet.address)
-      } finally {
-        setIsAuthenticating(false)
-      }
-    },
-    [getSigner]
-  )
-
-  const [{data: connectors, loading: isConnecting}, connect] = useConnect()
-  const onConnectButtonPressed = useCallback(async () => {
-    setIsAuthenticating(true)
-    try {
-      if (account.data?.address) {
-        // If you're already connected and you can still press the button, we must
-        // need your signature to authenticate the address.
-        await maybeAuthenticate(account.data.address)
-      } else {
-        await connect(connectors.connectors[0])
-      }
-    } finally {
-      setIsAuthenticating(false)
-    }
-  }, [maybeAuthenticate, connect])
+    if (sessionTokenRequest.errors)
+      throw new Error(
+        sessionTokenRequest.errors.map((e) => e.message).join(', ')
+      )
+    await rwAuth.logIn({
+      token: sessionTokenRequest.data?.requestSessionToken,
+    })
+    setAddressCache({
+      connectedAddress: account.data?.address,
+      derivedAddress: wallet.address,
+    })
+  }, [signMessage])
 
   const [initialLoadTimeoutExpired, setInitialLoadTimeoutExpired] =
     useState(false)
@@ -152,8 +108,7 @@ export function UserContextProvider({children}: {children: React.ReactNode}) {
 
   // When the connected address changes (because the user disconnected, switched
   // accounts, or we just can't read from MetaMask), we need to invalidate the
-  // existing session and, if a new account has been connected, authenticate
-  // with the new account.
+  // existing session.
   useAsyncEffect(async () => {
     // This is an ugly hack since ethers.js doesn't tell you whether `account`
     // is undefined because the page just loaded, or undefined because the user
@@ -162,10 +117,9 @@ export function UserContextProvider({children}: {children: React.ReactNode}) {
     // after a second to see if that's true.
     if (!initialLoadTimeoutExpired) return
 
-    if (connectedAddress !== account.data?.address) {
+    if (addressCache?.connectedAddress !== account.data?.address) {
       await rwAuth.logOut()
-      if (account.data?.address && isAuthenticating)
-        await maybeAuthenticate(account.data.address)
+      setAddressCache(null)
     }
   }, [account.data?.address, initialLoadTimeoutExpired, rwAuth.logOut])
 
@@ -174,16 +128,17 @@ export function UserContextProvider({children}: {children: React.ReactNode}) {
   // "Connect Wallet" while in this state, it'll ask them to sign the auth
   // string.
   useEffect(() => {
-    if (!rwAuth.currentUser && !rwAuth.loading) setConnectedAddress(undefined)
+    if (!rwAuth.currentUser && !rwAuth.loading) {
+      setAddressCache(null)
+      disconnect()
+    }
   }, [rwAuth.currentUser, rwAuth.loading])
 
   const context = {
-    connectedAddress,
-    isAuthenticating:
-      isAuthenticating || (isConnecting && initialLoadTimeoutExpired),
-    onConnectButtonPressed,
+    onAuthenticate,
     auth: rwAuth,
-    loading: rwAuth.loading,
+    loading:
+      signedMessage.loading || requestSessionToken[1].loading || rwAuth.loading,
     ...(rwAuth.currentUser as ClientCurrentUser | undefined),
   } as UserContextType
 

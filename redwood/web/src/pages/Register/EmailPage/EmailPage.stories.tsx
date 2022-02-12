@@ -4,7 +4,7 @@ import EmailPage from './EmailPage'
 
 export const Page = () => (
   <StoryMocks
-    user={{connectedAddress: '0x456'}}
+    user={{user: {id: 1}}}
     state={{register: {photo: 'test', video: 'test'}}}
   >
     <RegisterLayout>

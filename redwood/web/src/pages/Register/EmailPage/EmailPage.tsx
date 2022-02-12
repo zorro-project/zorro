@@ -4,7 +4,7 @@ import {useMutation} from '@redwoodjs/web'
 import {useState} from 'react'
 import {RLink} from 'src/components/links'
 import {useUser} from 'src/layouts/UserContext'
-import {requireNoExistingProfile, requireWalletConnected} from 'src/lib/guards'
+import {requireNoExistingProfile, requireAuthenticated} from 'src/lib/guards'
 import {track} from 'src/lib/posthog'
 import {useGuard} from 'src/lib/useGuard'
 import {appNav} from 'src/lib/util'
@@ -22,7 +22,7 @@ export const useSetEmail = () =>
   `)
 
 const EmailPage: React.FC<{next?: 'submitted' | undefined}> = ({next}) => {
-  requireWalletConnected()
+  requireAuthenticated()
   requireNoExistingProfile()
   const user = useUser()
 

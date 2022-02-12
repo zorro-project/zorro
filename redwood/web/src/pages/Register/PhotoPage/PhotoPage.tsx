@@ -9,7 +9,7 @@ import {registerSlice} from 'src/state/registerSlice'
 import {useAppDispatch, useAppSelector} from 'src/state/store'
 import {
   requireCameraAllowed,
-  requireWalletConnected,
+  requireAuthenticated,
   requireNoExistingProfile,
 } from '../../../lib/guards'
 import UserMediaBox from '../UserMediaBox'
@@ -18,7 +18,7 @@ import RegisterScreen from '../RegisterScreen'
 import {track} from 'src/lib/posthog'
 
 const PhotoPage = () => {
-  requireWalletConnected()
+  requireAuthenticated()
   requireCameraAllowed()
   requireNoExistingProfile()
 
