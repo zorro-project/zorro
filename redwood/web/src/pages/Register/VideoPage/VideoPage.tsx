@@ -132,7 +132,7 @@ const RecordVideoStep = ({mockRecording}: {mockRecording?: boolean}) => {
             Ready to be sworn in? Just read the words on the next screen.
           </Text>
         ) : (
-          <Text>{`"${registrationStatement}"`}</Text>
+          <Text fontSize="xl">{`"${registrationStatement}"`}</Text>
         )
       }
       primaryButtonLabel={
