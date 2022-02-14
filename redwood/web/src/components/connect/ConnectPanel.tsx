@@ -12,6 +12,7 @@ import {
   Stack,
   UseDisclosureReturn,
 } from '@chakra-ui/react'
+import {track} from 'src/lib/posthog'
 import {Connector, useConnect} from 'wagmi'
 import connectors from './connectors'
 
@@ -43,11 +44,11 @@ export default function ConnectPanel({
     const resp = await connect[1](connector)
     if (resp?.data) {
       control.onClose()
+      track('connected successfully')
       onSuccess?.()
     }
   }
 
-  console.log(connect[0].error)
   return (
     <Modal
       isOpen={control.isOpen}
