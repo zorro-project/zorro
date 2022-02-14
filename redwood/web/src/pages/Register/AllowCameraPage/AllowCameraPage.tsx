@@ -8,11 +8,11 @@ import {
 } from 'mic-check'
 import {useState} from 'react'
 import {track} from 'src/lib/posthog'
-import {requireWalletConnected} from '../../../lib/guards'
+import {requireAuthenticated} from '../../../lib/guards'
 import RegisterScreen from '../RegisterScreen'
 
 const AllowCameraPage: React.FC = () => {
-  requireWalletConnected()
+  requireAuthenticated()
 
   const [requestingPermissions, setRequestingPermissions] = useState(false)
 

@@ -13,7 +13,7 @@ import {useAppDispatch, useAppSelector} from 'src/state/store'
 import {AttemptRegistration, AttemptRegistrationVariables} from 'types/graphql'
 import {
   requireNoExistingProfile,
-  requireWalletConnected,
+  requireAuthenticated,
 } from '../../../lib/guards'
 import UserMediaBox from '../UserMediaBox'
 import MinimalVideoPlayer from 'src/components/MinimalVideoPlayer'
@@ -24,7 +24,7 @@ const SubmitPage: FC<{initialSubmitProgress?: number}> = ({
   initialSubmitProgress = -1,
 }) => {
   requireNoExistingProfile()
-  requireWalletConnected()
+  requireAuthenticated()
 
   const {registrationAttempt, auth, user} = useUser()
 

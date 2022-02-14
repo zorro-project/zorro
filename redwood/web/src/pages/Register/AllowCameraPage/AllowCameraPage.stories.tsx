@@ -3,7 +3,7 @@ import RegisterLayout from '../RegisterLayout'
 import AllowCameraPage from './AllowCameraPage'
 
 export const Page = () => (
-  <StoryMocks user={{connectedAddress: '0x123'}}>
+  <StoryMocks user={{user: {id: 1}}}>
     <RegisterLayout>
       <AllowCameraPage />
     </RegisterLayout>

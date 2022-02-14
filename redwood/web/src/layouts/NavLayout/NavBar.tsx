@@ -13,7 +13,7 @@ import {
 import {routes, useLocation, useMatch} from '@redwoodjs/router'
 import {useEffect} from 'react'
 import {BsGrid, BsPersonBadge, BsPersonPlus} from 'react-icons/bs'
-import ConnectButton from 'src/components/ConnectButton/ConnectButton'
+import ConnectButton from 'src/components/connect/ConnectButton'
 import {RLink} from 'src/components/links'
 import Logo from '../AppLayout/Logo'
 import {useUser} from '../UserContext'

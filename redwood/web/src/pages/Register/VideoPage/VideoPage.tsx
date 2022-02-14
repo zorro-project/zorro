@@ -6,7 +6,7 @@ import Webcam from 'react-webcam'
 import {
   requireCameraAllowed,
   requireNoExistingProfile,
-  requireWalletConnected,
+  requireAuthenticated,
 } from 'src/lib/guards'
 import {track} from 'src/lib/posthog'
 import {useGuard} from 'src/lib/useGuard'
@@ -24,7 +24,7 @@ export const videoConstraints: MediaTrackConstraints = {
 }
 
 const VideoPage = ({mockRecording = false}: {mockRecording?: boolean}) => {
-  requireWalletConnected()
+  requireAuthenticated()
   requireCameraAllowed()
   requireNoExistingProfile()
 

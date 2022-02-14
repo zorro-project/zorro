@@ -7,9 +7,7 @@ import {useUser} from 'src/layouts/UserContext'
 import {LatestRegistrationsQuery} from 'types/graphql'
 
 const HomePage = () => {
-  const {loading, cachedProfile, registrationAttempt} = useUser()
-
-  if (loading) return null
+  const {cachedProfile, registrationAttempt} = useUser()
 
   return (
     <>

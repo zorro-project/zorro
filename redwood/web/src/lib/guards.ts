@@ -6,10 +6,9 @@ import {useGuard} from 'src/lib/useGuard'
 import {appNav} from 'src/lib/util'
 import {IterableElement} from 'type-fest'
 
-export const requireWalletConnected = () => {
-  const {connectedAddress} = useUser()
-  // useGuard(connectedAddress, routes.registerIntro())
-  return connectedAddress
+export const requireAuthenticated = () => {
+  const {user, loading} = useUser()
+  useGuard(loading || user, routes.registerIntro())
 }
 
 export const requireNoExistingProfile = () => {

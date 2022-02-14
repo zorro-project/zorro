@@ -1,4 +1,5 @@
 const FaviconsWebpackPlugin = require('favicons-webpack-plugin')
+const ProvidePlugin = require('webpack/lib/ProvidePlugin')
 
 module.exports = (config) => {
   // Workaround to import typescript from the API side
@@ -18,6 +19,7 @@ module.exports = (config) => {
     options.babelrcRoots = ['.', '../api']
   }
 
+  // Automatically generate Favicon files
   config.plugins.push(
     new FaviconsWebpackPlugin({
       logo: './src/logo.svg',
@@ -34,6 +36,17 @@ module.exports = (config) => {
       },
     })
   )
+  config.plugins.push(
+    new ProvidePlugin({
+      Buffer: ['buffer', 'Buffer'],
+    })
+  )
 
+  // Polyfill for Buffer. Used by WalletConnect
+  // https://github.com/WalletConnect/walletconnect-monorepo/issues/748
+  config.resolve.fallback = {
+    ...config.resolve.fallback,
+    buffer: require.resolve('buffer/'),
+  }
   return config
 }

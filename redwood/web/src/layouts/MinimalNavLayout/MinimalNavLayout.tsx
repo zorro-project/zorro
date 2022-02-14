@@ -2,7 +2,7 @@ import {Box, Link, LinkProps, Flex, HStack, Divider} from '@chakra-ui/react'
 
 import LogoSVG from 'src/logo.svg'
 
-import ConnectButton from 'src/components/ConnectButton/ConnectButton'
+import ConnectButton from 'src/components/connect/ConnectButton'
 import {RLink} from 'src/components/links'
 import {routes} from '@redwoodjs/router'
 
@@ -24,7 +24,7 @@ const Nav = () => {
           <LogoSVG height="40" width="40" />
         </RLink>
         <HStack>
-          <ConnectButton size="sm" />
+          <ConnectButton />
         </HStack>
       </Flex>
     </Box>

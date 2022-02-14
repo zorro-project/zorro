@@ -3,7 +3,6 @@ import AppLayout from './layouts/AppLayout/AppLayout'
 import MinimalNavLayout from './layouts/MinimalNavLayout/MinimalNavLayout'
 import ChallengeProfilePage from './pages/ChallengeProfilePage/ChallengeProfilePage'
 import RegisterLayout from 'src/pages/Register/RegisterLayout'
-import HowItWorksPage from './pages/Register/HowItWorksPage/HowItWorksPage'
 
 const Routes = () => {
   return (
@@ -13,7 +12,7 @@ const Routes = () => {
         <Set wrap={RegisterLayout}>
           <Route path="/register" page={RegisterIntroPage} name="registerIntro" />
           <Route path="/register/{purposeIdentifier}/{externalAddress}" page={RegisterIntroPage} name="registerAndConnect" />
-          <Route path="/register/how-it-works" page={HowItWorksPage} name="registerHowItWorks" />
+          <Route path="/register/how-it-works" page={RegisterHowItWorksPage} name="registerHowItWorks" />
           <Route path="/register/connect" page={RegisterConnectWalletPage} name="registerConnectWallet" />
           <Route path="/register/allow-camera" page={RegisterAllowCameraPage} name="registerAllowCamera" />
           <Route path="/register/photo" page={RegisterPhotoPage} name="registerPhoto" />
@@ -34,7 +33,6 @@ const Routes = () => {
           <Route path="/create-connection" page={CreateConnectionPage} name="createConnection" />
           <Route path="/test-transaction" page={TestTransactionPage} name="testTransaction" />
           <Route notfound page={NotFoundPage} />
-          <Route path="/user" page={UserPage} name="user" />
         </Set>
       </Set>
     </Router>

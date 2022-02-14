@@ -3,10 +3,7 @@ import RegisterLayout from '../RegisterLayout'
 import VideoPage from './VideoPage'
 
 export const Start_Recording = () => (
-  <StoryMocks
-    user={{connectedAddress: '0x456'}}
-    state={{register: {photo: 'test'}}}
-  >
+  <StoryMocks user={{user: {id: 1}}} state={{register: {photo: 'test'}}}>
     <RegisterLayout>
       <VideoPage />
     </RegisterLayout>
@@ -14,10 +11,7 @@ export const Start_Recording = () => (
 )
 
 export const Recording_Started = () => (
-  <StoryMocks
-    user={{connectedAddress: '0x456'}}
-    state={{register: {photo: 'test'}}}
-  >
+  <StoryMocks user={{user: {id: 1}}} state={{register: {photo: 'test'}}}>
     <RegisterLayout>
       <VideoPage mockRecording={true} />
     </RegisterLayout>
@@ -26,7 +20,7 @@ export const Recording_Started = () => (
 
 export const Review = () => (
   <StoryMocks
-    user={{connectedAddress: '0x456'}}
+    user={{user: {id: 1}}}
     state={{
       register: {
         photo: 'test',
@@ -43,7 +37,7 @@ export const Review = () => (
 
 export const Review_Vertical_Video = () => (
   <StoryMocks
-    user={{connectedAddress: '0x456'}}
+    user={{user: {id: 1}}}
     state={{
       register: {
         photo: 'test',
