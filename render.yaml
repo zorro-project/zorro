@@ -29,6 +29,7 @@ services:
   - name: production-api
     type: web
     env: node
+    plan: Standard Plus
     region: oregon
     buildCommand: cd redwood && yarn install --frozen-lockfile && yarn rw build api
     startCommand: cd redwood && yarn rw deploy render api
@@ -70,6 +71,7 @@ services:
   - name: staging-api
     type: web
     env: node
+    plan: Standard Plus
     region: oregon
     buildCommand: cd redwood && yarn install --frozen-lockfile && yarn rw build api
     startCommand: cd redwood && yarn rw deploy render api
@@ -86,6 +88,54 @@ services:
     autoDeploy: false
 
   # END STAGING SERVICES
+
+  # STAGING FRONTEND EXPERIMENTS Points to the same database and contracts as
+  # staging, but lets us experiment with new frontend flows while keeping the
+  # testnet deployment in a working state. Don't deploy anything here that
+  # requires database migrations!
+
+  - name: staging-frontend-experiments-web
+    type: web
+    env: static
+    branch: staging-frontend-experiments
+    buildCommand: cd redwood && yarn install --frozen-lockfile && yarn rw deploy render web
+    staticPublishPath: ./redwood/web/dist
+    envVars:
+      - key: NODE_VERSION
+        value: 16
+      - fromGroup: zorro-staging
+    routes:
+      - type: rewrite
+        source: /.redwood/functions/*
+        destination: https://staging-frontend-experiments-api.zorro.xyz/*
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    domains:
+      - staging-frontend-experiments.zorro.xyz
+    autoDeploy: true
+
+  - name: staging-frontend-experiments-api
+    type: web
+    env: node
+    branch: staging-frontend-experiments
+    plan: Standard Plus
+    region: oregon
+    buildCommand: cd redwood && yarn install --frozen-lockfile && yarn rw build api
+    startCommand: cd redwood && yarn rw deploy render api
+    envVars:
+      - key: NODE_VERSION
+        value: 16
+      - key: DATABASE_URL
+        fromDatabase:
+          name: staging-db
+          property: connectionString
+      - fromGroup: zorro-staging
+    domains:
+      - staging-frontend-experiments-api.zorro.xyz
+    autoDeploy: true
+
+  # END STAGING FRONTEND EXPERIMENTS
 
 databases:
   - name: production-db
