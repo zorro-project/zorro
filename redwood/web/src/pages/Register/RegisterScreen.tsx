@@ -46,7 +46,7 @@ const RegisterScreen = ({
 }: RegisterScreenProps) => {
   const shouldShowLogo = !!hero
   return (
-    <Stack flex="1">
+    <Stack flex="1" height="100%">
       {hero}
       {!hero && <RegisterLogo pt={20} />}
       {title && !shouldHideTitle && (
