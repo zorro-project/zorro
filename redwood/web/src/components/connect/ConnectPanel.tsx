@@ -17,6 +17,7 @@ import {
   Box,
 } from '@chakra-ui/react'
 import {useEffect, useState} from 'react'
+import {track} from 'src/lib/posthog'
 import {Connector, useConnect} from 'wagmi'
 import connectors from './connectors'
 
@@ -64,6 +65,7 @@ export default function ConnectPanel({
     const resp = await connect[1](connector)
     if (resp?.data) {
       control.onClose()
+      track('connected successfully')
       onSuccess?.()
     }
     if (resp?.error) {
