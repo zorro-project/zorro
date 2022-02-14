@@ -1,9 +1,6 @@
 import {routes} from '@redwoodjs/router'
-import {requestMediaPermissions} from 'mic-check'
-import {useEffect} from 'react'
 import {UserContextType, useUser} from 'src/layouts/UserContext'
 import {useGuard} from 'src/lib/useGuard'
-import {appNav} from 'src/lib/util'
 import {IterableElement} from 'type-fest'
 
 export const requireAuthenticated = () => {
@@ -31,13 +28,6 @@ export const requireNoExistingProfile = () => {
       },
     }
   )
-}
-
-export const requireCameraAllowed = async () => {
-  // Make sure we have camera permissions
-  useEffect(() => {
-    requestMediaPermissions().catch(() => appNav(routes.registerAllowCamera()))
-  }, [])
 }
 
 export const requireRole = (

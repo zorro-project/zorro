@@ -5,7 +5,7 @@ const RegisterLayout: React.FC = ({children}) => {
   return (
     <Flex
       flexDir="column"
-      minH="100vh"
+      flex="1"
       background="gray.200"
       alignItems="center"
       justifyContent="center"
@@ -15,7 +15,7 @@ const RegisterLayout: React.FC = ({children}) => {
         maxW="lg"
         width="100%"
         mx="auto"
-        flex="0 1 650px"
+        flex={{base: 1, md: '0 1 650px'}}
         background="white"
         shadow="md"
         style={{position: 'relative'}}

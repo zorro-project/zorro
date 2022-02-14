@@ -3,13 +3,10 @@ import {Alert, Text} from '@chakra-ui/react'
 const deployment = process.env.CHAIN_DEPLOYMENT
 
 const TestnetWarning = () => {
-  if (deployment === 'staging') {
+  if (deployment === 'staging' || deployment === 'development') {
     return (
       <Alert display="flex" justifyContent="center" status="warning">
-        <Text>
-          This is an alpha testnet deployment of Zorro which is only for testing
-          purposes. Registrations may be reset periodically.
-        </Text>
+        <Text fontSize="sm">This is an alpha testnet deployment of Zorro.</Text>
       </Alert>
     )
   }

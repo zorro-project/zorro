@@ -6,7 +6,7 @@ import {ToastManager} from './ToastManager'
 
 const AppLayout: React.FC = ({children}) => (
   <GuardHandler>
-    <Flex flexDir="column" minH="100vh">
+    <Flex flexDir="column" minH="100%">
       <ToastManager />
       <PosthogManager />
       <TestnetWarning />

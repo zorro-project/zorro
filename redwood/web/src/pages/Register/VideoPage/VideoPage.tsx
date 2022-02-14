@@ -3,17 +3,13 @@ import {Fade} from '@chakra-ui/react'
 import {navigate, routes} from '@redwoodjs/router'
 import {useCallback, useRef, useState} from 'react'
 import Webcam from 'react-webcam'
-import {
-  requireCameraAllowed,
-  requireNoExistingProfile,
-  requireAuthenticated,
-} from 'src/lib/guards'
+import MinimalVideoPlayer from 'src/components/MinimalVideoPlayer'
+import {requireAuthenticated, requireNoExistingProfile} from 'src/lib/guards'
 import {track} from 'src/lib/posthog'
 import {useGuard} from 'src/lib/useGuard'
 import {maybeCidToUrl} from 'src/lib/util'
 import {registerSlice} from 'src/state/registerSlice'
 import {useAppDispatch, useAppSelector} from 'src/state/store'
-import MinimalVideoPlayer from 'src/components/MinimalVideoPlayer'
 import RegisterScreen from '../RegisterScreen'
 import UserMediaBox from '../UserMediaBox'
 
@@ -25,7 +21,6 @@ export const videoConstraints: MediaTrackConstraints = {
 
 const VideoPage = ({mockRecording = false}: {mockRecording?: boolean}) => {
   requireAuthenticated()
-  requireCameraAllowed()
   requireNoExistingProfile()
 
   const {photo, video} = useAppSelector((state) => state.register)
@@ -56,12 +51,17 @@ const RecordVideoStep = ({mockRecording}: {mockRecording?: boolean}) => {
   const startRecording = useCallback(async () => {
     track('recording started')
 
+    // Get the first supported mimetype from the list.
+    const mimeType = ['video/webm;codecs=vp8,opus', 'video/mp4'].filter(
+      MediaRecorder.isTypeSupported
+    )[0]
+
     setIsRecording(true)
     // @ts-expect-error TODO: why are we assigning to a supposedly readonly ref
     // here? Just copied the example from
     // https://codepen.io/mozmorris/pen/yLYKzyp?editors=0010
     mediaRecorderRef.current = new MediaRecorder(webcamRef.current.stream, {
-      mimeType: 'video/webm;codecs=vp8,opus',
+      mimeType,
     })
     mediaRecorderRef.current.addEventListener('dataavailable', ({data}) => {
       dispatch(registerSlice.actions.setVideo(URL.createObjectURL(data)))

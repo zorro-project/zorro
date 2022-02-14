@@ -4,8 +4,9 @@ import {StyleFunctionProps} from '@chakra-ui/theme-tools'
 const theme = extendTheme({
   styles: {
     global: {
-      'html, body': {
+      'html, body, #redwood-app': {
         background: 'gray.50',
+        height: '100%',
       },
     },
   },

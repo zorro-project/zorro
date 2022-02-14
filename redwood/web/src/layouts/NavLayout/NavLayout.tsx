@@ -2,7 +2,7 @@ import {Flex} from '@chakra-ui/react'
 import NavBar from './NavBar'
 
 const NavLayout: React.FC = ({children}) => (
-  <Flex flexDir="column" minH="100vh">
+  <Flex flexDir="column" minH="100%">
     <NavBar />
     <Flex flexDir="column" p={8} flex="1">
       {children}

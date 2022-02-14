@@ -25,4 +25,20 @@ export const Review = () => (
   </StoryMocks>
 )
 
+export const Review_Vertical = () => (
+  <StoryMocks
+    user={{user: {id: 1}}}
+    state={{
+      register: {
+        photo:
+          'https://ipfs.kleros.io/ipfs/QmZkijLi6wvNsxwn9NEs6geUKi3geeocL9o9WU1TddTDmi/photo5170237719635405227.jpg',
+      },
+    }}
+  >
+    <RegisterLayout>
+      <PhotoPage />
+    </RegisterLayout>
+  </StoryMocks>
+)
+
 export default {title: 'Pages/Register/4. Photo'}
