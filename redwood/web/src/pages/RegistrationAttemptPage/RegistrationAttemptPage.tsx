@@ -8,6 +8,7 @@ import React, {useEffect, useState} from 'react'
 import {RLink} from 'src/components/links'
 import MinimalVideoPlayer from 'src/components/MinimalVideoPlayer'
 import SquareBox, {PhotoBox} from 'src/components/SquareBox'
+import {requireRole} from 'src/lib/guards'
 import {appNav, maybeCidToUrl} from 'src/lib/util'
 import NotFoundPage from 'src/pages/NotFoundPage'
 import {
@@ -48,6 +49,8 @@ export const useNavigateToNextRegistrationAttempt = () => {
 }
 
 const RegistrationAttemptPage = ({id}: {id: string}) => {
+  requireRole('NOTARY')
+
   const [submitting, setSubmitting] = useState(false)
   const [deniedReason, setDeniedReason] = useState('')
 
