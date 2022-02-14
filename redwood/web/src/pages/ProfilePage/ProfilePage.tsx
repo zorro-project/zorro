@@ -1,11 +1,10 @@
 import {Breadcrumb, BreadcrumbItem, BreadcrumbLink} from '@chakra-ui/breadcrumb'
-import Icon from '@chakra-ui/icon'
-import {Box, Divider, Heading, Stack, Text} from '@chakra-ui/layout'
+import {Box, Divider, Heading, Stack} from '@chakra-ui/layout'
 import {routes} from '@redwoodjs/router'
 import {createCell, MetaTags} from '@redwoodjs/web'
 import React from 'react'
-import {FaCheck, FaTimes} from 'react-icons/fa'
 import {RLink} from 'src/components/links'
+import {NotVerifiedStatus, VerifiedStatus} from 'src/components/ProfileStatus'
 import {PhotoBox, VideoBox} from 'src/components/SquareBox'
 import {ProfilePageQuery} from 'types/graphql'
 import NotFoundPage from '../NotFoundPage/NotFoundPage'
@@ -68,13 +67,7 @@ const Success = (props: ProfilePageQuery) => {
       <Stack w="xl" maxW="100%" mx="auto" my="8" spacing="6">
         <Stack>
           <Heading size="md">Profile {profile.id}</Heading>
-          <Stack direction="row" alignItems="center">
-            <Icon
-              as={profile.isVerified ? FaCheck : FaTimes}
-              color={profile.isVerified ? 'green.500' : 'red.500'}
-            />
-            <Text>{profile.isVerified ? 'Verified' : 'Not Verified'}</Text>
-          </Stack>
+          {profile.isVerified ? <VerifiedStatus /> : <NotVerifiedStatus />}
         </Stack>
         <Divider />
         <Heading size="md" textAlign="center">

@@ -21,21 +21,15 @@ import {
 } from 'pure-react-carousel'
 import 'pure-react-carousel/dist/react-carousel.es.css'
 import Title from '../Title'
-import {useContext, useState} from 'react'
-import {FaInfo, FaInfoCircle, FaLock, FaUnlock} from 'react-icons/fa'
-import {
-  BsExclamationCircle,
-  BsExclamationCircleFill,
-  BsLock,
-  BsLockFill,
-  BsSkipEndCircleFill,
-} from 'react-icons/bs'
+import {useContext} from 'react'
+import {BsExclamationCircleFill, BsLockFill} from 'react-icons/bs'
 
 const HowItWorksPage = () => {
   requireNoExistingProfile()
 
   return (
     <CarouselProvider
+      // @ts-ignore
       style={{height: '100%'}}
       totalSlides={slides.length}
       isIntrinsicHeight={true}
@@ -95,7 +89,7 @@ const FirstSlide = () => (
   </Flex>
 )
 
-const SelfieRow = ({index}) => (
+const SelfieRow = ({index}: {index: number}) => (
   <HStack spacing={5}>
     <Text fontWeight="semibold">#{index}</Text>
     <Image

@@ -4,8 +4,19 @@ import {
   BsQuestionOctagon,
   BsShieldFillCheck,
 } from 'react-icons/bs'
+import {IconType} from 'react-icons/lib'
 
-const Status = ({icon, text, color, fontWeight}) => (
+const Status = ({
+  icon,
+  text,
+  color,
+  fontWeight,
+}: {
+  icon: IconType
+  text: string
+  color: string
+  fontWeight: string
+}) => (
   <HStack spacing="1">
     <Icon as={icon} color={color} />
     <Text color={color} fontWeight={fontWeight}>
