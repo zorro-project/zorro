@@ -1,21 +1,23 @@
-import {Button, Stack, Text, useDisclosure} from '@chakra-ui/react'
+import {Button, Stack, Text, useDisclosure, useToast} from '@chakra-ui/react'
 import {isMobile} from 'react-device-detect'
 import Identicon from 'src/components/Identicon'
 import {useUser} from 'src/layouts/UserContext'
 import {track} from 'src/lib/posthog'
 import {useAccount, useConnect} from 'wagmi'
-import AccountModal from './AccountModal'
+import AccountPanel from 'src/components/connect/AccountPanel'
 import AuthenticatePanel from './AuthenticatePanel'
+import connectors from './connectors'
 import ConnectPanel from './ConnectPanel'
 
 export default function ConnectButton() {
   const user = useUser()
-  const accountModalCtrl = useDisclosure()
+  const accountPanelCtrl = useDisclosure()
   const connectPanelCtrl = useDisclosure()
   const authenticatePanelCtrl = useDisclosure()
 
   const connect = useConnect()
   const [account] = useAccount()
+  const toast = useToast()
 
   const isLoading = connectPanelCtrl.isOpen || authenticatePanelCtrl.isOpen
   const connectedAddress = account?.data?.address
@@ -26,7 +28,7 @@ export default function ConnectButton() {
     !isLoading
   )
     return (
-      <Button variant="outline" onClick={accountModalCtrl.onOpen} size="sm">
+      <Button variant="outline" onClick={accountPanelCtrl.onOpen} size="sm">
         <Stack direction="row" alignItems="center">
           <Text fontWeight="bold">
             {connectedAddress.slice(0, 6)}...
@@ -36,7 +38,7 @@ export default function ConnectButton() {
             )}
           </Text>
           <Identicon account={connectedAddress} />
-          <AccountModal control={accountModalCtrl} />
+          <AccountPanel control={accountPanelCtrl} />
         </Stack>
       </Button>
     )
@@ -50,7 +52,16 @@ export default function ConnectButton() {
 
         if (isMobile) {
           // On mobile only support WalletConnect for now for simplicity.
-          connect[1](connect[0].data.connectors[1])
+          try {
+            const resp = await connect[1](connectors.walletConnect)
+            // If we connected successfully, open the AuthenticatePanel.
+            if (resp?.data) {
+              track('connected successfully')
+              authenticatePanelCtrl.onOpen()
+            }
+          } catch (e) {
+            toast({status: 'error', title: e.message})
+          }
         } else {
           connectPanelCtrl.onOpen()
         }

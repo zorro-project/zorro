@@ -19,7 +19,7 @@ import {
 import {routes} from '@redwoodjs/router'
 import {useUser} from 'src/layouts/UserContext'
 import {useAccount} from 'wagmi'
-import {RLink} from '../links'
+import {RLink} from 'src/components/links'
 
 export default function AccountModal({
   control,
