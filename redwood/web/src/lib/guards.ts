@@ -46,7 +46,7 @@ export const requireRole = (
   const {loading, user} = useUser()
 
   const hasRole = user?.roles?.includes(role)
-  useGuard(loading || hasRole, routes.user(), {
+  useGuard(loading || hasRole, routes.home(), {
     toast: {
       status: 'error',
       title: `You must be signed in to an account with the ${role} role to access this page.`,
