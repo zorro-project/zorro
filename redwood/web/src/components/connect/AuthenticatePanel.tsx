@@ -45,25 +45,21 @@ export default function AuthenticatePanel({
       <ModalOverlay />
       <ModalContent p={8}>
         <ModalHeader px={4} fontSize="lg" fontWeight="medium">
-          Authenticate
+          Protect privacy
         </ModalHeader>
         <ModalCloseButton />
         <ModalBody>
-          <Stack>
+          <Stack spacing={6}>
             <Text>
-              To protect the privacy of your connected wallet, we need you to
-              authenticate yourself by signing a string. We'll use the signature
-              to create a derived wallet that you'll use to interact with your
-              Zorro account. This way your on-chain activity won't be linked to
-              your public Zorro identity.
+              This step generates a new account in order to keep your connected
+              Ethereum address private.
             </Text>
             <Button
-              mt={4}
               colorScheme="purple"
               onClick={onAuthenticateButtonPressed}
               isLoading={loading}
             >
-              Authenticate
+              Generate private account
             </Button>
             {authError && (
               <Alert mt={4} status="error">

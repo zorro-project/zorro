@@ -1,6 +1,5 @@
 import {
   Button,
-  Link,
   Modal,
   ModalBody,
   ModalCloseButton,
@@ -16,10 +15,8 @@ import {
   Stack,
   Text,
 } from '@chakra-ui/react'
-import {routes} from '@redwoodjs/router'
 import {useUser} from 'src/layouts/UserContext'
 import {useAccount} from 'wagmi'
-import {RLink} from '../links'
 
 export default function AccountModal({
   control,
@@ -28,14 +25,14 @@ export default function AccountModal({
 }) {
   const [account, disconnect] = useAccount()
   if (!account?.data?.address) return null
-  const {user, cachedProfile} = useUser()
+  const {user} = useUser()
 
   return (
     <Modal
       isOpen={control.isOpen}
       onClose={control.onClose}
       isCentered
-      size="md"
+      size="lg"
     >
       <ModalOverlay />
       <ModalContent>
@@ -48,7 +45,6 @@ export default function AccountModal({
             <Table>
               <Tbody>
                 <Tr>
-                  <Th>Connected Address</Th>
                   <Td wordBreak="break-all">
                     <Stack>
                       <Text>{account.data.address}</Text>
@@ -56,23 +52,6 @@ export default function AccountModal({
                     </Stack>
                   </Td>
                 </Tr>
-                <Tr>
-                  <Th>Derived Address</Th>
-                  <Td wordBreak="break-all">{user?.ethereumAddress}</Td>
-                </Tr>
-                {cachedProfile && (
-                  <Tr>
-                    <Th>Registered Profile</Th>
-                    <Td>
-                      <Link
-                        as={RLink}
-                        href={routes.profilePage({id: cachedProfile.id})}
-                      >
-                        Profile {cachedProfile.id}
-                      </Link>
-                    </Td>
-                  </Tr>
-                )}
                 {(user?.roles.length ?? 0) > 0 && (
                   <Tr>
                     <Th>Roles</Th>
