@@ -37,7 +37,12 @@ const ConnectWalletPage: React.FC<{
     return (
       <RegisterScreen
         title="Connect wallet"
-        buttonDescription={<Text>Connect a wallet to continue.</Text>}
+        buttonDescription={
+          <Text>
+            To protect your privacy, your ethereum address will not be revealed
+            to anyone.
+          </Text>
+        }
         primaryButtonLabel={'Connect wallet'}
         primaryButtonProps={{
           onClick: () =>
@@ -53,11 +58,14 @@ const ConnectWalletPage: React.FC<{
   }
   return (
     <RegisterScreen
-      title="Authenticate"
-      primaryButtonLabel="Authenticate"
+      title="Protect privacy"
+      primaryButtonLabel="Generate private account"
       buttonDescription={
         <Stack>
-          <Text>Sign to authenticate.</Text>
+          <Text>
+            This step generates a new account in order to keep your connected
+            Ethereum address private.
+          </Text>
           {authError && (
             <Alert mt={4} status="error">
               {authError}
