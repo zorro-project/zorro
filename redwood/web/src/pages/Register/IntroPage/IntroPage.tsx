@@ -76,7 +76,7 @@ const IntroPage: React.FC<{
       primaryButtonLabel="Let's go!"
       primaryButtonProps={{
         as: RLink,
-        href: routes.registerConnectWallet(),
+        href: routes.registerHowItWorks(),
       }}
       secondaryButtonLabel="I'm already registered"
       secondaryButtonProps={{onClick: alreadyRegistered}}
