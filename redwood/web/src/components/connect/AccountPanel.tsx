@@ -6,19 +6,18 @@ import {
   ModalContent,
   ModalHeader,
   ModalOverlay,
+  Stack,
   Table,
   Tbody,
   Td,
-  Th,
+  Text,
   Tr,
   UseDisclosureReturn,
-  Stack,
-  Text,
 } from '@chakra-ui/react'
 import {useUser} from 'src/layouts/UserContext'
 import {useAccount} from 'wagmi'
 
-export default function AccountModal({
+export default function AccountPanel({
   control,
 }: {
   control: UseDisclosureReturn
@@ -37,7 +36,7 @@ export default function AccountModal({
       <ModalOverlay />
       <ModalContent>
         <ModalHeader px={4} fontSize="lg" fontWeight="medium">
-          Connected Account
+          Connected account
         </ModalHeader>
         <ModalCloseButton />
         <ModalBody>
@@ -54,8 +53,7 @@ export default function AccountModal({
                 </Tr>
                 {(user?.roles.length ?? 0) > 0 && (
                   <Tr>
-                    <Th>Roles</Th>
-                    <Td>{user?.roles.join(', ')}</Td>
+                    <Td>Roles: {user?.roles.join(', ')}</Td>
                   </Tr>
                 )}
               </Tbody>
