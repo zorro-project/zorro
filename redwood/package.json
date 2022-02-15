@@ -9,7 +9,7 @@
   },
   "scripts": {
     "dev": "rw dev",
-    "dev:bindall": "rw dev --fwd='--host=0.0.0.0'",
+    "dev:bindall": "rw dev --fwd='--host=0.0.0.0 --allowed-hosts=all'",
     "//": "useful for updating your dev database with migrations created by other developers",
     "dev:db:migrate": "yarn redwood prisma migrate dev",
     "dev:db:reset": "yarn redwood prisma migrate reset",

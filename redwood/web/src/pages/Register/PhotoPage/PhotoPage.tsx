@@ -1,25 +1,23 @@
-import {Text, OrderedList, ListItem} from '@chakra-ui/layout'
+import {ListItem, OrderedList, Text} from '@chakra-ui/layout'
 import {Image, ScaleFade} from '@chakra-ui/react'
 import {routes} from '@redwoodjs/router'
 import {useCallback, useRef, useState} from 'react'
 import Webcam from 'react-webcam'
 import {RLink} from 'src/components/links'
+import {track} from 'src/lib/posthog'
 import {maybeCidToUrl} from 'src/lib/util'
 import {registerSlice} from 'src/state/registerSlice'
 import {useAppDispatch, useAppSelector} from 'src/state/store'
 import {
-  requireCameraAllowed,
   requireAuthenticated,
   requireNoExistingProfile,
 } from '../../../lib/guards'
+import RegisterScreen from '../RegisterScreen'
 import UserMediaBox from '../UserMediaBox'
 import {videoConstraints} from '../VideoPage/VideoPage'
-import RegisterScreen from '../RegisterScreen'
-import {track} from 'src/lib/posthog'
 
 const PhotoPage = () => {
   requireAuthenticated()
-  requireCameraAllowed()
   requireNoExistingProfile()
 
   const {photo} = useAppSelector((state) => state.register)
@@ -83,18 +81,18 @@ const ConfirmPhotoStep = () => {
   return (
     <RegisterScreen
       hero={
-        <UserMediaBox>
-          <ScaleFade
-            in={true}
-            key={photo?.substring(0, 2000)}
-            transition={{enter: {duration: 1}}}
-            initialScale={1}
-            onAnimationComplete={() => setAreButtonsEnabled(true)}
-            style={{flex: 1, display: 'flex'}}
-          >
+        <ScaleFade
+          in={true}
+          key={photo?.substring(0, 2000)}
+          transition={{enter: {duration: 1}}}
+          initialScale={1}
+          onAnimationComplete={() => setAreButtonsEnabled(true)}
+          style={{flex: 1, display: 'flex'}}
+        >
+          <UserMediaBox>
             <Image src={maybeCidToUrl(photo!)} />
-          </ScaleFade>
-        </UserMediaBox>
+          </UserMediaBox>
+        </ScaleFade>
       }
       title="Confirm photo"
       description={

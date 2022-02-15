@@ -12,7 +12,7 @@ import {ComponentProps} from 'react'
 import RegisterLogo from './RegisterLogo'
 import Title from './Title'
 
-const containerHorizontalPadding = 4
+const containerHorizontalPadding = 8
 export const FullWidthBox = (props: BoxProps) => (
   <Box mx={-containerHorizontalPadding} {...props} />
 )
