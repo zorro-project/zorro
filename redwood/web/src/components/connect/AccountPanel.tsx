@@ -6,14 +6,13 @@ import {
   ModalContent,
   ModalHeader,
   ModalOverlay,
+  Stack,
   Table,
   Tbody,
   Td,
-  Th,
+  Text,
   Tr,
   UseDisclosureReturn,
-  Stack,
-  Text,
 } from '@chakra-ui/react'
 import {useUser} from 'src/layouts/UserContext'
 import {useAccount} from 'wagmi'
